@@ -1,24 +1,28 @@
 <?php
-/* =====================
+/* =======================================================================
  * Improved File Manager
- * =====================
+ * ---------------------
+ * License: This project is provided under the terms of the MIT LICENSE
+ * http://github.com/misterunknown/ifm/blob/master/LICENSE
+ * =======================================================================
 */
 // Configuration:
 $config = array( // 0 = no/not allowed;; 1 = yes/allowed;; default: no/forbidden;
 	// action controls
-	"upload" => 1,				// allow uploads?
+	"upload" => 1,				// allow uploads
 	"remoteupload" => 1,		// allow remote uploads using cURL
-	"delete" => 1,				// allow deletions?
-	"rename" => 1,				// allow renamings?
-	"edit" => 1,				// allow editing?
-	"chmod" => 1,				// allow to change rights?
-	"extract" => 1,				// allow extracting zip archives?
-	"download" => 1, 			// allow to download files and skripts (even php-Skripts!!)
+	"delete" => 1,				// allow deletions
+	"rename" => 1,				// allow renamings
+	"edit" => 1,				// allow editing
+	"chmod" => 1,				// allow to change rights
+	"extract" => 1,				// allow extracting zip archives
+	"download" => 1, 			// allow to download files and skripts (even php-Skripts!)
 	"selfdownload" => 1,		// allow to download this skript itself
 	"createdir" => 1,			// allow to create directorys
 	"createfile" => 1,			// allow to create files
 	"zipnload" => 1,			// allow to zip and download directorys
 	// view controls
+	"multiselect" => 1,			// implement multiselect of files and directories
 	"showlastmodified" => 0,	// show the last modified date?
 	"showfilesize" => 1,		// show filesize?
 	"showowner" => 1,			// show file owner?
@@ -73,6 +77,7 @@ if(isset($_POST["api"])) {
 				case "changePermissions": changePermissions($_POST); break;
 				case "zipnload": zipnload($_POST); break;
 				case "remoteUpload": remoteUpload($_POST); break;
+				case "deleteMultipleFiles": deleteMultipleFiles($_POST); break;
 				default: echo json_encode(array("status"=>"ERROR", "message"=>"No valid api action given")); break;
 			}
 		} else echo json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
@@ -221,6 +226,35 @@ function deleteFile(array $d) {
 			if(@unlink($d['filename']))
 				echo json_encode(array("status"=>"OK", "message"=>"File successful deleted"));
 			else echo json_encode(array("status"=>"ERROR", "message"=>"File could not be deleted"));
+		}
+	}
+}
+// deletes a bunch of files or directories
+function deleteMultipleFiles(array $d) {
+	global $config;
+	if($config["delete"] != 1||$config["multiselect"] != 1) echo json_encode(array("status"=>"ERROR", "message"=>"No permission to delete multiple files"));
+	else {
+		chDirIfNecessary($d['dir']);
+		$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
+		foreach($d['filenames'] as $file) {
+			if(is_dir($file)){
+				$res = rec_rmdir($file);
+				if($res != 0) array_push($err, $file); else $errFLAG = 0;
+			}
+			else { 
+				if(@unlink($file)) { $errFLAG = 0; }
+				else array_push($err, $file);
+			}
+		}
+		if(empty($err)) {
+			echo json_encode(array("status"=>"OK", "message"=>"Files deleted successfully", "errflag"=>"1"));
+		}
+		else {
+			$errmsg = "The following files could not be deleted:<ul>";
+			foreach($err as $item)
+				$errmsg .= "<li>".$item."</li>";
+			$errmsg .= "</ul>";
+			echo json_encode(array("status"=>"OK", "message"=>$errmsg, "flag"=>$errFLAG));
 		}
 	}
 }
@@ -441,24 +475,37 @@ INTERFACE - SECTION
 		
 		* { -moz-box-sizing: border-box; box-sizing: border-box; }
 		body { font-family: Arial, non-serif; font-weight: 100; font-size: 12pt; background: #FFFAF0;} 
+		footer { margin-top:20px; margin-bottom:10px; border:1px #CCC dashed; padding:3px; color:#222; font-size:0.6em; }
+		footer a { color:#00E; }
 		a { text-decoration:none; color: #000; cursor: pointer; }
 		a:hover { color: #333; }
 		img { vertical-align:middle; border:0; }
-		button > img { width: 19px; } a > img { width: 25px; }
-		button {
-			margin: 1px;
-			margin-top: 10px;
-			padding: 10px 20px;
-			border: 1px solid black;
-			}
+		button > img { width: 19px; } a > img { width: 25px; } #multiseloptions a > img { width:19px; }
+		button { margin: 1px; margin-top: 10px; padding: 10px 20px; border: 1px solid black; }
 		#tooltab button, #filetable button { margin:1px; padding:1px 4px; background: none; border: 0; }
+		#version { font-size:0.8em; }
 		#mess { position: fixed; top: 2em; left: 50%; z-index: 10; }
-		#mess>div {
-			position:relative; left:-50%;display: inline-block; padding: 25px;
-			background-color: #EEE;
+		#mess>div { position:relative; left:-50%;display: inline-block; padding: 25px; background-color: #EEE; border-radius: 10px; box-shadow:#333 3px 3px 10px; }
+		#mess .message_error {
+			background: #ff0000; /* Old browsers */
+			background: -moz-linear-gradient(top,  #ff0000 0%, #ff7777 100%); /* FF3.6+ */
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ff0000), color-stop(100%,#ff7777)); /* Chrome,Safari4+ */
+			background: -webkit-linear-gradient(top,  #ff0000 0%,#ff7777 100%); /* Chrome10+,Safari5.1+ */
+			background: -o-linear-gradient(top,  #ff0000 0%,#ff7777 100%); /* Opera 11.10+ */
+			background: -ms-linear-gradient(top,  #ff0000 0%,#ff7777 100%); /* IE10+ */
+			background: linear-gradient(to bottom,  #ff0000 0%,#ff7777 100%); /* W3C */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff0000', endColorstr='#ff7777',GradientType=0 ); /* IE6-9 */
 		}
-		#mess .message_error { background-color: white; border: 2px solid red; }
-		#mess .message_successful { background-color: white; border: 2px solid lightgreen; }
+		#mess .message_successful {
+			background: #ff0000; /* Old browsers */
+			background: -moz-linear-gradient(top,  #00dd00 0%, #77ee77 100%); /* FF3.6+ */
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#00dd00), color-stop(100%,#77ee77)); /* Chrome,Safari4+ */
+			background: -webkit-linear-gradient(top,  #00dd00 0%,#77ee77 100%); /* Chrome10+,Safari5.1+ */
+			background: -o-linear-gradient(top,  #00dd00 0%,#77ee77 100%); /* Opera 11.10+ */
+			background: -ms-linear-gradient(top,  #00dd00 0%,#77ee77 100%); /* IE10+ */
+			background: linear-gradient(to bottom,  #00dd00 0%,#77ee77 100%); /* W3C */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00dd00', endColorstr='#77ee77',GradientType=0 ); /* IE6-9 */
+		}
 		#tooltab { clear: both; padding: 3px; width: 100%; border-collapse:collapse; margin-bottom:3px; }
 		#tooltab .cell_content { } #tooltab .cell_buttons { text-align: right; } #options ul { text-align: left; }
 		#tooltab input[type="text"], textarea { width: 75%; margin-left: 5px; }
@@ -474,15 +521,17 @@ INTERFACE - SECTION
 		#filetable tr:nth-child(2n) { background-color: #EBEBEB;}
 		#filetable tbody tr.selected { border: 1px dashed #777 !important; background-color: #FFE4C4; }
 		#filetable tbody tr:last-child { border-bottom: 1px solid #EBEBEB; }
-		#filetable input { width:90px; }
+		#filetable input[type^=text] { width:90px; }
 		.download-link { font-size: 0.8em; }
-		.overlay fieldset { border: 0; background-color: white;}
+		.overlay { z-index:5; } .overlay fieldset { border: 0; background-color: white;}
 		.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; background-color: rgba(0,0,0,0.7);}
 		.overlay form { width: 80%; margin: 3em auto; text-align: left; } .overlay form fieldset { position:relative; }
 		.overlay input[type=text], .overlay textarea { margin: 2px 0; border: solid 1px #ccc; padding: 0.4em; background-color: #f5f5f5; width: 100%;}
 		.overlay textarea { height: 20em; } .overlay select { float:right; }
 		#waitqueue { display:inline-block; position:fixed; padding: 3px; font-size:0.8em; bottom:5px; right:5px; background-color:rgba(0,0,0,0.2); }
 		#waitqueue>div{padding:2px;}#waitqueue>div>div{margin:0 6px 0 0;}
+		#multiseloptions { border:1px solid #000; box-shadow:#333 3px 3px 10px; position:fixed; top:25%; left:60%; background:#FFF; padding:0; z-index:1; overflow:hidden; }
+		#multiseloptions p { margin:0; padding:2px; background-color:#DDD; } #multiseloptions ul { margin:0;padding:2px 2px 2px 10px;list-style:none; }
 		
 		#warningGradientOuterBarG{display:inline-block;height:10px;width:80px;border:1px solid #D4D4D4;overflow:hidden;background-color:#FFFFFF;background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FFFFFF), to(#D4D4D4));background: -moz-linear-gradient(top, #FFFFFF, #D4D4D4);background: -webkit-linear-gradient(top, #FFFFFF, #D4D4D4);background: -o-linear-gradient(top, #FFFFFF, #D4D4D4);background: -ms-linear-gradient(top, #FFFFFF, #D4D4D4);background: linear-gradient(top, #FFFFFF, #D4D4D4);}
 		.warningGradientBarLineG{background-color:#FFFFFF;float:left;width:7px;height:60px;margin-right:12px;margin-top:-14px;-moz-transform:rotate(45deg);-webkit-transform:rotate(45deg);-o-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg);}
@@ -574,6 +623,7 @@ INTERFACE - SECTION
 				// --------------
 				refreshFileTable: function () {
 					$("#filetable tbody tr").remove();
+					if(document.getElementById("multiseloptions"))$("#multiseloptions").remove();
 					$.ajax({
 						url: ifm.IFM_SCFN,
 						type: "POST",
@@ -583,10 +633,16 @@ INTERFACE - SECTION
 							function(data) {
 								for(i=0;i<data.length;i++) {
 									var newrow = "<tr>";
+									var multisel = '';
+									if(ifm.config.multiselect == 1) {
+										multisel = '<input type="checkbox" ';
+										multisel += (!ifm.inArray(data[i].name, ["..", "."]))?'id="'+data[i].name+'" name="multisel"':'style="visibility:hidden"';
+										multisel += '>';
+									}
 									if(data[i].type=="file")
-										newrow += '<td><a href="'+ifm.pathCombine(ifm.currentDir,data[i].name)+'"><img src="'+ifm.icons[data[i].picture]+'" alt=""> '+data[i].name+'</td>';
+										newrow += '<td>'+multisel+'<a href="'+ifm.pathCombine(ifm.currentDir,data[i].name)+'"><img src="'+ifm.icons[data[i].picture]+'" alt=""> '+data[i].name+'</td>';
 									else
-										newrow += '<td><a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><img src="'+ifm.icons[data[i].picture]+'" alt=""> '+data[i].name+'</td>'
+										newrow += '<td>'+multisel+'<a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><img src="'+ifm.icons[data[i].picture]+'" alt=""> '+data[i].name+'</td>'
 									if(ifm.config.download == 1) {
 										if(data[i].type != "dir")
 											newrow += '<td class="download-link">\
@@ -628,20 +684,23 @@ INTERFACE - SECTION
 													</fieldset>\
 													</form>';
 											}
-											else if(data[i].name.substr(-4) == ".zip") {
-												if(ifm.config.extract == 1) newrow += '<button onclick="ifm.extractFileDialog(\''+data[i].name+'\');return false;"><img src="'+ifm.icons["extract.png"]+'" alt="extract" /></button>';
+											else if(data[i].name.toLowerCase().substr(-4) == ".zip") {
+												if(ifm.config.extract == 1) newrow += '<button onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["extract.png"]+'" alt="extract" /></button>';
 											}
 											else {
-												if(ifm.config.edit == 1) newrow += '<button onclick="ifm.editFile(\''+data[i].name+'\');return false;"><img src="'+ifm.icons["edit.png"]+'" alt="edit" /></button>';
+												if(ifm.config.edit == 1) newrow += '<button onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["edit.png"]+'" alt="edit" /></button>';
 											}
-											if(ifm.config.rename == 1) newrow += '<button onclick="ifm.renameFileDialog(\''+data[i].name+'\');return false;"><img src="'+ifm.icons["rename.png"]+'" alt="rename" /></button>';
-											if(ifm.config.delete == 1) newrow += '<button onclick="ifm.deleteFileDialog(\''+data[i].name+'\');return false;"><img src="'+ifm.icons["delete.png"]+'" alt="delete" /></button>';
+											if(ifm.config.rename == 1) newrow += '<button onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["rename.png"]+'" alt="rename" /></button>';
+											if(ifm.config.delete == 1) newrow += '<button onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["delete.png"]+'" alt="delete" /></button>';
 										}
 										newrow += '</td></tr>';
 									}
 									$("#filetable tbody").append(newrow);
 								}
-								//$("#filetable").dataTable();
+								// bind multiselect handler
+								if(ifm.config.multiselect == 1) {
+									$("input[name=multisel]").on("change", function(){ ifm.handleMultiSelect(); });
+								}
 							},
 						error: function(response) { ifm.showMessage("General error occured: No or broken response", "e"); }
 					});
@@ -707,7 +766,7 @@ INTERFACE - SECTION
 							</fieldset>\
 						</form>\
 					</div>');
-					bindOverlayClickEvent();
+					ifm.bindOverlayClickEvent();
 				},
 				saveFile: function() {
 					var _content = (ifm.config.codemirror==1&&ifm.cm)?ifm.cm.doc.getValue():$("#showFile textarea[name^=content]").val();
@@ -757,7 +816,7 @@ INTERFACE - SECTION
 						<form id="deleteFile">\
 						<fieldset>\
 							<label>Do you really want to delete the file '+name+'?\
-							<button onclick="ifm.deleteFile(\''+name+'\');$(\'.overlay\').remove();return false;">Yes</button><button onclick="$(\'.overlay\').remove();return false;">No</button>\
+							<button onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');$(\'.overlay\').remove();return false;">Yes</button><button onclick="$(\'.overlay\').remove();return false;">No</button>\
 						</fieldset>\
 						</form>\
 					</div>');
@@ -810,7 +869,7 @@ INTERFACE - SECTION
 						<fieldset>\
 							<label>Rename '+name+' to:</label>\
 							<input type="text" name="newname" />\
-							<button onclick="ifm.renameFile(\''+name+'\');$(\'.overlay\').remove();return false;">Rename</button><button onclick="$(\'.overlay\').remove();return false;">Cancel</button>\
+							<button onclick="ifm.renameFile(\''+ifm.JSEncode(name)+'\');$(\'.overlay\').remove();return false;">Rename</button><button onclick="$(\'.overlay\').remove();return false;">Cancel</button>\
 						</fieldset>\
 						</form>\
 					</div>');
@@ -837,12 +896,16 @@ INTERFACE - SECTION
 					});
 				},
 				extractFileDialog: function(name) {
+					var fuckWorkarounds="";
+					if(fuckWorkarounds.lastIndexOf(".") > 1)
+						fuckWorkarounds = name.substr(0,name.length-4);
+					else fuckWorkarounds = name;
 					$(document.body).prepend('<div class="overlay">\
 						<form id="extractFile">\
 						<fieldset>\
 							<label>Extract '+name+' to:</label>\
-							<button onclick="ifm.extractFile(\''+name+'\', 0);$(\'.overlay\').remove();return false;">here</button>\
-							<button onclick="ifm.extractFile(\''+name+'\', 1);$(\'.overlay\').remove();return false;">'+name.substr(0,name.length-4)+'/</button>\
+							<button onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 0);$(\'.overlay\').remove();return false;">here</button>\
+							<button onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 1);$(\'.overlay\').remove();return false;">'+fuckWorkarounds+'/</button>\
 							<button onclick="$(\'.overlay\').remove();return false;">Cancel</button>\
 						</fieldset>\
 						</form>\
@@ -903,13 +966,12 @@ INTERFACE - SECTION
 						success: function(data) {
 									if(data.status == "OK") {
 										ifm.showMessage("File successfully uploaded", "s");
-										ifm.refreshFileTable();
 									} else ifm.showMessage("File could not be uploaded: "+data.message, "e");
 									ifm.uFI_done(id);
 								},
 						error: function() { ifm.showMessage("General error occured", "e"); $("#waitqueue").remove(); }
 					});
-					ifm.uFI_add(ufile.name, id);
+					ifm.uFI_add("Upload "+ufile.name, id);
 				},
 				changePermissions: function(e, name) {
 					if(e.keyCode == '13')
@@ -1004,17 +1066,68 @@ INTERFACE - SECTION
 					$(".overlay").click(function() { $(this).remove(); });
 					$(".overlay *").click(function(e) { e.stopPropagation(); });
 				},
+				handleMultiSelect: function() {
+					var amount = $("input[name=multisel]:checked").length;
+					if(amount > 0) {
+						if(document.getElementById("multiseloptions")===null) {
+							$(document.body).prepend('<div id="multiseloptions">\
+								<div style="font-size:0.8em;background-color:#00A3A3;padding:2px;">\
+									<a style="color:#FFF" onclick="$(\'input[name=multisel]\').attr(\'checked\', false);$(\'#multiseloptions\').remove();">[close]</a>\
+								</div>\
+								<ul><li><a onclick="ifm.multiDelete();"><img src="'+ifm.icons['delete.png']+'" alt=""> delete (<span class="amount"></span>)</a></li></ul></div>\
+							');
+							$("#multiseloptions").draggable();
+							//$("#multiseloptions").resizable({ghost: true, minHeight: 50, minWidth: 100});
+						}
+						$("#multiseloptions .amount").text(amount);
+					}
+					else {
+						if(document.getElementById("multiseloptions")!==null)
+							$("#multiseloptions").remove();
+					}
+				},
+				multiDelete: function() {
+					var jel = $("input[name=multisel]:checked");
+					if(jel.length == 0) {
+						ifm.showMessage("No files chosen");
+						return;
+					}
+					var ids = [];
+					for(var i = 0; i < jel.length; i++) ids.push(jel[i].id);
+					$.ajax({
+						url: ifm.IFM_SCFN,
+						type: "POST",
+						data: ({
+							api: "deleteMultipleFiles",
+							dir: ifm.currentDir,
+							filenames: ids
+						}),
+						dataType: "json",
+						success: function(data) {
+									if(data.status == "OK") {
+										if(data.flag == 1)
+											ifm.showMessage("All files successfully deleted.", "s");
+										else if(data.flag == 0)
+											ifm.showMessage("Some files successfully deleted. "+data.message);
+										else
+											ifm.showMessage("Files could not be deleted. "+data.message, "e");
+										ifm.refreshFileTable();
+									} else ifm.showMessage("Files could not be deleted:<br />"+data.message, "e");
+								},
+						error: function() { ifm.showMessage("General error occured", "e"); }
+					});
+				},
 				inArray: function(needle, haystack) {
 					for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
 				},
-				uFI_add: function(name,id) { // stands for uploadFileInformation
+				uFI_add: function(name,id) { // uFI stands for uploadFileInformation
 					if(!document.getElementById("waitqueue")) {
 						$(document.body).prepend('<div id="waitqueue"></div>');
 					}
 					$("#waitqueue").append('<div id="'+id+'"><div id="warningGradientOuterBarG"><div id="warningGradientFrontBarG" class="warningGradientAnimationG">\
 							<div class="warningGradientBarLineG"></div><div class="warningGradientBarLineG"></div><div class="warningGradientBarLineG">\
 							</div><div class="warningGradientBarLineG"></div><div class="warningGradientBarLineG"></div><div class="warningGradientBarLineG">\
-							</div></div></div>Upload '+name+'</div>');
+							</div></div></div> '+name+'</div>');
 				},
 				uFI_done: function(id) {
 					$("#"+id).remove();
@@ -1030,6 +1143,9 @@ INTERFACE - SECTION
 						result = result + i;
 					}
 					return result;
+				},
+				JSEncode: function(s) {
+					return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
 				},
 				// static button bindings and filetable initial filling
 				init: function() {
@@ -1115,6 +1231,7 @@ INTERFACE - SECTION
 		<tbody>
 		</tbody>
 	</table>
+	<footer>IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></footer>
 </body>
 </html>
 <?php
@@ -1254,7 +1371,7 @@ function checkCurl() {
 } 
 // This function provides jQuery.
 function getJquery() {
-// we use the heredoc syntax, so we have no quoting problems
+// we use the nowdoc syntax, so we have no quoting problems
 return <<<'AeDRWST'
 	/*! jQuery v2.0.3 | (c) 2005, 2013 jQuery Foundation, Inc. | jquery.org/license
 //@ sourceMappingURL=jquery-2.0.3.min.map
