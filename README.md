@@ -1,6 +1,6 @@
 # IFM - improved file manager
 This is a filemanager based on the "[Easy PHP File Manager](http://epfm.misterunknown.de)". It is also a single file solution which uses HTML5, CSS3, JavaScript and PHP, so it's like a client server system where HTML5/CSS3/JavaScript is the client and the PHP API acts as an server. So it is more dynamic and produces less traffic than the EPFM.
-The IFM comes with a embedded Version of [jQuery](http://jquery.com) and [CodeMirror](http://codemirror.net).
+The IFM comes with a embedded Version of [jQuery](http://jquery.com) and [ACE Editor](http://ace.c9.io).
 
 NOTICE: THIS SOFTWARE IS IN AN ALPHA STATUS! NO WARRANTY FOR CORRECT FUNCTION!
 ## requirements
