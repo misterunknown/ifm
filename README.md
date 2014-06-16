@@ -12,6 +12,9 @@ Server
   * >= PHP 5.4
   * optional: cURL extention (for remote upload)
 
+## issues
+If you are running the IFM on windows systems (e.g. XAMPP) it is necessary that you turn off showing the owner and group info in the configuration section. Otherwise the IFM uses functions that are not available in windows environments and will not work.
+
 ## installation
 Just copy this ifm.php to your webspace - thats all :)
 
