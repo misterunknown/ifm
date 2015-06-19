@@ -100,6 +100,7 @@ function getFiles($dir) {
 			elseif(($result==".htaccess" || $result==".htpasswd") && $config["showhtdocs"]!=1) {} // check if we are granted to see .ht-docs
 			elseif($result==".") {} // the folder itself will also be invisible
 			elseif($result!=".." && substr($result,0,1)=="." && $config["showhiddenfiles"]!=1) {} // eventually hide hidden files, if we should not see them
+            elseif(!@is_readable($result)) {}
 			else { // thats are the files we should see
 				$item = array();
 				$i = 0;
