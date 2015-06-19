@@ -1,8 +1,7 @@
 # IFM - improved file manager
-This is a filemanager based on the "[Easy PHP File Manager](http://epfm.misterunknown.de)". It is also a single file solution which uses HTML5, CSS3, JavaScript and PHP, so it's like a client server system where HTML5/CSS3/JavaScript is the client and the PHP API acts as an server. So it is more dynamic and produces less traffic than the EPFM.
+This is a simple filemanager. It is a single file solution which uses HTML5, CSS3, JavaScript and PHP. It works like a client-server system where HTML5/CSS3/JavaScript is the client part and the PHP API acts as the server, which reduces the traffic significant.
 The IFM comes with a embedded Version of [jQuery](http://jquery.com) and [ACE Editor](http://ace.c9.io).
 
-NOTICE: THIS SOFTWARE IS IN AN ALPHA STATUS! NO WARRANTY FOR CORRECT FUNCTION!
 ## requirements
 Client
   * HTML5 and CSS3 compatible browser
@@ -13,7 +12,7 @@ Server
   * optional: cURL extention (for remote upload)
 
 ## issues
-If you are running the IFM on windows systems (e.g. XAMPP) it is necessary that you turn off showing the owner and group info in the configuration section. Otherwise the IFM uses functions that are not available in windows environments and will not work.
+If you are running the IFM on windows systems (e.g. XAMPP) it is necessary that you configure ifm to hide file owner and group. Otherwise the IFM uses PHP functions that are not available in windows environments and will not work.
 
 ## installation
 Just copy this ifm.php to your webspace - thats all :)
@@ -22,11 +21,9 @@ Just copy this ifm.php to your webspace - thats all :)
 The configuration array is located at the top of the script, so you can customize it as you like. The directives in the array are commented and named laconically. If you have questions anyway [write me an email](mailto:marco@misterunknown.de).
 
 ## security information
-The IFM was developed with the assumption that the highest level of operation is the scripts own location. So it is neither possible to nagivate nor to use any API function above the script root.
+The IFM was developed with the assumption that the highest level of operation is the scripts base location. So it is neither possible to nagivate nor to use any API function in a level above the script root.
 
-The configuration is convenant for the client part (JavaScript: ifm.config) as well as for the API part (PHP: $config).
-
-IT IS HIGHLY RECOMMENDED TO RESTRICT ACCESS TO THE SCRIPT E.G. USING THE APACHE AUTHENTICATION.
+IT IS HIGHLY RECOMMENDED TO RESTRICT ACCESS TO THE SCRIPT E.G. USING THE APACHE BASIC AUTHENTICATION.
 
 ## references
 I used some nice free icons in my script which I want to mention here:
@@ -34,5 +31,4 @@ I used some nice free icons in my script which I want to mention here:
   * other icons: [Mono icons from tutorial9.net](http://www.tutorial9.net/downloads/108-mono-icons-huge-set-of-minimal-icons/)
 
 ## developers
-written by Marco Dickert [(website)](http://misterunknown.de)
-designed by Sebastian Langer [(website)](http://sebastianl.de)
+written by Marco Dickert [(website)](http://misterunknown.de) marco@misterunknown.de
