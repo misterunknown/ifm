@@ -817,6 +817,8 @@ INTERFACE - SECTION
 							<input type="text" id="ajaxurl" required><br>\
 							<label>Data</label><br>\
 							<textarea id="ajaxdata"></textarea><br>\
+							<label>Method</label><br>\
+							<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
 							<button onclick="ifm.ajaxRequest();return false;">Request</button>\
 							<button onclick="$(\'.overlay\').remove();return false;">Close</button><br>\
 							<label>Response</label><br>\
@@ -832,7 +834,7 @@ INTERFACE - SECTION
 						url		: $("#ajaxurl").val(),
 						cache	: false,
 						data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-						type	: "GET",
+						type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
 						success	: function(response) { $("#ajaxresponse").text(response); },
 						error	: function(e) { ifm.showMessage("Error: "+e, "e"); console.log(e); },
 						complete: function() { ifm.hideLoading(); }
