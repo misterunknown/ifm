@@ -1529,12 +1529,12 @@ function checkCredentials($user, $pass) {
 			list($uname, $hash) = explode(":", $srcopt);
 			break;
 		case "file":
-			if(file_exists($srcopt) && is_readable($srcopt)) {
-				list($uname, $hash) = explode(":", fgets(fopen($file, 'r')));
+			if(@file_exists($srcopt) && @is_readable($srcopt)) {
+				list($uname, $hash) = explode(":", fgets(fopen($srcopt, 'r')));
 			}
 			break;
 	}
-	return password_verify($pass, $hash)?($uname == $user):false;
+	return password_verify($pass, trim($hash))?($uname == $user):false;
 }
 // print login form
 function loginForm($loginFailed=false) {
