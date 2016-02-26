@@ -32,6 +32,8 @@ $config = array( // 0 = no/not allowed;; 1 = yes/allowed;; default: no/forbidden
 	"showhtdocs" => 1,			// show .htaccess and .htpasswd
 	"showhiddenfiles" => 1,		// show files beginning with a dot (e.g. ".bashrc")
 	// general config
+	"auth" => 1,
+	"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 	"defaulttimezone" => "Europe/Berlin", // set default timezone
 	// development tools
 	"ajaxrequest" => 1			// formular to perform an ajax request
@@ -41,7 +43,37 @@ $config = array( // 0 = no/not allowed;; 1 = yes/allowed;; default: no/forbidden
 DONT CHANGE ANYTHING BELOW!
 
 ****************************************************************************************/
-$curVersion = '1.0';
+$curVersion = '1.1';
+
+/****************************************************************************************
+AUTHENTICATION
+****************************************************************************************/
+session_start();
+if($config["auth"] == 1 && $_SESSION['auth'] !== true) {
+	$login_failed = false;
+	if(isset($_POST["user"]) && isset($_POST["pass"])) {
+		if(checkCredentials($_POST["user"], $_POST["pass"])) {
+			$_SESSION['auth'] = true;
+		}
+		else {
+			$_SESSION['auth'] = false;
+			$login_failed = true;
+		}
+	}
+
+	if($_SESSION['auth'] !== true) {
+		if(isset($_POST["api"]) && $login_failed === true)
+			echo json_encode(array("status"=>"ERROR", "message"=>"authentication failed"));
+		elseif(isset($_POST["api"]) && $login_failed !== true)
+			echo json_encode(array("status"=>"ERROR", "message"=>"not authenticated"));
+		else
+			loginForm($login_failed);
+		
+		die();
+	}
+}
+
+
 /****************************************************************************************
 PHP API - SECTION
 ****************************************************************************************/
@@ -1488,6 +1520,51 @@ function checkCurl() {
       !function_exists("curl_close") ) return false; 
   else return true; 
 } 
+// check password and username
+function checkCredentials($user, $pass) {
+	global $config;
+	list($src, $srcopt) = explode(";", $config["auth_source"], 2);
+	switch($src) {
+		case "inline":
+			list($uname, $hash) = explode(":", $srcopt);
+			break;
+		case "file":
+			if(file_exists($srcopt) && is_readable($srcopt)) {
+				list($uname, $hash) = explode(":", fgets(fopen($file, 'r')));
+			}
+			break;
+	}
+	return password_verify($pass, $hash)?($uname == $user):false;
+}
+// print login form
+function loginForm($loginFailed=false) {
+	print '<!DOCTYPE HTML>
+<html>
+<head>
+    <title>IFM - improved file manager</title>
+    <meta charset="utf-8">
+    <style type="text/css">
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        html { text-align: center; }
+        body { margin:auto; width: auto; display: inline-block; }
+        form { padding: 1em; border: 1px dashed #CCC; }
+        button { margin-top: 1em; }
+        div.err { color: red; font-weight: bold; margin-bottom: 1em; }
+    </style>
+	</head>
+	<body>
+	<h1>IFM - Login</h1>
+	<form method="post">';
+	if($loginFailed){ print '<div class="err">Login attempt failed. Please try again.</div>'; }
+    print '<label>username:</label> <input type="text" name="user" size="12"><br>
+    <label>password:</label> <input type="password" name="pass" size="12"><br>
+    <button type="submit">login</button>
+	</form>
+	</body>
+	</html>
+	';
+}
+
 // This function provides jQuery.
 function getJquery() {
 // we use the nowdoc syntax, so we have no quoting problems
@@ -2055,4 +2132,5 @@ class zip_file extends archive {
 /****************************************************************************************
 SECTION END
 ****************************************************************************************/
+// vim:set ai:ts=4:sw=4:syn=php
 ?>
