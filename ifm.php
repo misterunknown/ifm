@@ -32,7 +32,7 @@ $config = array( // 0 = no/not allowed;; 1 = yes/allowed;; default: no/forbidden
 	"showhtdocs" => 1,			// show .htaccess and .htpasswd
 	"showhiddenfiles" => 1,		// show files beginning with a dot (e.g. ".bashrc")
 	// general config
-	"auth" => 1,
+	"auth" => 0,
 	"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 	"defaulttimezone" => "Europe/Berlin", // set default timezone
 	// development tools
