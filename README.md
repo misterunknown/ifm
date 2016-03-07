@@ -8,7 +8,7 @@ Client
   * activated JavaScript
 
 Server
-  * >= PHP 5.4
+  * >= PHP 5.5 (only if using auth; if not PHP 5.4 works either)
   * optional: cURL extention (for remote upload)
 
 ## issues
