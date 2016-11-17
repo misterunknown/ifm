@@ -306,7 +306,7 @@ class IFM {
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( is_dir( $d['filename'] ) ) {
-				$res = rec_rmdir( $d['filename'] );
+				$res = $this->rec_rmdir( $d['filename'] );
 				if( $res != 0 ) {
 					echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 				} else {
@@ -738,7 +738,7 @@ class IFM {
 		while( ( $entry = @readdir( $dir ) ) !== false ) {
 			if( $entry == '.' || $entry == '..' ) continue;
 			if( is_dir( $path . '/' . $entry ) ) {
-				$res = rec_rmdir( $path . '/' . $entry );
+				$res = $this->rec_rmdir( $path . '/' . $entry );
 				if( $res == -1 ) { @closedir( $dir ); return -2; }
 				else if( $res == -2 ) { @closedir(  $dir ); return -2; }
 				else if( $res == -3 ) { @closedir( $dir ); return -3; }
