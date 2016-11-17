@@ -325,7 +325,7 @@ class archive {
 }
 class zip_file extends archive {
     function __construct($name) {
-        $this->archive($name);
+		parent::__construct($name);
         $this->options['type'] = "zip";
     }
     function create_zip() {
