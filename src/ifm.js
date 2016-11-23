@@ -130,24 +130,30 @@ if(!ifm) {
 							if(data[i].group) newrow += '<td>'+data[i].group+'</td>';
 							if(ifm.inArray(1,[ifm.config.edit, ifm.config.rename, ifm.config.delete, ifm.config.zipnload, ifm.config.extract])) {
 								newrow += '<td>';
+								if(data[i].type == "dir") {
+									if( data[i].name == ".." ) data[i].name = ".";
+									if(ifm.config.zipnload == 1) {
+										newrow += '<form method="post" style="display:inline-block;padding:0;margin:0;border:0;">\
+												  <fieldset style="display:inline-block;padding:0;margin:0;border:0;">\
+												  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
+												  <input type="hidden" name="filename" value="'+data[i].name+'">\
+												  <input type="hidden" name="api" value="zipnload">';
+										if( data[i].name == "." )
+											newrow += '<sub>download current directory</sub>';
+										newrow += '<button type="submit">\
+												  <img src="'+ifm.icons["zipnload.png"]+'" alt="zip&amp;load">\
+												  </button>\
+												  </fieldset>\
+												  </form>';
+									}
+								}
+								else if(data[i].name.toLowerCase().substr(-4) == ".zip") {
+									if(ifm.config.extract == 1) newrow += '<button onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["extract.png"]+'" alt="extract" /></button>';
+								}
+								else {
+									if(ifm.config.edit == 1) newrow += '<button onclick="ifm.showLoading();ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["edit.png"]+'" alt="edit" /></button>';
+								}
 								if(data[i].name != ".." && data[i].name != ".") {
-									if(data[i].type == "dir") {
-										if(ifm.config.zipnload == 1)
-											newrow += '<form method="post" style="display:inline-block;padding:0;margin:0;border:0;">\
-											<fieldset style="display:inline-block;padding:0;margin:0;border:0;">\
-											<input type="hidden" name="dir" value="'+ifm.currentDir+'">\
-											<input type="hidden" name="filename" value="'+data[i].name+'">\
-											<input type="hidden" name="api" value="zipnload">\
-											<button type="submit"><img src="'+ifm.icons["zipnload.png"]+'" alt="zip&amp;load"></button>\
-											</fieldset>\
-											</form>';
-									}
-									else if(data[i].name.toLowerCase().substr(-4) == ".zip") {
-										if(ifm.config.extract == 1) newrow += '<button onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["extract.png"]+'" alt="extract" /></button>';
-									}
-									else {
-										if(ifm.config.edit == 1) newrow += '<button onclick="ifm.showLoading();ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["edit.png"]+'" alt="edit" /></button>';
-									}
 									if(ifm.config.rename == 1) newrow += '<button onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["rename.png"]+'" alt="rename" /></button>';
 									if(ifm.config.delete == 1) newrow += '<button onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><img src="'+ifm.icons["delete.png"]+'" alt="delete" /></button>';
 								}

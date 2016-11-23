@@ -11,7 +11,7 @@
 */
 
 class IFM {
-	const VERSION = '2.0';
+	const VERSION = '2.1';
 
 	public function __construct() {
 		session_start();
@@ -514,15 +514,26 @@ class IFM {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Directory not found" ) );
+			elseif ( ! $this->allowedFileName( $d['filename'] ) )
+				echo json_encode( array( "status" => "ERROR", "message" => "Filename not allowed" ) );
 			else {
 				unset( $zip );
 				$dfile = uniqid( "ifm-tmp-" ) . ".zip"; // temporary filename
-				$zip = new zip_file( $dfile );
-				$zip->add_files( $d['filename'] );
-				$zip->create_archive( );
-				header( "Content-Disposition: attachment; filename=\"".$d['filename'].".zip\"" );		
-				echo file_get_contents( $dfile );
-				unlink( $dfile ); // delete temporary file
+				try {
+					IFMZip::create_zip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					if( $d['filename'] == "." ) {
+						if( getcwd() == $this->getScriptRoot() )
+							$d['filename'] = "root";
+						else 
+							$d['filename'] = basename( getcwd() );
+					}
+					header( "Content-Disposition: attachment; filename=\"".$d['filename'].".zip\"" );		
+					readfile( $dfile );
+				} catch ( Exception $e ) {
+					echo "An error occured: " . $e->getMessage();
+				} finally {
+					if( file_exists( $dfile ) ) @unlink( $dfile );
+				}
 			}
 		}
 	}
@@ -684,7 +695,8 @@ class IFM {
 	}
 
 	private function getScriptRoot() {
-		return realpath( substr( $_SERVER["SCRIPT_FILENAME"], 0, strrpos( $_SERVER["SCRIPT_FILENAME"], "/" ) ) );
+		//return realpath( substr( $_SERVER["SCRIPT_FILENAME"], 0, strrpos( $_SERVER["SCRIPT_FILENAME"], "/" ) ) );
+		return dirname( $_SERVER["SCRIPT_FILENAME"] );
 	}
 
 	private function chDirIfNecessary($d) {
@@ -767,6 +779,8 @@ class IFM {
 		if( IFMConfig::showhtdocs != 1 && substr( $f, 0, 3 ) == ".ht" )
 			return false;
 		elseif( IFMConfig::showhiddenfiles != 1 && substr( $f, 0, 1 ) == "." )
+			return false;
+		elseif( ! $this->isPathValid( $f ) )
 			return false;
 		return true;
 	}

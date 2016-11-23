@@ -7,7 +7,7 @@ $IFM_INCLUDES = "src/includes.php";
 $IFM_MAIN = "src/main.php";
 $IFM_STYLE = "src/style.css";
 $IFM_JS = "src/ifm.js";
-$IFM_OTHER_PHPFILES = array("src/zip_file.php");
+$IFM_OTHER_PHPFILES = array("src/ifmzip.php");
 
 $filename = "ifm.php";
 
