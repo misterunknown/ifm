@@ -15,7 +15,8 @@ Server
 Currently there are no known issues.
 
 ## screenshot
-![IFM screenshot](https://misterunknown.de/static/ifm_screenshot.png "IFM screenshot")
+![IFM screenshot 1](https://misterunknown.de/static/ifm-screenshot-1.png "IFM screenshot")
+![IFM screenshot 2](https://misterunknown.de/static/ifm-screenshot-2.png "IFM screenshot")
 
 ## installation
 Just copy this ifm.php to your webspace - thats all :)
