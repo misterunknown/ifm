@@ -213,6 +213,7 @@ class IFM {
 						if( IFMConfig::showrights == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
 						elseif( IFMConfig::showrights == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
 						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
+						$item["filepermmode"] = ( IFMConfig::showrights == 1 ) ? "short" : "long";
 					}
 					if( IFMConfig::showowner == 1  ) {
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {

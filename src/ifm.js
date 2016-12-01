@@ -124,6 +124,7 @@ if(!ifm) {
 									newrow += ' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"';
 								else
 									newrow += " readonly";
+								newrow += ( data[i].filepermmode.trim() != "" ) ? ' class="' + data[i].filepermmode + '"' : '';
 								newrow += '></td>';
 							}
 							if(data[i].owner) newrow += '<td>'+data[i].owner+'</td>';
