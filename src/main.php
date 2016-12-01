@@ -6,7 +6,7 @@
  * License: This project is provided under the terms of the MIT LICENSE
  * http://github.com/misterunknown/ifm/blob/master/LICENSE
  * =======================================================================
- * 
+ *
  * main
 */
 
@@ -55,28 +55,28 @@ class IFM {
 								<div>';
 									// refresh button - always shows
 									print '<button id="refresh">';
-									echo ('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACdUlEQVRYhcWXMXraQBCFf/tLDzkBugHKCVA7FdwgpEkbpU1jfAPdILqBSTWtfIIoJwjcwHTpSLEjWJaVjAT+/Bqh1czs29m3M8vdfr/nPXE/xElEUhFZvRsBYAnkIjK+lsCHgX4LYATkwApcVoAUSMymBmpV3XQFuuurAZvot73ugB/AV2Da4vIMFKq6vhWBAvjWy+lIZKGqL/7gEA0sBvgAzIAq1M2rBEQk8X6nwKTDfIdb6Z+W71PgZCs6CdhRy7yhZYf5g6qOVTVT1RT4CDxG7GYicojTSkBESiBR1dIb7kr/SSxVfVHVFfAJlxkfi6iTTTwWkcqMcm886Zgc3zYgUnNOfN5KAChxgsl9xarqRlUT3Iq+A78Cv5Gf2oBEhdPGGU4KkR2xObANUu8Hq3FFpjCfBU4nGa4oRf1w4pu1EhCRjOP5XrUEiRFaW3BEJBGRcXjWDXXM389A6QUtzywvI7O50PSwHfcAtneT8OON4RegQy1oROirtHojAqk9d3jZbgjMQ+s3QLPIwtdIrB1He7zVgQpY9dWI+U6BLXZ6GsTqQBYL4gnsp4hsRGTV40KytOdF3XBqRzKGRjwT4AFoiCRtMxvJHPhiNeQEDYGwe62t84WogveREfkrImVLRnKgbNu2hkARjI9wvTus75tYEENro1LVaJ8A70YkIjXxa9WWYxXLjFwMj9b9esE/BUtcisMJJnRfQsCd7TCLF+EgQhNIhltxXxQt9f9yAh6JFHeTCS8RPv55vwevHjpuxabojGMJBSfCCtctP9vYoL1/lUAX7A7whFt9MjT9MPyvWWXPwXt/FQGb9Jkr9r7BoC24Jf4DVBHtitmrnbcAAAAASUVORK5CYII=" alt="refresh" />');
+									echo ('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACdUlEQVRYhcWXMXraQBCFf/tLDzkBugHKCVA7FdwgpEkbpU1jfAPdILqBSTWtfIIoJwjcwHTpSLEjWJaVjAT+/Bqh1czs29m3M8vdfr/nPXE/xElEUhFZvRsBYAnkIjK+lsCHgX4LYATkwApcVoAUSMymBmpV3XQFuuurAZvot73ugB/AV2Da4vIMFKq6vhWBAvjWy+lIZKGqL/7gEA0sBvgAzIAq1M2rBEQk8X6nwKTDfIdb6Z+W71PgZCs6CdhRy7yhZYf5g6qOVTVT1RT4CDxG7GYicojTSkBESiBR1dIb7kr/SSxVfVHVFfAJlxkfi6iTTTwWkcqMcm886Zgc3zYgUnNOfN5KAChxgsl9xarqRlUT3Iq+A78Cv5Gf2oBEhdPGGU4KkR2xObANUu8Hq3FFpjCfBU4nGa4oRf1w4pu1EhCRjOP5XrUEiRFaW3BEJBGRcXjWDXXM389A6QUtzywvI7O50PSwHfcAtneT8OON4RegQy1oROirtHojAqk9d3jZbgjMQ+s3QLPIwtdIrB1He7zVgQpY9dWI+U6BLXZ6GsTqQBYL4gnsp4hsRGTV40KytOdF3XBqRzKGRjwT4AFoiCRtMxvJHPhiNeQEDYGwe62t84WogveREfkrImVLRnKgbNu2hkARjI9wvTus75tYEENro1LVaJ8A70YkIjXxa9WWYxXLjFwMj9b9esE/BUtcisMJJnRfQsCd7TCLF+EgQhNIhltxXxQt9f9yAh6JFHeTCS8RPv55vwevHjpuxabojGMJBSfCCtctP9vYoL1/lUAX7A7whFt9MjT9MPyvWWXPwXt/FQGb9Jkr9r7BoC24Jf4DVBHtitmrnbcAAAAASUVORK5CYII=" title="refresh" />');
 									print '</button>';
 									// upload button
 									if(IFMConfig::upload == 1) {
 										print '<button id="upload">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABNUlEQVRYhe1W4c6DIAw8lD1cn/ge7lPZj4lhVaDIFrLku8RERdqjPU5cCAEjMQ3N/k/gJwiIyNu9iHgRCSIyX33zUQIiApJpEg/gbx9eRGQCAJK3SWQJVJJHrL0kLgkYk3+EhCsZkSF5ipnkFufFBdwm0Jj8RMKKkghdY3Lg1Y6mCb4yvgFISzSr8VU9N/9YihpIsa8s/TiQ7DYyF0KwKtfhVZGDADqdlOTRAl3aHAGNKfPeijUSWG5MdjhroDmGFmEtYE2EVhxxUgILyUduRkaEtV2Ui7Nhb53XgwUHO/W6JN5oyxfx3uI0r0ChJMLVYsc92yiKcLm6rI74rROR2RGHH8laNaD/DTmYK3AiUOhdIGlxzCOORQeaQNFaew6fCbLb0KPfWpsxXITm88C3MLwCwwk8Af8Lgc7C878GAAAAAElFTkSuQmCC" alt="Upload" />';
+										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABNUlEQVRYhe1W4c6DIAw8lD1cn/ge7lPZj4lhVaDIFrLku8RERdqjPU5cCAEjMQ3N/k/gJwiIyNu9iHgRCSIyX33zUQIiApJpEg/gbx9eRGQCAJK3SWQJVJJHrL0kLgkYk3+EhCsZkSF5ipnkFufFBdwm0Jj8RMKKkghdY3Lg1Y6mCb4yvgFISzSr8VU9N/9YihpIsa8s/TiQ7DYyF0KwKtfhVZGDADqdlOTRAl3aHAGNKfPeijUSWG5MdjhroDmGFmEtYE2EVhxxUgILyUduRkaEtV2Ui7Nhb53XgwUHO/W6JN5oyxfx3uI0r0ChJMLVYsc92yiKcLm6rI74rROR2RGHH8laNaD/DTmYK3AiUOhdIGlxzCOORQeaQNFaew6fCbLb0KPfWpsxXITm88C3MLwCwwk8Af8Lgc7C878GAAAAAElFTkSuQmCC" title="Upload" />';
 										print '</button>';
 									}
 									// create file button
 									if(IFMConfig::createfile == 1) {
 										print '<button id="createFile">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABDUlEQVRYhe2VsRGCQBBFn475WYIlUAIhm9mBlkIp0oHZppZACZQgFWjgoSdzCo4sJPejm+UP+2//8lkVRXFjJqjqql9bz9X8EzbdIaZuKojIxykvPoEkIAlIApKATaz4LbnG4JdUjQqYIpZFZAeUwD6oXYEzUKpqA0YWiEgG1MABcMEj52u159hYALRh426iwXsdcBGRbHILROTE45ZDcEBpYcF+mPLiWlkQnWJY8z2chQU/iY8K+BMt4EIhkSV8cs0sGImzhQU7HhngBqgtFl+BT7jcN+hE3XpTbYFcVRuTJFTVGsiAKhTizxWQeY7JEnYiGuAIr51S1W2ft/jvOAlYXMBzCWcMnzcsPoE7bQ1jbIj6ZSQAAAAASUVORK5CYII=" alt="create file" />';
+										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABDUlEQVRYhe2VsRGCQBBFn475WYIlUAIhm9mBlkIp0oHZppZACZQgFWjgoSdzCo4sJPejm+UP+2//8lkVRXFjJqjqql9bz9X8EzbdIaZuKojIxykvPoEkIAlIApKATaz4LbnG4JdUjQqYIpZFZAeUwD6oXYEzUKpqA0YWiEgG1MABcMEj52u159hYALRh426iwXsdcBGRbHILROTE45ZDcEBpYcF+mPLiWlkQnWJY8z2chQU/iY8K+BMt4EIhkSV8cs0sGImzhQU7HhngBqgtFl+BT7jcN+hE3XpTbYFcVRuTJFTVGsiAKhTizxWQeY7JEnYiGuAIr51S1W2ft/jvOAlYXMBzCWcMnzcsPoE7bQ1jbIj6ZSQAAAAASUVORK5CYII=" title="create file" />';
 										print '</button>';
 									}
 									// create directory button
 									if(IFMConfig::createdir == 1) {
 										print '<button id="createDir">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABP0lEQVRYhe2WsVWEQBCGP3zmZweeHdiBGBhMJLHRdSAlUMJZgS1ANCl2gBV4diAV7AUc7+3dAwGZPQzuD4dd/n9nZv/ZyDnHkrhalP0i4CIAuAYQkTVQAauR+2pgrao/cwW0GcgnkHNYm80lB4icc4hIaDN4VNWy68P/6IEOfKhqvJSAGqgClaVQ1cQPdJUgB14DkAPcnAbO3QPlGAGz7/Yv2A0JKIDkdJEhng6m1yugAm4DCngBvkRk0yfgXHgXkRSOnfCTpkbPlkyqGgF9bnvnZyC3Jh+BzBcQsvv7kLRO+A3cW/21TXtfzCvHyh/HsZWAKfBngdn18xtuoAmbW2BEuqPjEAMCCksfyP6wZ2uWAQARKYGHkcvfVDW1dsKEZp6MIgfDHvAhIjGQcmxsNc043vrvwyACpmDxR+niAvY9F2dckINLRQAAAABJRU5ErkJggg==" alt="create directory" />';
+										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABP0lEQVRYhe2WsVWEQBCGP3zmZweeHdiBGBhMJLHRdSAlUMJZgS1ANCl2gBV4diAV7AUc7+3dAwGZPQzuD4dd/n9nZv/ZyDnHkrhalP0i4CIAuAYQkTVQAauR+2pgrao/cwW0GcgnkHNYm80lB4icc4hIaDN4VNWy68P/6IEOfKhqvJSAGqgClaVQ1cQPdJUgB14DkAPcnAbO3QPlGAGz7/Yv2A0JKIDkdJEhng6m1yugAm4DCngBvkRk0yfgXHgXkRSOnfCTpkbPlkyqGgF9bnvnZyC3Jh+BzBcQsvv7kLRO+A3cW/21TXtfzCvHyh/HsZWAKfBngdn18xtuoAmbW2BEuqPjEAMCCksfyP6wZ2uWAQARKYGHkcvfVDW1dsKEZp6MIgfDHvAhIjGQcmxsNc043vrvwyACpmDxR+niAvY9F2dckINLRQAAAABJRU5ErkJggg==" title="create directory" />';
 										print '</button>';
 									}
 									// create options button
-									print '	<div id="options"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACh0lEQVRYhcWWzXHbMBCFP2VSgEqQKzBdgZXjnuwORFdguYOkAitpwHIH8ukdzVRgugKrg6gD5YClAoIgTf9k9GY0GiyweMv9xWS/33NMfDkqO/D1vYpmVgBPkehMUv1fDDCzOVACS0k7F58mx06B2s9PgRWwllQN3f1qCMzsDngEFv7foEiOxuvDeTNbf8iAlMQN6jXA9+O986ELx4RgQ3B/g9LMdsA8OTd38jKRb4Yun4wpQzP7A0xfPZhHIem5b7PjAf+KOfAT2Eja0vXCWGwlPXvFlMAFUEm6ag60PODZ/phcUgNb4DKR76K9GSHuqZe2/j9L5N+a6kg9kEuYgnZSbYGrXHn5B9xFhClxgwVQQVIFkn4Q6rcPa0LD6ZC7fgWc+bk+VMCyWWST0MwWmUtqgut2HYWu/pQQyrRU13H8oacPSLqnm3Q3Y8hdfwfcJOJVSg6RBzxT41+cD1tJJ2PIY5jZC+08+E3wZA3Ukuo4CePBkuLhreSR3nW0Pqf9YZOxrXiU69+jd/T3wMEASRNC7EtCKcazPW1CY5HqVX536Vz9syAzWE68LY+Cmc2Al0jUKUHIhMDMpj1TbahB5ZCeL6NRfkA6C/oaSIN7SalhHfgjZNGz3Wpo6Sy4HSAHWLiRy1w43O0rwtTrQ+E8VzkD1rRdvyOM4hn/HiAXwIWZPdBO1CJDXBMm5CzDA2SS0MxuXWkj6cFlTwx7pg+1pDMzOyV82CVD74EcMtn8VgxWz5hGlIvndUZWkx/DQ/kwyoBlsi4l/cIfFBEa16ZGlB81ICZa+aiGdgIe1m5EvFcxgFcN8AvnwHdJ8YzPGuCYEzxRJDodjHqW5+CZfSD1WfJmvNuAz8Jf0AgKZKIIqsQAAAAASUVORK5CYII=" alt="options" /><ul>';
+									print '	<div id="options"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACh0lEQVRYhcWWzXHbMBCFP2VSgEqQKzBdgZXjnuwORFdguYOkAitpwHIH8ukdzVRgugKrg6gD5YClAoIgTf9k9GY0GiyweMv9xWS/33NMfDkqO/D1vYpmVgBPkehMUv1fDDCzOVACS0k7F58mx06B2s9PgRWwllQN3f1qCMzsDngEFv7foEiOxuvDeTNbf8iAlMQN6jXA9+O986ELx4RgQ3B/g9LMdsA8OTd38jKRb4Yun4wpQzP7A0xfPZhHIem5b7PjAf+KOfAT2Eja0vXCWGwlPXvFlMAFUEm6ag60PODZ/phcUgNb4DKR76K9GSHuqZe2/j9L5N+a6kg9kEuYgnZSbYGrXHn5B9xFhClxgwVQQVIFkn4Q6rcPa0LD6ZC7fgWc+bk+VMCyWWST0MwWmUtqgut2HYWu/pQQyrRU13H8oacPSLqnm3Q3Y8hdfwfcJOJVSg6RBzxT41+cD1tJJ2PIY5jZC+08+E3wZA3Ukuo4CePBkuLhreSR3nW0Pqf9YZOxrXiU69+jd/T3wMEASRNC7EtCKcazPW1CY5HqVX536Vz9syAzWE68LY+Cmc2Al0jUKUHIhMDMpj1TbahB5ZCeL6NRfkA6C/oaSIN7SalhHfgjZNGz3Wpo6Sy4HSAHWLiRy1w43O0rwtTrQ+E8VzkD1rRdvyOM4hn/HiAXwIWZPdBO1CJDXBMm5CzDA2SS0MxuXWkj6cFlTwx7pg+1pDMzOyV82CVD74EcMtn8VgxWz5hGlIvndUZWkx/DQ/kwyoBlsi4l/cIfFBEa16ZGlB81ICZa+aiGdgIe1m5EvFcxgFcN8AvnwHdJ8YzPGuCYEzxRJDodjHqW5+CZfSD1WfJmvNuAz8Jf0AgKZKIIqsQAAAAASUVORK5CYII=" title="options" /><ul>';
 									$options = false;
 									if(IFMConfig::remoteupload == 1) {
 										print '<li><a onclick="ifm.remoteUploadDialog()">Remote upload</a></li>';
@@ -85,7 +85,7 @@ class IFM {
 									if(IFMConfig::ajaxrequest == 1) {
 										print '<li><a onclick="ifm.ajaxRequestDialog()">AJAX Request</a></li>';
 										$options = true;
-									}			
+									}
 									if(!$options) print '<li>No options available</li>';
 									print '</ul></div>';
 									print '<span id="version">ver '.IFM::VERSION.'</span>
@@ -292,7 +292,7 @@ class IFM {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( file_exists( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
-				$utf8content = mb_convert_encoding( $content, 'UTF-8', mb_detect_encoding( $content, 'UTF-8, ISO-8859-1', true ) ); 
+				$utf8content = mb_convert_encoding( $content, 'UTF-8', mb_detect_encoding( $content, 'UTF-8, ISO-8859-1', true ) );
 				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $utf8content ) ) );
 			} else echo json_encode( array( "status" => "ERROR", "message" => "File not found" ) );
 		}
@@ -313,7 +313,7 @@ class IFM {
 				   echo json_encode( array( "status" => "OK", "message" => "Directoy successful deleted" ) );
 				}
 			}
-			else{ 
+			else{
 				if( @unlink( $d['filename'] ) ) {
 					echo json_encode( array( "status" => "OK", "message" => "File successful deleted" ) );
 				} else {
@@ -336,7 +336,7 @@ class IFM {
 					   array_push( $err, $file );
 					else
 						$errFLAG = 0;
-				} else { 
+				} else {
 					if( @unlink($file) )
 						$errFLAG = 0;
 					else
@@ -408,7 +408,7 @@ class IFM {
 					echo json_encode( array( "status" => "ERROR","message" => "Target directory must not contain slashes" ) );
 				else {
 					switch( $d['targetdir'] ){
-						case "": 
+						case "":
 							if( $this->unzip( $_POST["filename"] ) )
 								echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
 							else
@@ -417,7 +417,7 @@ class IFM {
 						default:
 							if( ! mkdir( $d['targetdir'] ) )
 								echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory" ) );
-							else { 
+							else {
 								chdir( $d['targetdir'] );
 								if( ! $this->unzip( "../" . $d["filename"] ) ) {
 									chdir( ".." );
@@ -524,10 +524,10 @@ class IFM {
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
-						else 
+						else
 							$d['filename'] = basename( getcwd() );
 					}
-					header( "Content-Disposition: attachment; filename=\"".$d['filename'].".zip\"" );		
+					header( "Content-Disposition: attachment; filename=\"".$d['filename'].".zip\"" );
 					readfile( $dfile );
 				} catch ( Exception $e ) {
 					echo "An error occured: " . $e->getMessage();
@@ -549,21 +549,21 @@ class IFM {
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == true ) {
 			$filename = ( isset( $d['filename'] )&&$d['filename']!="" )?$d['filename']:"curl_".uniqid( );
 			$this->chDirIfNecessary( $d['dir'] );
-			$ch = curl_init( ); 
+			$ch = curl_init( );
 			if( $ch ) {
 				if( $this->allowedFileName( $filename ) == false )
 					echo json_encode( array( "status" => "ERROR", "message" => "This filename is not allowed due to the config." ) );
 				elseif( filter_var( $d['url'], FILTER_VALIDATE_URL ) === false )
 					echo json_encode( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
 				else {
-					$fp = fopen( $filename, "w" ); 
+					$fp = fopen( $filename, "w" );
 					if( $fp ) {
 						if( !curl_setopt( $ch, CURLOPT_URL, $d['url'] ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
 							echo json_encode( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
 						else {
 							echo json_encode( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
 						}
-						curl_close( $ch ); 
+						curl_close( $ch );
 						fclose( $fp );
 					} else {
 						echo json_encode( array( "status" => "ERROR", "message" => "Failed to open file" ) );
@@ -645,11 +645,11 @@ class IFM {
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<style type="text/css">
-					* { box-sizing: border-box; font-family: Arial, sans-serif; }
+					* { box-sizing: border-box; font-family: Monospace, Arial, sans-serif; }
 					html { text-align: center; }
 					body { margin:auto; width: auto; display: inline-block; }
-					form { padding: 1em; border: 1px dashed #CCC; }
-					button { margin-top: 1em; }
+					form { padding: 1em; border: 1px dotted #CCC; }
+					button { margin: 3px; margin-top: 10px; padding: 9px 12px; border: 1px solid #444; border-radius: 2px; font-size: 0.9em; font-weight: bold; text-transform: uppercase; cursor: pointer; background: #444; color: #fff; }
 					div.err { color: red; font-weight: bold; margin-bottom: 1em; }
 				</style>
 				</head>
@@ -683,7 +683,7 @@ class IFM {
 				array_key_exists( $oct[ 1 ], $masks ) ? $masks[ $oct[ 1 ] ] : '###',
 				array_key_exists( $oct[ 0 ], $masks ) ? $masks[ $oct[ 0 ] ] : '###')
 		);
-	}	
+	}
 
 	private function isPathValid($p) {
 		if( $p == "" ) {
@@ -770,7 +770,7 @@ class IFM {
 	private function pathCombine( $a, $b ) {
 		if( $a=="" && $b=="" )
 			return "";
-		else 
+		else
 			return ltrim( rtrim( $a, '/' ) . '/' . ltrim( $b, '/' ), '/' );
 	}
 
@@ -806,12 +806,12 @@ class IFM {
 
 	// is cURL extention avaliable?
 	private function checkCurl() {
-		if( ! function_exists( "curl_init" ) && 
-				!function_exists( "curl_setopt" ) && 
-				!function_exists( "curl_exec" ) && 
-				!function_exists( "curl_close" ) ) return false; 
-		else return true; 
-	} 
+		if( ! function_exists( "curl_init" ) &&
+				!function_exists( "curl_setopt" ) &&
+				!function_exists( "curl_exec" ) &&
+				!function_exists( "curl_close" ) ) return false;
+		else return true;
+	}
 
 	///helper
 }
