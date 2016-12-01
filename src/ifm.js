@@ -139,9 +139,9 @@ if(!ifm) {
 												  <input type="hidden" name="filename" value="'+data[i].name+'">\
 												  <input type="hidden" name="api" value="zipnload">';
 										if( data[i].name == "." )
-											newrow += '<sub>download current directory</sub>';
+											//newrow += '<sub>download current directory</sub>';
 										newrow += '<button type="submit">\
-												  <img src="'+ifm.icons["zipnload.png"]+'" alt="zip&amp;load">\
+												  <img src="'+ifm.icons["zipnload.png"]+'" title="zip &amp; download current directory">\
 												  </button>\
 												  </fieldset>\
 												  </form>';
