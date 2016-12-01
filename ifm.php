@@ -1521,9 +1521,7 @@ $(document).ready(function() {ifm.init()}); // init ifm
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
-			header( "Content-Type: application/octet-stream" );
-			header( "Content-Disposition: attachment; filename=\"" . $d["filename"] . "\"" );
-			@readfile( $d["filename"] );
+			$this->file_download( $d['filename'] );
 		}
 	}
 
@@ -1661,8 +1659,7 @@ $(document).ready(function() {ifm.init()}); // init ifm
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					header( "Content-Disposition: attachment; filename=\"".$d['filename'].".zip\"" );
-					readfile( $dfile );
+					$this->file_download( $dfile, $d['filename'] . ".zip" );
 				} catch ( Exception $e ) {
 					echo "An error occured: " . $e->getMessage();
 				} finally {
@@ -1822,7 +1819,7 @@ $(document).ready(function() {ifm.init()}); // init ifm
 	private function isPathValid($p) {
 		if( $p == "" ) {
 			return true;
-		} elseif( $this->getScriptRoot() == substr( realpath( $p ), 0, strlen( $this->getScriptRoot() ) ) ) {
+		} elseif( str_replace( "\\", "/", $this->getScriptRoot() ) == str_replace( "\\", "/", substr( realpath( dirname( $p ) ), 0, strlen( $this->getScriptRoot() ) ) ) ) {
 		   return true;
 		}
 		return false;
@@ -1945,6 +1942,24 @@ $(document).ready(function() {ifm.init()}); // init ifm
 				!function_exists( "curl_exec" ) &&
 				!function_exists( "curl_close" ) ) return false;
 		else return true;
+	}
+
+	private function file_download( $file, $name="" ) {
+		header( 'Content-Description: File Transfer' );
+		header( 'Content-Type: application/octet-stream' );
+		header( 'Content-Disposition: attachment; filename="' . ( trim( $name ) == "" ? basename( $file ) : $name ) . '"' );
+		header( 'Expires: 0' );
+		header( 'Cache-Control: must-revalidate' );
+		header( 'Pragma: public' );
+		header( 'Content-Length: ' . filesize( $file ) );
+
+		$file_stream = fopen( $file, 'rb' );
+		$stdout_stream = fopen('php://output', 'wb');
+
+		stream_copy_to_stream($file_stream, $stdout_stream);
+
+		fclose($file_stream);
+		fclose($stdout_stream);
 	}
 
 	///helper
