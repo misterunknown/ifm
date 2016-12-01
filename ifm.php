@@ -1233,8 +1233,8 @@ $(document).ready(function() {ifm.init()}); // init ifm
 							if(IFMConfig::showlastmodified == 1) print '<th>last modified</th>';
 							if(IFMConfig::showfilesize == 1) print '<th>Filesize</th>';
 							if(IFMConfig::showrights > 0)print '<th>Permissions</th>';
-							if(IFMConfig::showowner == 1) print '<th>Owner</th>';
-							if(IFMConfig::showgroup == 1) print '<th>Group</th>';
+							if(IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th>Owner</th>';
+							if(IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th>Group</th>';
 							if(in_array(1,array(IFMConfig::edit,IFMConfig::rename,IFMConfig::delete,IFMConfig::zipnload,IFMConfig::extract))) print '<th><!-- column for buttons --></th>';
 						print '</tr>
 					</thead>
@@ -1349,13 +1349,13 @@ $(document).ready(function() {ifm.init()}); // init ifm
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
 							$ownerarr = posix_getpwuid( fileowner( $result ) );
 							$item["owner"] = $ownerarr['name'];
-						} else $item["owner"] = "";
+						} else $item["owner"] = false;
 					}
 					if( IFMConfig::showgroup == 1 ) {
 						if( function_exists( "posix_getgrgid" ) && filegroup( $result ) !== false ) {
 							$grouparr = posix_getgrgid( filegroup( $result ) );
 							$item["group"] = $grouparr['name'];
-						} else $item["group"] = "";
+						} else $item["group"] = false;
 					}
 					if( is_dir( $result ) ) $dirs[] = $item;
 					else $files[] = $item;
