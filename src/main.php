@@ -48,7 +48,7 @@ class IFM {
 						<tr>
 							<td class="cell_content">
 								Content of <span id="docroot">';
-								if(IFMConfig::showpath == 1) print getScriptRoot().'/'; else print '/';
+								if(IFMConfig::showpath == 1) print $this->getScriptRoot().'/'; else print '/';
 								print '</span><input id="currentDir" type="text">
 							</td>
 							<td class="cell_buttons">
