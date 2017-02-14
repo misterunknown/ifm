@@ -131,7 +131,7 @@ if(!ifm) {
 			var overlay = '<div class="modal fade" id="overlay" role="dialog" aria-labelledby="fileformLabel"><div class="modal-dialog" role="document"><div class="modal-content">';
 			overlay += '<form id="showFile"><div class="modal-header"><h4>' + ((arguments.length > 0)?'edit':'add') + ' file</h4></div>';
 			overlay += '<div class="modal-body"><fieldset><label>Filename:</label><input type="text" class="form-control" name="filename" value="'+filename+'" />';
-			overlay += '<div id="content" name="content"></div></fieldset></div><div class="modal-footer"><button class="btn btn-success" onclick="ifm.saveFile();ifm.closeFileForm();return false;">Save';
+			overlay += '<div id="content" name="content">'+content+'</div></fieldset></div><div class="modal-footer"><button class="btn btn-success" onclick="ifm.saveFile();ifm.closeFileForm();return false;">Save';
 			overlay += '</button><button onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>';
 			overlay += '<button class="btn btn-danger" onclick="$(\'#overlay\').modal(\'hide\');return false;">Close</button></div></form></div></div></div>';
 			$(document.body).prepend(overlay);
@@ -143,10 +143,10 @@ if(!ifm) {
 			});
 			$('#overlay').on('remove', function () { ifm.editor = null; ifm.fileChanged = false; });
 			// Start ACE
-			ifm.editor = ace.edit("content");
-			ifm.editor.getSession().setValue(content);
-			ifm.editor.focus();
-			ifm.editor.on("change", function() { ifm.fileChanged = true; });
+			//ifm.editor = ace.edit("content");
+			//ifm.editor.getSession().setValue(content);
+			//ifm.editor.focus();
+			//ifm.editor.on("change", function() { ifm.fileChanged = true; });
 		},
 		closeFileForm: function() {
 			ifm.fileChanged = false;
