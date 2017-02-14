@@ -11,7 +11,7 @@
 */
 
 class IFM {
-	const VERSION = '2.1';
+	const VERSION = '2.2-dev';
 
 	public function __construct() {
 		session_start();
@@ -70,11 +70,11 @@ class IFM {
 								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
 								$options = false;
 								if( IFMConfig::remoteupload == 1 ) {
-									print '<li><a href="/fatfree/padlock/public/lang/de"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
+									print '<li><a onclick="ifm.remoteUploadDialog();return false;"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
 									$options = true;
 								}
 								if( IFMConfig::ajaxrequest == 1 ) {
-									print '<li><a href="/fatfree/padlock/public/lang/en"><span class="icon icon-link-ext"></span> ajax request</a></li>';
+									print '<li><a onclick="ifm.ajaxRequestDialog();return false;"><span class="icon icon-link-ext"></span> ajax request</a></li>';
 									$options = true;
 								}
 								if( !$options ) print '<li>No options available</li>';
@@ -103,10 +103,11 @@ class IFM {
 				</table>
 				</div>
 				<footer>IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></footer>
+				<script>';?> @@@src/ace/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/bootstrap.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/bootstrap-notify.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ekko-lightbox.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 			</body>
 			</html>

@@ -6,8 +6,16 @@ body {
 	font-size: 14pt;
 }
 
+#filetable tr td:nth-child(5) {
+	text-align: center;
+}
+#filetable tr td:nth-child(6) {
+	text-align: center;
+}
 #filetable tr td:last-child {
 	text-align: right;
 }
 
 a { cursor: pointer !important; }
+
+div#content { width: 100%; height: 350px; }
