@@ -26,91 +26,88 @@ class IFM {
 		<html>
 			<head>
 				<title>IFM - improved file manager</title>
-				<meta charset="utf-8"><script>'.IFMIncludes::getJquery().'</script>
-				<script>'.IFMIncludes::getJqueryUI().'</script>
-				<script>'.IFMIncludes::getAce().'</script>
-				<script>'.IFMIncludes::getJqueryFancybox().'</script>
-    			<style type="text/css">
-				'; ?>
-				@@@COMPILE:style.css@@@
-				<?php
-				print ''.IFMIncludes::getJqueryUICSS()."\n".IFMIncludes::getJqueryFancyboxCSS().'
-				</style>
-				<script type="text/javascript">
-				'; ?>
-				@@@COMPILE:ifm.js@@@
-				<?php print '
-				</script>
+				<meta charset="utf-8">
+				<meta http-equiv="X-UA-Compatible" content="IE=edge">
+				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<style type="text/css">';?> @@@src/bootstrap.min.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/ekko-lightbox.min.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/fontello-embedded.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 			</head>
 			<body>
-				<table id="tooltab">
-					<tbody>
-						<tr>
-							<td class="cell_content">
-								Content of <span id="docroot">';
-								if(IFMConfig::showpath == 1) print $this->getScriptRoot().'/'; else print '/';
-								print '</span><input id="currentDir" type="text">
-							</td>
-							<td class="cell_buttons">
-								<div>';
-									// refresh button - always shows
-									print '<button id="refresh">';
-									echo ('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACdUlEQVRYhcWXMXraQBCFf/tLDzkBugHKCVA7FdwgpEkbpU1jfAPdILqBSTWtfIIoJwjcwHTpSLEjWJaVjAT+/Bqh1czs29m3M8vdfr/nPXE/xElEUhFZvRsBYAnkIjK+lsCHgX4LYATkwApcVoAUSMymBmpV3XQFuuurAZvot73ugB/AV2Da4vIMFKq6vhWBAvjWy+lIZKGqL/7gEA0sBvgAzIAq1M2rBEQk8X6nwKTDfIdb6Z+W71PgZCs6CdhRy7yhZYf5g6qOVTVT1RT4CDxG7GYicojTSkBESiBR1dIb7kr/SSxVfVHVFfAJlxkfi6iTTTwWkcqMcm886Zgc3zYgUnNOfN5KAChxgsl9xarqRlUT3Iq+A78Cv5Gf2oBEhdPGGU4KkR2xObANUu8Hq3FFpjCfBU4nGa4oRf1w4pu1EhCRjOP5XrUEiRFaW3BEJBGRcXjWDXXM389A6QUtzywvI7O50PSwHfcAtneT8OON4RegQy1oROirtHojAqk9d3jZbgjMQ+s3QLPIwtdIrB1He7zVgQpY9dWI+U6BLXZ6GsTqQBYL4gnsp4hsRGTV40KytOdF3XBqRzKGRjwT4AFoiCRtMxvJHPhiNeQEDYGwe62t84WogveREfkrImVLRnKgbNu2hkARjI9wvTus75tYEENro1LVaJ8A70YkIjXxa9WWYxXLjFwMj9b9esE/BUtcisMJJnRfQsCd7TCLF+EgQhNIhltxXxQt9f9yAh6JFHeTCS8RPv55vwevHjpuxabojGMJBSfCCtctP9vYoL1/lUAX7A7whFt9MjT9MPyvWWXPwXt/FQGb9Jkr9r7BoC24Jf4DVBHtitmrnbcAAAAASUVORK5CYII=" title="refresh" />');
-									print '</button>';
-									// upload button
-									if(IFMConfig::upload == 1) {
-										print '<button id="upload">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABNUlEQVRYhe1W4c6DIAw8lD1cn/ge7lPZj4lhVaDIFrLku8RERdqjPU5cCAEjMQ3N/k/gJwiIyNu9iHgRCSIyX33zUQIiApJpEg/gbx9eRGQCAJK3SWQJVJJHrL0kLgkYk3+EhCsZkSF5ipnkFufFBdwm0Jj8RMKKkghdY3Lg1Y6mCb4yvgFISzSr8VU9N/9YihpIsa8s/TiQ7DYyF0KwKtfhVZGDADqdlOTRAl3aHAGNKfPeijUSWG5MdjhroDmGFmEtYE2EVhxxUgILyUduRkaEtV2Ui7Nhb53XgwUHO/W6JN5oyxfx3uI0r0ChJMLVYsc92yiKcLm6rI74rROR2RGHH8laNaD/DTmYK3AiUOhdIGlxzCOORQeaQNFaew6fCbLb0KPfWpsxXITm88C3MLwCwwk8Af8Lgc7C878GAAAAAElFTkSuQmCC" title="Upload" />';
-										print '</button>';
-									}
-									// create file button
-									if(IFMConfig::createfile == 1) {
-										print '<button id="createFile">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABDUlEQVRYhe2VsRGCQBBFn475WYIlUAIhm9mBlkIp0oHZppZACZQgFWjgoSdzCo4sJPejm+UP+2//8lkVRXFjJqjqql9bz9X8EzbdIaZuKojIxykvPoEkIAlIApKATaz4LbnG4JdUjQqYIpZFZAeUwD6oXYEzUKpqA0YWiEgG1MABcMEj52u159hYALRh426iwXsdcBGRbHILROTE45ZDcEBpYcF+mPLiWlkQnWJY8z2chQU/iY8K+BMt4EIhkSV8cs0sGImzhQU7HhngBqgtFl+BT7jcN+hE3XpTbYFcVRuTJFTVGsiAKhTizxWQeY7JEnYiGuAIr51S1W2ft/jvOAlYXMBzCWcMnzcsPoE7bQ1jbIj6ZSQAAAAASUVORK5CYII=" title="create file" />';
-										print '</button>';
-									}
-									// create directory button
-									if(IFMConfig::createdir == 1) {
-										print '<button id="createDir">';
-										print '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAK8AAACvABQqw0mAAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAABP0lEQVRYhe2WsVWEQBCGP3zmZweeHdiBGBhMJLHRdSAlUMJZgS1ANCl2gBV4diAV7AUc7+3dAwGZPQzuD4dd/n9nZv/ZyDnHkrhalP0i4CIAuAYQkTVQAauR+2pgrao/cwW0GcgnkHNYm80lB4icc4hIaDN4VNWy68P/6IEOfKhqvJSAGqgClaVQ1cQPdJUgB14DkAPcnAbO3QPlGAGz7/Yv2A0JKIDkdJEhng6m1yugAm4DCngBvkRk0yfgXHgXkRSOnfCTpkbPlkyqGgF9bnvnZyC3Jh+BzBcQsvv7kLRO+A3cW/21TXtfzCvHyh/HsZWAKfBngdn18xtuoAmbW2BEuqPjEAMCCksfyP6wZ2uWAQARKYGHkcvfVDW1dsKEZp6MIgfDHvAhIjGQcmxsNc043vrvwyACpmDxR+niAvY9F2dckINLRQAAAABJRU5ErkJggg==" title="create directory" />';
-										print '</button>';
-									}
-									// create options button
-									print '	<div id="options"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwOC8xOC8wOaw6EPwAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzQGstOgAAACh0lEQVRYhcWWzXHbMBCFP2VSgEqQKzBdgZXjnuwORFdguYOkAitpwHIH8ukdzVRgugKrg6gD5YClAoIgTf9k9GY0GiyweMv9xWS/33NMfDkqO/D1vYpmVgBPkehMUv1fDDCzOVACS0k7F58mx06B2s9PgRWwllQN3f1qCMzsDngEFv7foEiOxuvDeTNbf8iAlMQN6jXA9+O986ELx4RgQ3B/g9LMdsA8OTd38jKRb4Yun4wpQzP7A0xfPZhHIem5b7PjAf+KOfAT2Eja0vXCWGwlPXvFlMAFUEm6ag60PODZ/phcUgNb4DKR76K9GSHuqZe2/j9L5N+a6kg9kEuYgnZSbYGrXHn5B9xFhClxgwVQQVIFkn4Q6rcPa0LD6ZC7fgWc+bk+VMCyWWST0MwWmUtqgut2HYWu/pQQyrRU13H8oacPSLqnm3Q3Y8hdfwfcJOJVSg6RBzxT41+cD1tJJ2PIY5jZC+08+E3wZA3Ukuo4CePBkuLhreSR3nW0Pqf9YZOxrXiU69+jd/T3wMEASRNC7EtCKcazPW1CY5HqVX536Vz9syAzWE68LY+Cmc2Al0jUKUHIhMDMpj1TbahB5ZCeL6NRfkA6C/oaSIN7SalhHfgjZNGz3Wpo6Sy4HSAHWLiRy1w43O0rwtTrQ+E8VzkD1rRdvyOM4hn/HiAXwIWZPdBO1CJDXBMm5CzDA2SS0MxuXWkj6cFlTwx7pg+1pDMzOyV82CVD74EcMtn8VgxWz5hGlIvndUZWkx/DQ/kwyoBlsi4l/cIfFBEa16ZGlB81ICZa+aiGdgIe1m5EvFcxgFcN8AvnwHdJ8YzPGuCYEzxRJDodjHqW5+CZfSD1WfJmvNuAz8Jf0AgKZKIIqsQAAAAASUVORK5CYII=" title="options" /><ul>';
-									$options = false;
-									if(IFMConfig::remoteupload == 1) {
-										print '<li><a onclick="ifm.remoteUploadDialog()">Remote upload</a></li>';
-										$options = true;
-									}
-									if(IFMConfig::ajaxrequest == 1) {
-										print '<li><a onclick="ifm.ajaxRequestDialog()">AJAX Request</a></li>';
-										$options = true;
-									}
-									if(!$options) print '<li>No options available</li>';
-									print '</ul></div>';
-									print '<span id="version">ver '.IFM::VERSION.'</span>
+				<nav class="navbar navbar-inverse navbar-fixed-top">
+					<div class="container">
+						<div class="navbar-header">
+							<a class="navbar-brand">IFM</a>
+							<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+						</div>
+						<div class="navbar-collapse collapse" id="navbar">
+							<form class="navbar-form navbar-left">
+								<div class="form-group">
+									<div class="input-group">
+										<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">';
+										if( IFMConfig::showpath == 1 ) print $this->getScriptRoot().'/'; else print '/';
+										print '</span></span><input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
+									</div>
 								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<table id="filetable">
+							</form>
+							<ul class="nav navbar-nav navbar-right">
+								<li><a id="refresh"><span class="icon icon-arrows-cw"></span></a></li>';
+								if( IFMConfig::upload == 1 ) {
+									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span></a></li>';
+								}
+								if( IFMConfig::createfile == 1 ) {
+									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span></a></li>';
+								}
+								if( IFMConfig::createdir == 1 ) {
+									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span></a></li>';
+								}
+								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
+								$options = false;
+								if( IFMConfig::remoteupload == 1 ) {
+									print '<li><a href="/fatfree/padlock/public/lang/de"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
+									$options = true;
+								}
+								if( IFMConfig::ajaxrequest == 1 ) {
+									print '<li><a href="/fatfree/padlock/public/lang/en"><span class="icon icon-link-ext"></span> ajax request</a></li>';
+									$options = true;
+								}
+								if( !$options ) print '<li>No options available</li>';
+								print '</ul>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</nav>
+				<div class="container">
+				<table id="filetable" class="table">
 					<thead>
 						<tr>
 							<th>Filename</th>';
-							if(IFMConfig::download == 1) print '<th><!-- column for download link --></th>';
-							if(IFMConfig::showlastmodified == 1) print '<th>last modified</th>';
-							if(IFMConfig::showfilesize == 1) print '<th>Filesize</th>';
-							if(IFMConfig::showrights > 0)print '<th>Permissions</th>';
-							if(IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th>Owner</th>';
-							if(IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th>Group</th>';
-							if(in_array(1,array(IFMConfig::edit,IFMConfig::rename,IFMConfig::delete,IFMConfig::zipnload,IFMConfig::extract))) print '<th><!-- column for buttons --></th>';
+							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
+							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
+							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
+							if( IFMConfig::showrights > 0 ) print '<th>permissions</th>';
+							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th>owner</th>';
+							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th>group</th>';
+							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th><!-- column for buttons --></th>';
 						print '</tr>
 					</thead>
 					<tbody>
 					</tbody>
 				</table>
+				</div>
 				<footer>IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></footer>
+				<script>';?> @@@src/jquery.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/bootstrap.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/ekko-lightbox.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/ace.js@@@ <?php print '</script>
+				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 			</body>
 			</html>
 		';
@@ -132,8 +129,7 @@ class IFM {
 				$this->getFiles( $_REQUEST["dir"] );
 			else
 				$this->getFiles( "" );
-		}
-		else {
+		} else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
@@ -196,10 +192,10 @@ class IFM {
 						$item["type"] = "file";
 					}
 					if( is_dir( $result ) ) {
-						$item["picture"] = "folder.png";
+						$item["icon"] = "icon icon-folder-empty";
 					} else {
 						$type = substr( strrchr( $result, "." ), 1 );
-						$item["picture"] = $this->getTypePicture( $type );
+						$item["icon"] = $this->getTypeIcon( $type );
 					}
 					if( IFMConfig::showlastmodified == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
 					if( IFMConfig::showfilesize == 1 ) {
@@ -703,28 +699,18 @@ class IFM {
 		}
 	}
 
-	private function getTypePicture( $type ) {
+	private function getTypeIcon( $type ) {
 		switch( $type ) {
-			case "aac": return "aac.png"; break;case "ai": return "ai.png"; break;case "aiff": return "aiff.png"; break;
-			case "avi": return "avi.png"; break;case "bmp": return "bmp.png"; break;case "c": return "c.png"; break;
-			case "cpp": return "cpp.png"; break;case "css": return "css.png"; break;case "dat": return "dat.png"; break;
-			case "dmg": return "dmg.png"; break;case "doc": return "doc.png"; break;case "dotx": return "dotx.png"; break;
-			case "dwg": return "dwg.png"; break;case "dxf": return "dxf.png"; break;case "eps": return "eps.png"; break;
-			case "exe": return "exe.png"; break;case "flv": return "flv.png"; break;case "gif": return "gif.png"; break;
-			case "h": return "h.png"; break;case "hpp": return "hpp.png"; break;case "html": return "html.png"; break;
-			case "ics": return "ics.png"; break;case "iso": return "iso.png"; break;case "java": return "java.png"; break;
-			case "jpg": return "jpg.png"; break;case "key": return "key.png"; break;case "mid": return "mid.png"; break;
-			case "mp3": return "mp3.png"; break;case "mp4": return "mp4.png"; break;case "mpg": return "mpg.png"; break;
-			case "odf": return "odf.png"; break;case "ods": return "ods.png"; break;case "odt": return "odt.png"; break;
-			case "otp": return "otp.png"; break;case "ots": return "ots.png"; break;case "ott": return "ott.png"; break;
-			case "pdf": return "pdf.png"; break;case "php": return "php.png"; break;case "png": return "png.png"; break;
-			case "ppt": return "ppt.png"; break;case "psd": return "psd.png"; break;case "py": return "py.png"; break;
-			case "qt": return "qt.png"; break;case "rb": return "rb.png"; break;case "rtf": return "rtf.png"; break;
-			case "sql": return "sql.png"; break;case "tga": return "tga.png"; break;case "tgz": return "tgz.png"; break;
-			case "tiff": return "tiff.png"; break;case "txt": return "txt.png"; break;case "wav": return "wav.png"; break;
-			case "xls": return "xls.png"; break;case "xlsx": return "xlsx.png"; break;case "xml": return "xml.png"; break;
-			case "yml": return "yml.png"; break;case "zip": return "zip.png"; break;
-			default: return "_blank.png"; break;
+			case "aac":	case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
+			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": return 'icon icon-file-image'; break;
+			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
+			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "php": case "java": case "py": case "sql": case "xml": case "yml": return 'icon icon-file-code'; break;
+			case "doc": case "dotx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
+			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
+			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
+			case "pdf": return 'icon icon-file-pdf'; break;
+			case "tgz":	case "zip": case "tar": case "7z": case "rar": return 'icon icon-file-archive';
+			default: return 'icon icon-doc';
 		}
 	}
 
