@@ -54,7 +54,7 @@ function IFM() {
 	};
 
 	this.rebuildFileTable = function( data ) {
-		$("#filetable tbody tr").remove();
+		var newRows = $(document.createElement('tbody'));
 		for(i=0;i<data.length;i++) {
 			var newrow = "<tr>";
 			var multisel = '';
@@ -63,29 +63,46 @@ function IFM() {
 				multisel += (!ifm.inArray(data[i].name, ["..", "."]))?'id="'+data[i].name+'" name="multisel"':'style="visibility:hidden"';
 				multisel += '>';
 			}
-			if(data[i].type=="file")
+			if(data[i].type=="file") {
 				newrow += '<td>'+multisel+'<a href="'+ifm.pathCombine(ifm.currentDir,data[i].name)+'"><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
+			} else {
+				newrow += '<td>'+multisel+'<a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
+				if( data[i].name == ".." ) newrow += "[ up ]";
+				else newrow += data[i].name;
+				newrow += '</a></td>';
+			}
+			if( data[i].type != "dir" && self.config.download == 1) {
+					newrow += '<td class="download-link">\
+							  <form style="display:none;" id="fdownload'+i+'" method="post">\
+							  <fieldset>\
+							  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
+							  <input type="hidden" name="filename" value="'+data[i].name+'">\
+							  <input type="hidden" name="api" value="downloadFile">\
+							  </fieldset>\
+							  </form>\
+							  <a onclick="$(\'#fdownload'+i+'\').submit();"><span class="icon icon-download" title="download"></span></a>\
+							  </td>';
+			}
+			else if( data[i].type == "dir" && self.config.zipnload == 1 ) {
+				var guid = self.generateGuid();
+				if( data[i].name == ".." ) data[i].name = ".";
+				newrow += '<td class="download-link"><form id="'+guid+'" method="post" style="display:inline-block;padding:0;margin:0;border:0;">\
+						  <fieldset style="display:inline-block;padding:0;margin:0;border:0;">\
+						  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
+						  <input type="hidden" name="filename" value="'+data[i].name+'">\
+						  <input type="hidden" name="api" value="zipnload">';
+				newrow += '<a onclick="$(\'#'+guid+'\').submit();return false;">\
+						  <span class="icon icon-download-cloud" title="zip &amp; download current directory">\
+						  </a>\
+						  </fieldset>\
+						  </form></td>';
+			}
 			else
-				newrow += '<td>'+multisel+'<a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>'
-					if(self.config.download == 1) {
-						if( data[i].type != "dir" )
-							newrow += '<td class="download-link">\
-									  <form style="display:none;" id="fdownload'+i+'" method="post">\
-									  <fieldset>\
-									  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
-									  <input type="hidden" name="filename" value="'+data[i].name+'">\
-									  <input type="hidden" name="api" value="downloadFile">\
-									  </fieldset>\
-									  </form>\
-									  <a onclick="$(\'#fdownload'+i+'\').submit();"><span class="icon icon-download" title="download"></span></a>\
-									  </td>';
-						else
-							newrow += '<td></td>'; // empty cell for download link
-					}
+				newrow += '<td></td>'; // empty cell for download link
 			if(data[i].lastmodified) newrow += '<td>'+data[i].lastmodified+'</td>';
 			if(data[i].filesize) newrow += '<td>'+data[i].filesize+'</td>';
 			if(data[i].fileperms) {
-				newrow += '<td><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"';
+				newrow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"';
 				if(self.config.chmod == 1)
 					newrow += ' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"';
 				else
@@ -93,39 +110,25 @@ function IFM() {
 				newrow += ( data[i].filepermmode.trim() != "" ) ? ' class="' + data[i].filepermmode + '"' : '';
 				newrow += '></td>';
 			}
-			if(data[i].owner) newrow += '<td>'+data[i].owner+'</td>';
-			if(data[i].group) newrow += '<td>'+data[i].group+'</td>';
-			if(ifm.inArray(1,[self.config.edit, self.config.rename, self.config.delete, self.config.zipnload, self.config.extract])) {
+			if(data[i].owner) newrow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
+			if(data[i].group) newrow += '<td class="hidden-xs hidden-sm hidden-md">'+data[i].group+'</td>';
+			if(ifm.inArray(1,[self.config.edit, self.config.rename, self.config.delete, self.config.extract])) {
 				newrow += '<td>';
-				if(data[i].type == "dir") {
-					if( data[i].name == ".." ) data[i].name = ".";
-					if(self.config.zipnload == 1) {
-						newrow += '<form method="post" style="display:inline-block;padding:0;margin:0;border:0;">\
-								  <fieldset style="display:inline-block;padding:0;margin:0;border:0;">\
-								  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
-								  <input type="hidden" name="filename" value="'+data[i].name+'">\
-								  <input type="hidden" name="api" value="zipnload">';
-						newrow += '<a type="submit">\
-								  <span class="icon icon-download-cloud" title="zip &amp; download current directory">\
-								  </a>\
-								  </fieldset>\
-								  </form>';
-					}
+				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
+					newrow += '<a href="" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
+				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
+					newrow += '<a onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
-				else if(data[i].name.toLowerCase().substr(-4) == ".zip") {
-					if(self.config.extract == 1) newrow += '<a href="" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
-				}
-				else {
-					if(self.config.edit == 1) newrow += '<a onclick="ifm.showLoading();ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
-				}
-				if(data[i].name != ".." && data[i].name != ".") {
+				if( data[i].name != ".." && data[i].name != "." ) {
 					if(self.config.rename == 1) newrow += '<a onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
 					if(self.config.delete == 1) newrow += '<a onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
 				}
 				newrow += '</td></tr>';
 			}
-			$("#filetable tbody").append(newrow);
+			newRows.append(newrow);
 		}
+		$("#filetable tbody").remove();
+		$("#filetable").append(newRows);
 		// bind multiselect handler
 		if(self.config.multiselect == 1) {
 			$("input[name=multisel]").on("change", function(){ ifm.handleMultiSelect(); });
@@ -155,7 +158,7 @@ function IFM() {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
 		var overlay = '<form id="showFile">';
-		overlay += '<div class="modal-body"><fieldset><label>Filename:</label><input type="text" class="form-control" name="filename" value="'+filename+'" /><br>';
+		overlay += '<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>';
 		overlay += '<div id="content" name="content"></div></fieldset></div><div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save';
 		overlay += '</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>';
 		overlay += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
@@ -174,7 +177,7 @@ function IFM() {
 				<div class="modal-body">\
 				<fieldset>\
 				<label>Directoy name:</label>\
-				<input class="form-control" type="text" name="dirname" value="" />\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="dirname" value="" />\
 				</fieldset>\
 				</div>\
 				<div class="modal-footer">\
@@ -189,7 +192,7 @@ function IFM() {
 				<div class="modal-body">\
 				<fieldset>\
 				<label>URL</label><br>\
-				<input class="form-control" type="text" id="ajaxurl" required><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
 				<label>Data</label><br>\
 				<textarea class="form-control" id="ajaxdata"></textarea><br>\
 				<label>Method</label><br>\
@@ -255,8 +258,7 @@ function IFM() {
 						}
 						else self.showMessage( "Error: "+data.message, "e" );
 					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); },
-			complete: function() { self.hideLoading(); }
+			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
 		});
 	};
 
@@ -317,7 +319,7 @@ function IFM() {
 			<form id="renameFile">\
 			<fieldset>\
 				<label>Rename '+name+' to:</label>\
-				<input class="form-control" type="text" name="newname" /><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newname" /><br>\
 				<button class="btn btn-default" onclick="ifm.renameFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Rename</button><button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
 			</fieldset>\
 			</form>\
@@ -391,7 +393,7 @@ function IFM() {
 				<label>Upload file</label><br>\
 				<input class="file" type="file" name="ufile" id="ufile"><br>\
 				<label>new filename</label>\
-				<input class="form-control" type="text" name="newfilename"><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newfilename"><br>\
 				</fieldset>\
 			</div><div class="modal-footer">\
 				<button class="btn btn-default" onclick="ifm.uploadFile();ifm.hideModal();return false;">Upload</button>\
@@ -464,9 +466,9 @@ function IFM() {
 			<div class="modal-body">\
 			<fieldset>\
 				<label>Remote upload URL</label><br>\
-				<input class="form-control" type="text" id="url" name="url" required><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="url" name="url" required><br>\
 				<label>Filename (required)</label>\
-				<input class="form-control" type="text" id="filename" name="filename" required><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="filename" name="filename" required><br>\
 				<label>Method</label>\
 				<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>\
 			</fieldset><div class="modal-footer">\
@@ -516,7 +518,7 @@ function IFM() {
 		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
 		$.notify(
 				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause' }
+				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
 		);
 //		var message = '<div id="mess"><div class="';
 //		if(t == "e") message += "message_error";
@@ -529,13 +531,6 @@ function IFM() {
 //			$('#mess').remove();
 //		}, 3000);
 	};
-	this.showLoading = function() {
-		var loading = '<div id="loading">'+ifm.loadingAnim+'</div>';
-		if(document.getElementById("loading")==null)$(document.body).prepend(loading);
-	};
-	this.hideLoading = function() {
-		$("#loading").remove();
-	};
 	this.pathCombine = function(a, b) {
 		if(a == "" && b == "") return "";
 		if(b[0] == "/") b = b.substring(1);
@@ -544,6 +539,10 @@ function IFM() {
 		if(b == "") return a;
 		return a+"/"+b;
 	};
+	this.preventEnter = function(e) {
+		if( e.keyCode == 13 ) return false;
+		else return true;
+	}
 	this.showSaveQuestion = function() {
 		var a = '<div id="savequestion"><label>Do you want to save this file?</label><br><button onclick="ifm.saveFile();ifm.closeFileForm(); return false;">Save</button><button onclick="ifm.closeFileForm();return false;">Dismiss</button>';
 		$(document.body).prepend(a);
@@ -611,7 +610,7 @@ function IFM() {
 			$(document.body).prepend('<div id="waitqueue"></div>');
 			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
 		}
-		$("#waitqueue").append('<div id="'+id+'" class="progress"><div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="100%"></div>'+name+'</div>');
+		$("#waitqueue").append('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
 	};
 	this.task_done = function(id) {
 		$("#"+id).remove();
