@@ -130,7 +130,7 @@ class IFMZip {
 */
 
 class IFM {
-	const VERSION = '2.2-dev';
+	const VERSION = '2.3.0';
 
 	public function __construct() {
 		session_start();
