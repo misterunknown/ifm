@@ -11,7 +11,7 @@
 */
 
 class IFM {
-	const VERSION = '2.2-dev';
+	const VERSION = '2.3.0';
 
 	public function __construct() {
 		session_start();
@@ -36,7 +36,7 @@ class IFM {
 			</head>
 			<body>
 				<nav class="navbar navbar-inverse navbar-fixed-top">
-					<div class="container">
+					<div class="container-fluid">
 						<div class="navbar-header">
 							<a class="navbar-brand">IFM</a>
 							<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
@@ -57,15 +57,15 @@ class IFM {
 								</div>
 							</form>
 							<ul class="nav navbar-nav navbar-right">
-								<li><a id="refresh"><span class="icon icon-arrows-cw"></span></a></li>';
+								<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>';
 								if( IFMConfig::upload == 1 ) {
-									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span></a></li>';
+									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>';
 								}
 								if( IFMConfig::createfile == 1 ) {
-									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span></a></li>';
+									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>';
 								}
 								if( IFMConfig::createdir == 1 ) {
-									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span></a></li>';
+									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>';
 								}
 								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
 								$options = false;
@@ -92,17 +92,19 @@ class IFM {
 							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
 							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
 							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
-							if( IFMConfig::showrights > 0 ) print '<th>permissions</th>';
-							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th>owner</th>';
-							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th>group</th>';
-							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th><!-- column for buttons --></th>';
+							if( IFMConfig::showrights > 0 ) print '<th class="hidden-xs">permissions</th>';
+							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
+							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
+							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
 						print '</tr>
 					</thead>
 					<tbody>
 					</tbody>
 				</table>
 				</div>
-				<footer>IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></footer>
+				<div class="container">
+				<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+				</div>
 				<script>';?> @@@src/ace/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/bootstrap.min.js@@@ <?php print '</script>
@@ -193,7 +195,10 @@ class IFM {
 						$item["type"] = "file";
 					}
 					if( is_dir( $result ) ) {
-						$item["icon"] = "icon icon-folder-empty";
+						if( $result == ".." )
+							$item["icon"] = "icon icon-up-open";
+						else 
+							$item["icon"] = "icon icon-folder-empty";
 					} else {
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
@@ -467,9 +472,9 @@ class IFM {
 	private function changePermissions( array $d ) {
 		if( IFMConfig::chmod != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
 		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo json_encode( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
-		elseif( ! isPathValid( pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
+		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
 		else {
-			chDirIfNecessary( $d['dir'] ); $chmod = $d["chmod"]; $cmi = true;
+			$this->chDirIfNecessary( $d['dir'] ); $chmod = $d["chmod"]; $cmi = true;
 			if( ! is_numeric( $chmod ) ) {
 				$cmi = false;
 				$chmod = str_replace( " ","",$chmod );
