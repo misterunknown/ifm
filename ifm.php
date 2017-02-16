@@ -130,7 +130,7 @@ class IFMZip {
 */
 
 class IFM {
-	const VERSION = '2.3.0';
+	const VERSION = '2.3.1';
 
 	public function __construct() {
 		session_start();
@@ -561,19 +561,21 @@ function IFM() {
 		// todo: bootstrap-fancybox for images
 	};
 
-	this.changeDirectory = function( newdir ) {
+	this.changeDirectory = function( newdir, options={ absolute: false, pushState: true } ) {
+		if( ! options.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
 		$.ajax({
 			url: self.IFM_SCFN,
 			type: "POST",
 			data: ({
 				api: "getRealpath",
-				dir: self.pathCombine( ifm.currentDir, newdir )
+				dir: newdir
 			}),
 			dataType: "json",
-			success: function( data ){
+			success: function( data ) {
 				self.currentDir = data.realpath;
 				self.refreshFileTable();
 				$( "#currentDir" ).val( self.currentDir );
+				if( options.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+self.currentDir );
 			},
 			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); }
 		});
@@ -1058,10 +1060,13 @@ function IFM() {
 	this.JSEncode = function(s) {
 		return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
 	};
+	this.historyPopstateHandler = function(event) {
+		var dir = "";
+		if( event.state && event.state.dir ) dir = event.state.dir;
+		self.changeDirectory( dir, { pushState: false, absolute: true } );
+	};
 	// static button bindings and filetable initial filling
 	this.init = function() {
-		// fill file table
-		this.refreshFileTable();
 		// bind static buttons
 		$("#refresh").click(function(){
 			self.refreshFileTable();
@@ -1075,6 +1080,16 @@ function IFM() {
 		$("#upload").click(function(){
 			self.uploadFileDialog();
 		});
+
+		// handle history manipulation
+		window.onpopstate = self.historyPopstateHandler;
+
+		// load initial file table
+		if( window.location.hash ) {
+			self.changeDirectory( window.location.hash.substring( 1 ) );
+		} else {
+			this.refreshFileTable();
+		}
 	};
 }
 
