@@ -64,7 +64,9 @@ function IFM() {
 				multisel += '>';
 			}
 			if(data[i].type=="file") {
-				newrow += '<td>'+multisel+'<a href="'+ifm.pathCombine(ifm.currentDir,data[i].name)+'"><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
+				newrow += '<td>'+multisel+'<a href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
+				if( data[i].icon.indexOf( 'file-image' ) !== -1 ) newrow += 'data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
+				newrow += '><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
 			} else {
 				newrow += '<td>'+multisel+'<a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
 				if( data[i].name == ".." ) newrow += "[ up ]";
@@ -134,6 +136,11 @@ function IFM() {
 			$("input[name=multisel]").on("change", function(){ ifm.handleMultiSelect(); });
 		}
 		// todo: bootstrap-fancybox for images
+		$('a[data-toggle="tooltip"]').tooltip({
+			animated: 'fade',
+			placement: 'right',
+			html: true
+		});
 	};
 
 	this.changeDirectory = function( newdir, options={ absolute: false, pushState: true } ) {
