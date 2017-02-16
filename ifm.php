@@ -327,7 +327,7 @@ div.footer div.panel-body { padding: 5px !important; }
 			</head>
 			<body>
 				<nav class="navbar navbar-inverse navbar-fixed-top">
-					<div class="container-fluid">
+					<div class="container">
 						<div class="navbar-header">
 							<a class="navbar-brand">IFM</a>
 							<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
