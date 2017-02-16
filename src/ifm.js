@@ -25,13 +25,9 @@ function IFM() {
 			.append( content );
 		modalDialog.append( modalContent );
 		modal.append( modalDialog );
-		$( document.body ).prepend( modal );
+		$( document.body ).append( modal );
 		modal.modal();
-		modal.on( 'hide.bs.modal', function () {
-			self.fileChanged = false;
-			self.editor = null;
-			$( this ).remove();
-		});
+		modal.on('hide.bs.modal', function () { $(this).remove(); });
 	};
 
 	this.hideModal = function() {
@@ -39,7 +35,6 @@ function IFM() {
 	};
 
 	this.refreshFileTable = function () {
-		if(document.getElementById("multiseloptions"))$("#multiseloptions").remove();
 		var id=ifm.generateGuid();
 		ifm.task_add("Refresh", id);
 		$.ajax({
@@ -56,19 +51,13 @@ function IFM() {
 	this.rebuildFileTable = function( data ) {
 		var newRows = $(document.createElement('tbody'));
 		for(i=0;i<data.length;i++) {
-			var newrow = '<tr class="clickable-row">';
-			var multisel = '';
-			if(self.config.multiselect == 1) {
-				multisel = '<input type="checkbox" ';
-				multisel += (!ifm.inArray(data[i].name, ["..", "."]))?'id="'+data[i].name+'" name="multisel"':'style="visibility:hidden"';
-				multisel += '>';
-			}
+			var newrow = '<tr class="clickable-row" data-filename="'+data[i].name+'">';
 			if(data[i].type=="file") {
-				newrow += '<td>'+multisel+'<a href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
+				newrow += '<td><a href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
 				if( data[i].icon.indexOf( 'file-image' ) !== -1 ) newrow += 'data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
 				newrow += '><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
 			} else {
-				newrow += '<td>'+multisel+'<a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
+				newrow += '<td><a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
 				if( data[i].name == ".." ) newrow += "[ up ]";
 				else newrow += data[i].name;
 				newrow += '</a></td>';
@@ -531,16 +520,6 @@ function IFM() {
 				{ message: m },
 				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
 		);
-//		var message = '<div id="mess"><div class="';
-//		if(t == "e") message += "message_error";
-//		else if(t == "s") message += "message_successful";
-//		else message += "message";
-//		message += '">'+m+'</div></div>';
-//		$(document.body).prepend(message);
-//		$("#mess").delay(2000).fadeOut('slow');
-//		setTimeout(function() { // remove the message from the DOM after 3 seconds
-//			$('#mess').remove();
-//		}, 3000);
 	};
 	this.pathCombine = function(a, b) {
 		if(a == "" && b == "") return "";
@@ -562,8 +541,8 @@ function IFM() {
 	this.hideSaveQuestion = function() {
 		$("#savequestion").remove();
 	};
-	this.handleMultiSelect = function() {
-		var amount = $("input[name=multisel]:checked").length;
+	this.handleMultiselect = function() {
+		var amount = $("#filetable tr.active").length;
 		if(amount > 0) {
 			if(document.getElementById("multiseloptions")===null) {
 				$(document.body).prepend('<div id="multiseloptions">\
@@ -582,21 +561,23 @@ function IFM() {
 				$("#multiseloptions").remove();
 		}
 	};
+	this.multiDeleteDialog = function() {
+		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.active').length+' files?</label>';
+		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
+		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
+		self.showModal( form );
+	};
 	this.multiDelete = function() {
-		var jel = $("input[name=multisel]:checked");
-		if(jel.length == 0) {
-			ifm.showMessage("No files chosen");
-			return;
-		}
-		var ids = [];
-		for(var i = 0; i < jel.length; i++) ids.push(jel[i].id);
+		var elements = $('#filetable tr.active');
+		var filenames = [];
+		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: self.IFM_SCFN,
 			type: "POST",
 			data: ({
 				api: "deleteMultipleFiles",
-				dir: ifm.currentDir,
-				filenames: ids
+				dir: self.currentDir,
+				filenames: filenames
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -649,6 +630,12 @@ function IFM() {
 		if( event.state && event.state.dir ) dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
+	this.handleKeystrokes = function( event ) {
+		// bind 'del' key
+		if( event.keyCode == 127 && $('#filetable tr.active').length > 0 ) {
+			self.multiDeleteDialog();
+		}
+	}
 	// static button bindings and filetable initial filling
 	this.init = function() {
 		// bind static buttons
@@ -664,6 +651,7 @@ function IFM() {
 		$("#upload").click(function(){
 			self.uploadFileDialog();
 		});
+		$(document).on( 'keypress', self.handleKeystrokes );
 
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
