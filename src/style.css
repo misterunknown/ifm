@@ -18,6 +18,8 @@ body {
 
 a { cursor: pointer !important; }
 
+img.imgpreview { max-width: 100%; }
+
 div#content { width: 100%; height: 350px; }
 
 input[name=newperms] { width: 7em; }
