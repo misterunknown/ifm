@@ -131,19 +131,17 @@ function IFM() {
 		}
 		$("#filetable tbody").remove();
 		$("#filetable").append(newRows);
-		// bind multiselect handler
-		if(self.config.multiselect == 1) {
-			$("input[name=multisel]").on("change", function(){ ifm.handleMultiSelect(); });
+		if( self.config.multiselect == 1 ) {
+			$('.clickable-row').click(function(event) {
+				if( event.ctrlKey ) {
+					$(this).toggleClass('active');
+				}
+			});
 		}
 		$('a[data-toggle="tooltip"]').tooltip({
 			animated: 'fade',
 			placement: 'right',
 			html: true
-		});
-		$('.clickable-row').click(function(event) {
-			if( event.ctrlKey ) {
-				$(this).toggleClass('active');
-			}
 		});
 	};
 
