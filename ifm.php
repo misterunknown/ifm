@@ -289,6 +289,7 @@ div#content { width: 100%; height: 350px; }
 input[name=newperms] { width: 7em; }
 
 #filetable tr th.buttons { min-width: 95px; }
+#filetable tr.clickable-row.active td { background-color: lightblue; }
 
 #navbar { max-width: 100%; }
 
@@ -483,7 +484,7 @@ function IFM() {
 	this.rebuildFileTable = function( data ) {
 		var newRows = $(document.createElement('tbody'));
 		for(i=0;i<data.length;i++) {
-			var newrow = "<tr>";
+			var newrow = '<tr class="clickable-row">';
 			var multisel = '';
 			if(self.config.multiselect == 1) {
 				multisel = '<input type="checkbox" ';
@@ -562,12 +563,12 @@ function IFM() {
 		if(self.config.multiselect == 1) {
 			$("input[name=multisel]").on("change", function(){ ifm.handleMultiSelect(); });
 		}
-		// todo: bootstrap-fancybox for images
 		$('a[data-toggle="tooltip"]').tooltip({
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
+		$('.clickable-row').click(function(event) { if( event.ctrlKey ) $(this).toggleClass('active'); });
 	};
 
 	this.changeDirectory = function( newdir, options={ absolute: false, pushState: true } ) {
