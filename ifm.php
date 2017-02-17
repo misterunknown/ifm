@@ -437,7 +437,6 @@ function IFM() {
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
-	this.loadingAnim = '<div id="loadingAnim"><div class="blockG" id="rotateG_01"></div><div class="blockG" id="rotateG_02"></div><div class="blockG" id="rotateG_03"></div><div class="blockG" id="rotateG_04"></div><div class="blockG" id="rotateG_05"></div><div class="blockG" id="rotateG_06"></div><div class="blockG" id="rotateG_07"></div><div class="blockG" id="rotateG_08"></div></div>';
 
 	// modal functions
 	this.showModal = function( content, options = {} ) {
@@ -709,7 +708,8 @@ function IFM() {
 				<div class="modal-body">\
 				<label>Do you really want to delete the file '+name+'?\
 				</div><div class="modal-footer">\
-				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button><button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
+				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
 				</div>\
 				</form>' );
 	};
@@ -1072,11 +1072,54 @@ function IFM() {
 		if( event.state && event.state.dir ) dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
-	this.handleKeystrokes = function( event ) {
+	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
-		if( event.keyCode == 127 && $('#filetable tr.active').length > 0 ) {
-			self.multiDeleteDialog();
+		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
+			return;
 		}
+
+		switch( e.key ) {
+			case 'Delete':
+				if( $('#filetable tr.active').length > 0 ) {
+					e.preventDefault();
+					self.multiDeleteDialog();
+				}
+				break;
+			case 'g':
+				e.preventDefault();
+				$('#currentDir').focus();
+				break;
+			case 'r':
+				e.preventDefault();
+				self.refreshFileTable();
+				break;
+			case 'u':
+				e.preventDefault();
+				self.uploadFileDialog();
+				break;
+			case 'o':
+				e.preventDefault();
+				self.remoteUploadDialog();
+				break;
+			case 'a':
+				e.preventDefault();
+				self.ajaxRequestDialog();
+				break;
+			case 'F':
+				e.preventDefault();
+				self.showFileForm();
+				break;
+			case 'D':
+				e.preventDefault();
+				self.createDirForm();
+				break;
+			case 'ArrowLeft':
+				e.preventDefault();
+				self.changeDirectory( '..' );
+				break;
+		}
+
+		console.log( "key: "+e.key );
 	}
 	// static button bindings and filetable initial filling
 	this.init = function() {
@@ -1099,7 +1142,9 @@ function IFM() {
 				self.changeDirectory( $(this).val(), { absolute: true } );
 			}
 		});
-		$(document).on( 'keypress', self.handleKeystrokes );
+
+		// handle keystrokes
+		$(document).on( 'keydown', self.handleKeystrokes );
 
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
