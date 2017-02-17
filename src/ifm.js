@@ -140,8 +140,10 @@ function IFM() {
 		});
 	};
 
-	this.changeDirectory = function( newdir, options={ absolute: false, pushState: true } ) {
-		if( ! options.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
+	this.changeDirectory = function( newdir, options={} ) {
+		config = { absolute: false, pushState: true };
+		jQuery.extend( config, options );
+		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
 		$.ajax({
 			url: self.IFM_SCFN,
 			type: "POST",
@@ -154,7 +156,7 @@ function IFM() {
 				self.currentDir = data.realpath;
 				self.refreshFileTable();
 				$( "#currentDir" ).val( self.currentDir );
-				if( options.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+self.currentDir );
+				if( config.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+self.currentDir );
 			},
 			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); }
 		});
