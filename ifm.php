@@ -1801,9 +1801,9 @@ ifm.init();
 
 	// is cURL extention avaliable?
 	private function checkCurl() {
-		if( ! function_exists( "curl_init" ) &&
-				!function_exists( "curl_setopt" ) &&
-				!function_exists( "curl_exec" ) &&
+		if( !function_exists( "curl_init" ) ||
+				!function_exists( "curl_setopt" ) ||
+				!function_exists( "curl_exec" ) ||
 				!function_exists( "curl_close" ) ) return false;
 		else return true;
 	}
