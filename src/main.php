@@ -29,9 +29,9 @@ class IFM {
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
 				<meta name="viewport" content="width=device-width, initial-scale=1">
-				<style type="text/css">';?> @@@src/bootstrap.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/ekko-lightbox.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/fontello-embedded.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 			</head>
 			<body>
@@ -105,11 +105,11 @@ class IFM {
 				<div class="container">
 				<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
 				</div>
-				<script>';?> @@@src/ace/ace.js@@@ <?php print '</script>
-				<script>';?> @@@src/jquery.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/bootstrap.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/bootstrap-notify.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/ekko-lightbox.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/ekko-lightbox.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 			</body>
 			</html>

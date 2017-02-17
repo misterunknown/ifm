@@ -454,8 +454,14 @@ function IFM() {
 		modalDialog.append( modalContent );
 		modal.append( modalDialog );
 		$( document.body ).append( modal );
-		modal.modal();
 		modal.on('hide.bs.modal', function () { $(this).remove(); });
+		modal.on('shown.bs.modal', function () {
+			var formElements = $(this).find('input, button');
+			if( formElements.length > 0 ) {
+				formElements.first().focus();
+			}
+		});
+		modal.modal('show');
 	};
 
 	this.hideModal = function() {
@@ -1078,6 +1084,12 @@ function IFM() {
 		});
 		$("#upload").click(function(){
 			self.uploadFileDialog();
+		});
+		$('#currentDir').on( 'keypress', function (event) {
+			if( event.keyCode == 13 ) {
+				event.preventDefault();
+				self.changeDirectory( $(this).val(), { absolute: true } );
+			}
 		});
 		$(document).on( 'keypress', self.handleKeystrokes );
 
