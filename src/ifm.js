@@ -167,7 +167,8 @@ function IFM() {
 		var content = arguments.length > 1 ? arguments[1] : "";
 		var overlay = '<form id="showFile">';
 		overlay += '<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>';
-		overlay += '<div id="content" name="content"></div></fieldset></div><div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save';
+		overlay += '<div id="content" name="content"></div><input type="checkbox" id="aceWordWrap"> word wrap</input></fieldset></div>';
+		overlay += '<div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save';
 		overlay += '</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>';
 		overlay += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
 		self.showModal( overlay, { large: true } );
@@ -178,6 +179,10 @@ function IFM() {
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
+		// word wrap checkbox
+		$('#aceWordWrap').on( 'change', function (event) {
+			self.editor.getSession().setUseWrapMode( $(this).is(':checked') );
+		});
 	};
 
 	this.createDirForm = function() {
