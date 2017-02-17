@@ -264,6 +264,7 @@ class IFM {
 .icon-trash:before { content: '\f1f8'; } /* '' */ <?php print '</style>
 				<style type="text/css">';?> body {
 	padding-top: 70px;
+	overflow-y: scroll;
 }
 
 .icon {

@@ -1,5 +1,6 @@
 body {
 	padding-top: 70px;
+	overflow-y: scroll;
 }
 
 .icon {
