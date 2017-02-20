@@ -56,13 +56,13 @@ function IFM() {
 	this.rebuildFileTable = function( data ) {
 		var newRows = $(document.createElement('tbody'));
 		for(i=0;i<data.length;i++) {
-			var newrow = '<tr class="clickable-row" data-filename="'+data[i].name+'">';
+			var newrow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="'+data[i].name+'">';
 			if(data[i].type=="file") {
-				newrow += '<td><a href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
+				newrow += '<td><a tabindex="0" href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
 				if( data[i].icon.indexOf( 'file-image' ) !== -1 ) newrow += 'data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
 				newrow += '><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
 			} else {
-				newrow += '<td><a onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
+				newrow += '<td><a tabindex="0" onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
 				if( data[i].name == ".." ) newrow += "[ up ]";
 				else newrow += data[i].name;
 				newrow += '</a></td>';
@@ -111,13 +111,13 @@ function IFM() {
 			if(ifm.inArray(1,[self.config.edit, self.config.rename, self.config.delete, self.config.extract])) {
 				newrow += '<td>';
 				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
-					newrow += '<a href="" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
+					newrow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
 				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
-					newrow += '<a onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
+					newrow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
 				if( data[i].name != ".." && data[i].name != "." ) {
-					if(self.config.rename == 1) newrow += '<a onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
-					if(self.config.delete == 1) newrow += '<a onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
+					if(self.config.rename == 1) newrow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
+					if(self.config.delete == 1) newrow += '<a tabindex="0" onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
 				}
 				newrow += '</td></tr>';
 			}
@@ -140,6 +140,7 @@ function IFM() {
 	};
 
 	this.changeDirectory = function( newdir, options={} ) {
+		console.log( "changeDirectory, newdir="+newdir );
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
@@ -626,6 +627,39 @@ function IFM() {
 	this.task_update = function(progress, id) {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
+	this.selectItem = function( direction ) {
+		var highlightedItem = $('.highlightedItem');
+		if( ! highlightedItem.length ) {
+			$('#filetable tbody tr:first-child').addClass( 'highlightedItem' );
+		} else  {
+			var newItem = ( direction=="next" ? highlightedItem.next() : highlightedItem.prev() );
+
+			if( newItem.is( 'tr' ) ) {
+				highlightedItem.removeClass( 'highlightedItem' );
+				newItem.addClass( 'highlightedItem' );
+				newItem.find( 'a' ).first().focus();
+				if( ! this.isElementInViewport( newItem ) ) {
+					var scrollOffset = ( direction=="next" ? ( highlightedItem.offset().top - 15 ) : ( highlightedItem.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + highlightedItem.height() + 15 ) );
+					$('html, body').animate({
+						scrollTop: scrollOffset
+						}, 500
+					);
+				}
+			}
+		}
+	}
+	this.isElementInViewport = function isElementInViewport (el) {
+		if (typeof jQuery === "function" && el instanceof jQuery) {
+			el = el[0];
+		}
+		var rect = el.getBoundingClientRect();
+		return (
+				rect.top >= 60 &&
+				rect.left >= 0 &&
+				rect.bottom <= ( (window.innerHeight || document.documentElement.clientHeight) ) &&
+				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+			   );
+	}
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
@@ -654,6 +688,10 @@ function IFM() {
 				if( $('#filetable tr.active').length > 0 ) {
 					e.preventDefault();
 					self.multiDeleteDialog();
+				} else {
+					var item = $('.highlightedItem');
+					if( item.length )
+						self.deleteFileDialog( item.data( 'filename' ) );
 				}
 				break;
 			case 'g':
@@ -687,6 +725,33 @@ function IFM() {
 			case 'ArrowLeft':
 				e.preventDefault();
 				self.changeDirectory( '..' );
+				break;
+			case 'ArrowRight':
+				e.preventDefault();
+				var item = $('.highlightedItem');
+				if( item.hasClass('isDir') )
+					self.changeDirectory( item.data( 'filename' ) );
+				break;
+			case 'ArrowDown':
+				e.preventDefault();
+				self.selectItem('next');
+				break;
+			case 'ArrowUp':
+				e.preventDefault();
+				self.selectItem('prev');
+				break;
+			case 'Escape':
+				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
+					e.preventDefault();
+					$('.highlightedItem').removeClass( 'highlightedItem' );
+				}
+				break;
+			case ' ': // todo: make it work only when noting other is focused
+				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) {
+					e.preventDefault();
+					var item = $('.highlightedItem');
+					if( item.is( 'tr' ) ) item.toggleClass( 'active' );
+				}
 				break;
 		}
 

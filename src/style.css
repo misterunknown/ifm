@@ -27,6 +27,10 @@ input[name=newperms] { width: 7em; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tr.clickable-row.active td { background-color: lightblue; }
+#filetable tbody tr.highlightedItem td { border-top: 1px solid #555 !important; border-bottom: 1px solid #555 !important; }
+#filetable tbody tr.highlightedItem td:first-child { border-left: 1px solid #555; }
+#filetable tbody tr.highlightedItem td:last-child { border-right: 1px solid #555; }
+#filetable tbody tr.highlightedItem td:first-child a { outline: none; }
 
 #navbar { max-width: 100%; }
 
