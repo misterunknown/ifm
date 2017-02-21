@@ -76,7 +76,7 @@ function IFM() {
 				newRow += '<input type="hidden" name="dir" value="' + self.currentDir + '">';
 				newRow += '<input type="hidden" name="filename" value="' + ( data[i].name == '..' ? '.' : data[i].name ) + '">';
 				newRow += '<input type="hidden" name="api" value="' + ( data[i].type == 'file'?'downloadFile':'zipnload' ) + '">';
-				newRow += '</form><a onclick="$(\'#d_'+i+'\').submit();"><span class="icon icon-download' + ( data[i].type == 'dir'?'-cloud':'' ) + '" title="download"></span></a></td>';
+				newRow += '</form><a tabindex="0" onclick="$(\'#d_'+guid+'\').submit();"><span class="icon icon-download' + ( data[i].type == 'dir'?'-cloud':'' ) + '" title="download"></span></a></td>';
 			} else {
 				newRow += '<td></td>';
 			}
