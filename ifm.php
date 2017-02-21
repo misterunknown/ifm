@@ -490,11 +490,13 @@ function IFM() {
 
 	this.rebuildFileTable = function( data ) {
 		var newTBody = $(document.createElement('tbody'));
-		
 		for( var i=0; i < data.length; i++ ) {
-			var newRow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="'+data[i].name+'">';
-
-			newRow += '<td><a tabindex="0"';
+			var newRow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="' + data[i].name + '"';
+			if( self.config.extract == 1 && data[i].name.toLowerCase().substr(-4) == ".zip" )
+				newRow += ' data-eaction="extract"';
+			else if( self.config.edit == 1 && data[i].name.toLowerCase().substr(-4) != ".zip" )
+				newRow += ' data-eaction="edit"';
+			newRow += '><td><a tabindex="0"';
 			if(data[i].type=="file") {
 				newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
 				if( data[i].icon.indexOf( 'file-image' ) !== -1 )
@@ -503,7 +505,6 @@ function IFM() {
 				newRow += ' onclick="ifm.changeDirectory(\''+data[i].name+'\')"';
 			}
 			newRow += '><span class="'+data[i].icon+'"></span> ' + ( data[i].name == '..' ? '[ up ]' : data[i].name ) + '</a></td>';
-
 			if( ( data[i].type != "dir" && self.config.download == 1 ) || ( data[i].type == "dir" && self.config.zipnload == 1 ) ) {
 				var guid = self.generateGuid();
 				newRow += '<td><form id="d_' + guid + '">';
@@ -514,30 +515,24 @@ function IFM() {
 			} else {
 				newRow += '<td></td>';
 			}
-
 			// last-modified
 			if( self.config.showlastmodified > 0 )
 				newRow += '<td>' + data[i].lastmodified + '</td>';
-
 			// size
 			if( self.config.showfilesize > 0 )
 				newRow += '<td>' + data[i].filesize + '</td>';
-
 			// permissions
 			if( self.config.showpermissions > 0 )
 				newRow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"' +
 						(self.config.chmod==1?' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"' : 'readonly' ) +
 						( data[i].filepermmode.trim() != "" ? ' class="' + data[i].filepermmode + '"' : '' ) +
 						'></td>';
-
 			// owner
 			if( self.config.showowner > 0 )
 			   	newRow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
-
 			// group
 			if( self.config.showgroup > 0 )
 				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
-
 			// actions
 			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract] ) ) {
 				newRow += '<td>';
@@ -1136,6 +1131,20 @@ function IFM() {
 						self.deleteFileDialog( item.data( 'filename' ) );
 				}
 				break;
+			case 'e':
+				var item = $('.highlightedItem');
+				if( item.length && ! item.hasClass( 'isDir' ) ) {
+					e.preventDefault();
+					var action = item.data( 'eaction' );
+					switch( action ) {
+						case 'extract':
+							self.extractFileDialog( item.data( 'filename' ) );
+							break;
+						case 'edit':
+							self.editFile( item.data( 'filename' ) );
+					}
+				}
+				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
@@ -1164,20 +1173,24 @@ function IFM() {
 				e.preventDefault();
 				self.createDirForm();
 				break;
+			case 'h':
 			case 'ArrowLeft':
 				e.preventDefault();
 				self.changeDirectory( '..' );
 				break;
+			case 'l':
 			case 'ArrowRight':
 				e.preventDefault();
 				var item = $('.highlightedItem');
 				if( item.hasClass('isDir') )
 					self.changeDirectory( item.data( 'filename' ) );
 				break;
+			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
 				self.highlightItem('next');
 				break;
+			case 'k':
 			case 'ArrowUp':
 				e.preventDefault();
 				self.highlightItem('prev');
@@ -1200,7 +1213,8 @@ function IFM() {
 
 		console.log( "key: "+e.key );
 	}
-	// static button bindings and filetable initial filling
+
+	// initialization
 	this.init = function() {
 		// bind static buttons
 		$("#refresh").click(function(){
@@ -1221,13 +1235,10 @@ function IFM() {
 				self.changeDirectory( $(this).val(), { absolute: true } );
 			}
 		});
-
 		// handle keystrokes
 		$(document).on( 'keydown', self.handleKeystrokes );
-
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
-
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( window.location.hash.substring( 1 ) );
