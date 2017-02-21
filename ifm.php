@@ -1070,7 +1070,7 @@ function IFM() {
 			$(document.body).prepend('<div id="waitqueue"></div>');
 			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
 		}
-		$("#waitqueue").append('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
+		$("#waitqueue").prepend('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
 	};
 	this.task_done = function(id) {
 		$("#"+id).remove();
@@ -1082,27 +1082,29 @@ function IFM() {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
 	this.highlightItem = function( param ) {
+		var highlight = function( el ) {
+			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
+			el.find( 'a' ).first().focus();
+			if( ! self.isElementInViewport( el ) ) {
+				var scrollOffset =  0;
+				if( param=="prev" )
+					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
+				else
+					scrollOffset = el.offset().top - 55;
+				$('html, body').animate( { scrollTop: scrollOffset }, 500 );
+			}
+		};
 		if( param.jquery ) {
-			param.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
+			highlight( param );
 		} else {
 			var highlightedItem = $('.highlightedItem');
 			if( ! highlightedItem.length ) {
-				$('#filetable tbody tr:first-child').addClass( 'highlightedItem' );
+				highlight( $('#filetable tbody tr:first-child') );
 			} else  {
 				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
 				if( newItem.is( 'tr' ) ) {
-					highlightedItem.removeClass( 'highlightedItem' );
-					newItem.addClass( 'highlightedItem' );
-					newItem.find( 'a' ).first().focus();
-					if( ! this.isElementInViewport( newItem ) ) {
-						var scrollOffset =  0;
-						if( param=="next" )
-							scrollOffset = highlightedItem.offset().top - 15;
-						else
-							scrollOffset = highlightedItem.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + highlightedItem.height() + 15;
-						$('html, body').animate( { scrollTop: scrollOffset }, 500 );
-					}
+					highlight( newItem );
 				}
 			}
 		}
