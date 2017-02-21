@@ -124,8 +124,6 @@ function IFM() {
 			$('.clickable-row').click(function(event) {
 				if( event.ctrlKey ) {
 					$(this).toggleClass( 'selectedItem' );
-				} else {
-					self.highlightItem( $(this) );
 				}
 			});
 		}
