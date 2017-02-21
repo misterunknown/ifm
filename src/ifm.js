@@ -124,8 +124,6 @@ function IFM() {
 			$('.clickable-row').click(function(event) {
 				if( event.ctrlKey ) {
 					$(this).toggleClass( 'selectedItem' );
-				} else {
-					self.highlightItem( $(this) );
 				}
 			});
 		}
@@ -162,14 +160,38 @@ function IFM() {
 	this.showFileForm = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		var overlay = '<form id="showFile">';
-		overlay += '<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>';
-		overlay += '<div id="content" name="content"></div><input type="checkbox" id="aceWordWrap"> word wrap</input></fieldset></div>';
-		overlay += '<div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save';
-		overlay += '</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>';
-		overlay += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
+		var overlay = '<form id="showFile">' +
+			'<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>' +
+			'<div id="content" name="content"></div><br>' +
+			'<button type="button" class="btn btn-default" id="editoroptions">editor options</button><div class="hide" id="editoroptions-head">options</div><div class="hide" id="editoroptions-content">' +
+			'<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>' +
+			'<input type="checkbox" id="editor-softtabs"> use soft tabs</input>' +
+			'<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>' +
+			'</div></fieldset></div>' +
+			'<div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save' +
+			'</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>' +
+			'<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
 		self.showModal( overlay, { large: true } );
-		$('#ifmmodal').on('remove', function () { self.editor = null; self.fileChanged = false; });
+		$('#editoroptions').popover({
+			html: true,
+			title: function() { return $('#editoroptions-head').html(); },
+			content: function() {
+				var content = $('#editoroptions-content').clone()
+				var aceSession = self.editor.getSession();
+				content.removeClass( 'hide' );
+				content.find( '#editor-wordwrap' )
+					.prop( 'checked', ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ) )
+					.on( 'change', function() { self.editor.setOption( 'wrap', $( this ).is( ':checked' ) ); });
+				content.find( '#editor-softtabs' )
+					.prop( 'checked', aceSession.getOption( 'useSoftTabs' ) )
+					.on( 'change', function() { self.editor.setOption( 'useSoftTabs', $( this ).is( ':checked' ) ); });
+				content.find( '#editor-tabsize' )
+					.val( aceSession.getOption( 'tabSize' ) )
+					.on( 'keydown', function( e ) { if( e.key == 'Enter' ) { self.editor.setOption( 'tabSize', $( this ).val() ); } });
+				return content;
+			}
+		});
+		$('#ifmmodal').on( 'remove', function () { self.editor = null; self.fileChanged = false; });
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
@@ -613,7 +635,7 @@ function IFM() {
 			$(document.body).prepend('<div id="waitqueue"></div>');
 			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
 		}
-		$("#waitqueue").append('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
+		$("#waitqueue").prepend('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
 	};
 	this.task_done = function(id) {
 		$("#"+id).remove();
@@ -625,27 +647,29 @@ function IFM() {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
 	this.highlightItem = function( param ) {
+		var highlight = function( el ) {
+			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
+			el.find( 'a' ).first().focus();
+			if( ! self.isElementInViewport( el ) ) {
+				var scrollOffset =  0;
+				if( param=="prev" )
+					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
+				else
+					scrollOffset = el.offset().top - 55;
+				$('html, body').animate( { scrollTop: scrollOffset }, 500 );
+			}
+		};
 		if( param.jquery ) {
-			param.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
+			highlight( param );
 		} else {
 			var highlightedItem = $('.highlightedItem');
 			if( ! highlightedItem.length ) {
-				$('#filetable tbody tr:first-child').addClass( 'highlightedItem' );
+				highlight( $('#filetable tbody tr:first-child') );
 			} else  {
 				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
 				if( newItem.is( 'tr' ) ) {
-					highlightedItem.removeClass( 'highlightedItem' );
-					newItem.addClass( 'highlightedItem' );
-					newItem.find( 'a' ).first().focus();
-					if( ! this.isElementInViewport( newItem ) ) {
-						var scrollOffset =  0;
-						if( param=="next" )
-							scrollOffset = highlightedItem.offset().top - 15;
-						else
-							scrollOffset = highlightedItem.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + highlightedItem.height() + 15;
-						$('html, body').animate( { scrollTop: scrollOffset }, 500 );
-					}
+					highlight( newItem );
 				}
 			}
 		}
