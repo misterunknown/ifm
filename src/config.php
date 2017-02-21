@@ -35,7 +35,7 @@ class IFMConfig {
 	const showowner = 1;		// show file owner?
 	const showgroup = 1;		// show file group?
 	const showpath = 0; 		// show real path of directory (not only root)?
-	const showrights = 2; 		// show permissions 0 -> not; 1 -> octal, 2 -> human readable
+	const showpermissions = 2; 		// show permissions 0 -> not; 1 -> octal, 2 -> human readable
 	const showhtdocs = 1;		// show .htaccess and .htpasswd
 	const showhiddenfiles = 1;	// show files beginning with a dot (e.g. ".bashrc")
 

@@ -35,7 +35,7 @@ class IFMConfig {
 	const showowner = 1;		// show file owner?
 	const showgroup = 1;		// show file group?
 	const showpath = 0; 		// show real path of directory (not only root)?
-	const showrights = 2; 		// show permissions 0 -> not; 1 -> octal, 2 -> human readable
+	const showpermissions = 2; 		// show permissions 0 -> not; 1 -> octal, 2 -> human readable
 	const showhtdocs = 1;		// show .htaccess and .htpasswd
 	const showhiddenfiles = 1;	// show files beginning with a dot (e.g. ".bashrc")
 
@@ -128,6 +128,9 @@ class IFMZip {
  *
  * main
 */
+
+error_reporting( E_ALL );
+ini_set( 'display_errors', ON );
 
 class IFM {
 	const VERSION = '2.3.1';
@@ -290,11 +293,10 @@ div#content { width: 100%; height: 350px; }
 input[name=newperms] { width: 7em; }
 
 #filetable tr th.buttons { min-width: 95px; }
-#filetable tr.clickable-row.active td { background-color: lightblue; }
-#filetable tbody tr.highlightedItem td { border-top: 1px solid #555 !important; border-bottom: 1px solid #555 !important; }
-#filetable tbody tr.highlightedItem td:first-child { border-left: 1px solid #555; }
-#filetable tbody tr.highlightedItem td:last-child { border-right: 1px solid #555; }
+#filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
 #filetable tbody tr.highlightedItem td:first-child a { outline: none; }
+#filetable tbody tr.selectedItem { background-color: #337ab7; color: #FFF; }
+#filetable tbody tr.selectedItem * a { color: #FFF; }
 
 #navbar { max-width: 100%; }
 
@@ -389,7 +391,7 @@ div.footer div.panel-body { padding: 5px !important; }
 							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
 							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
 							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
-							if( IFMConfig::showrights > 0 ) print '<th class="hidden-xs">permissions</th>';
+							if( IFMConfig::showpermissions > 0 ) print '<th class="hidden-xs">permissions</th>';
 							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
 							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
 							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
@@ -473,12 +475,12 @@ function IFM() {
 	};
 
 	this.refreshFileTable = function () {
-		var id=ifm.generateGuid();
-		ifm.task_add("Refresh", id);
+		var id=self.generateGuid();
+		self.task_add("Refresh", id);
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: self.IFM_SCFN,
 			type: "POST",
-			data: "api=getFiles&dir="+ifm.currentDir,
+			data: "api=getFiles&dir=" + self.currentDir,
 			dataType: "json",
 			success: self.rebuildFileTable,
 			error: function(response) { ifm.showMessage("General error occured: No or broken response", "e"); },
@@ -487,81 +489,83 @@ function IFM() {
 	};
 
 	this.rebuildFileTable = function( data ) {
-		var newRows = $(document.createElement('tbody'));
-		for(i=0;i<data.length;i++) {
-			var newrow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="'+data[i].name+'">';
+		var newTBody = $(document.createElement('tbody'));
+		
+		for( var i=0; i < data.length; i++ ) {
+			var newRow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="'+data[i].name+'">';
+
+			newRow += '<td><a tabindex="0"';
 			if(data[i].type=="file") {
-				newrow += '<td><a tabindex="0" href="'+self.pathCombine(ifm.currentDir,data[i].name)+'" ';
-				if( data[i].icon.indexOf( 'file-image' ) !== -1 ) newrow += 'data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
-				newrow += '><span class="'+data[i].icon+'"></span> '+data[i].name+'</a></td>';
+				newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
+				if( data[i].icon.indexOf( 'file-image' ) !== -1 )
+					newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
 			} else {
-				newrow += '<td><a tabindex="0" onclick="ifm.changeDirectory(\''+data[i].name+'\')"><span class="'+data[i].icon+'"></span> ';
-				if( data[i].name == ".." ) newrow += "[ up ]";
-				else newrow += data[i].name;
-				newrow += '</a></td>';
+				newRow += ' onclick="ifm.changeDirectory(\''+data[i].name+'\')"';
 			}
-			if( data[i].type != "dir" && self.config.download == 1) {
-					newrow += '<td class="download-link">\
-							  <form style="display:none;" id="fdownload'+i+'" method="post">\
-							  <fieldset>\
-							  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
-							  <input type="hidden" name="filename" value="'+data[i].name+'">\
-							  <input type="hidden" name="api" value="downloadFile">\
-							  </fieldset>\
-							  </form>\
-							  <a onclick="$(\'#fdownload'+i+'\').submit();"><span class="icon icon-download" title="download"></span></a>\
-							  </td>';
-			}
-			else if( data[i].type == "dir" && self.config.zipnload == 1 ) {
+			newRow += '><span class="'+data[i].icon+'"></span> ' + ( data[i].name == '..' ? '[ up ]' : data[i].name ) + '</a></td>';
+
+			if( ( data[i].type != "dir" && self.config.download == 1 ) || ( data[i].type == "dir" && self.config.zipnload == 1 ) ) {
 				var guid = self.generateGuid();
-				if( data[i].name == ".." ) data[i].name = ".";
-				newrow += '<td class="download-link"><form id="'+guid+'" method="post" style="display:inline-block;padding:0;margin:0;border:0;">\
-						  <fieldset style="display:inline-block;padding:0;margin:0;border:0;">\
-						  <input type="hidden" name="dir" value="'+ifm.currentDir+'">\
-						  <input type="hidden" name="filename" value="'+data[i].name+'">\
-						  <input type="hidden" name="api" value="zipnload">';
-				newrow += '<a onclick="$(\'#'+guid+'\').submit();return false;">\
-						  <span class="icon icon-download-cloud" title="zip &amp; download current directory">\
-						  </a>\
-						  </fieldset>\
-						  </form></td>';
+				newRow += '<td><form id="d_' + guid + '">';
+				newRow += '<input type="hidden" name="dir" value="' + self.currentDir + '">';
+				newRow += '<input type="hidden" name="filename" value="' + ( data[i].name == '..' ? '.' : data[i].name ) + '">';
+				newRow += '<input type="hidden" name="api" value="' + ( data[i].type == 'file'?'downloadFile':'zipnload' ) + '">';
+				newRow += '</form><a onclick="$(\'#d_'+i+'\').submit();"><span class="icon icon-download' + ( data[i].type == 'dir'?'-cloud':'' ) + '" title="download"></span></a></td>';
+			} else {
+				newRow += '<td></td>';
 			}
-			else
-				newrow += '<td></td>'; // empty cell for download link
-			if(data[i].lastmodified) newrow += '<td>'+data[i].lastmodified+'</td>';
-			if(data[i].filesize) newrow += '<td>'+data[i].filesize+'</td>';
-			if(data[i].fileperms) {
-				newrow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"';
-				if(self.config.chmod == 1)
-					newrow += ' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"';
-				else
-					newrow += " readonly";
-				newrow += ( data[i].filepermmode.trim() != "" ) ? ' class="' + data[i].filepermmode + '"' : '';
-				newrow += '></td>';
-			}
-			if(data[i].owner) newrow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
-			if(data[i].group) newrow += '<td class="hidden-xs hidden-sm hidden-md">'+data[i].group+'</td>';
-			if(ifm.inArray(1,[self.config.edit, self.config.rename, self.config.delete, self.config.extract])) {
-				newrow += '<td>';
+
+			// last-modified
+			if( self.config.showlastmodified > 0 )
+				newRow += '<td>' + data[i].lastmodified + '</td>';
+
+			// size
+			if( self.config.showfilesize > 0 )
+				newRow += '<td>' + data[i].filesize + '</td>';
+
+			// permissions
+			if( self.config.showpermissions > 0 )
+				newRow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"' +
+						(self.config.chmod==1?' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"' : 'readonly' ) +
+						( data[i].filepermmode.trim() != "" ? ' class="' + data[i].filepermmode + '"' : '' ) +
+						'></td>';
+
+			// owner
+			if( self.config.showowner > 0 )
+			   	newRow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
+
+			// group
+			if( self.config.showgroup > 0 )
+				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
+
+			// actions
+			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract] ) ) {
+				newRow += '<td>';
 				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
-					newrow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
+					newRow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
 				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
-					newrow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
+					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
 				if( data[i].name != ".." && data[i].name != "." ) {
-					if(self.config.rename == 1) newrow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
-					if(self.config.delete == 1) newrow += '<a tabindex="0" onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
+					if( self.config.rename == 1 )
+						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
+					if( self.config.delete == 1 )
+						newRow += '<a tabindex="0" onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
 				}
-				newrow += '</td></tr>';
+				newRow += '</td></tr>';
+			} else {
+				newRow += '<td></td>';
 			}
-			newRows.append(newrow);
+			newTBody.append( newRow );
 		}
 		$("#filetable tbody").remove();
-		$("#filetable").append(newRows);
+		$("#filetable").append( newTBody );
 		if( self.config.multiselect == 1 ) {
 			$('.clickable-row').click(function(event) {
 				if( event.ctrlKey ) {
-					$(this).toggleClass('active');
+					$(this).toggleClass( 'selectedItem' );
+				} else {
+					self.highlightItem( $(this) );
 				}
 			});
 		}
@@ -989,7 +993,7 @@ function IFM() {
 		$("#savequestion").remove();
 	};
 	this.handleMultiselect = function() {
-		var amount = $("#filetable tr.active").length;
+		var amount = $("#filetable tr.selectedItem").length;
 		if(amount > 0) {
 			if(document.getElementById("multiseloptions")===null) {
 				$(document.body).prepend('<div id="multiseloptions">\
@@ -1009,13 +1013,13 @@ function IFM() {
 		}
 	};
 	this.multiDeleteDialog = function() {
-		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.active').length+' files?</label>';
+		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.selectedItem').length+' files?</label>';
 		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
 		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
 		self.showModal( form );
 	};
 	this.multiDelete = function() {
-		var elements = $('#filetable tr.active');
+		var elements = $('#filetable tr.selectedItem');
 		var filenames = [];
 		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
@@ -1060,27 +1064,32 @@ function IFM() {
 	this.task_update = function(progress, id) {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
-	this.selectItem = function( direction ) {
-		var highlightedItem = $('.highlightedItem');
-		if( ! highlightedItem.length ) {
-			$('#filetable tbody tr:first-child').addClass( 'highlightedItem' );
-		} else  {
-			var newItem = ( direction=="next" ? highlightedItem.next() : highlightedItem.prev() );
+	this.highlightItem = function( param ) {
+		if( param.jquery ) {
+			param.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
+		} else {
+			var highlightedItem = $('.highlightedItem');
+			if( ! highlightedItem.length ) {
+				$('#filetable tbody tr:first-child').addClass( 'highlightedItem' );
+			} else  {
+				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
-			if( newItem.is( 'tr' ) ) {
-				highlightedItem.removeClass( 'highlightedItem' );
-				newItem.addClass( 'highlightedItem' );
-				newItem.find( 'a' ).first().focus();
-				if( ! this.isElementInViewport( newItem ) ) {
-					var scrollOffset = ( direction=="next" ? ( highlightedItem.offset().top - 15 ) : ( highlightedItem.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + highlightedItem.height() + 15 ) );
-					$('html, body').animate({
-						scrollTop: scrollOffset
-						}, 500
-					);
+				if( newItem.is( 'tr' ) ) {
+					highlightedItem.removeClass( 'highlightedItem' );
+					newItem.addClass( 'highlightedItem' );
+					newItem.find( 'a' ).first().focus();
+					if( ! this.isElementInViewport( newItem ) ) {
+						var scrollOffset =  0;
+						if( param=="next" )
+							scrollOffset = highlightedItem.offset().top - 15;
+						else
+							scrollOffset = highlightedItem.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + highlightedItem.height() + 15;
+						$('html, body').animate( { scrollTop: scrollOffset }, 500 );
+					}
 				}
 			}
 		}
-	}
+	};
 	this.isElementInViewport = function isElementInViewport (el) {
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
@@ -1118,7 +1127,7 @@ function IFM() {
 
 		switch( e.key ) {
 			case 'Delete':
-				if( $('#filetable tr.active').length > 0 ) {
+				if( $('#filetable tr.selectedItem').length > 0 ) {
 					e.preventDefault();
 					self.multiDeleteDialog();
 				} else {
@@ -1167,11 +1176,11 @@ function IFM() {
 				break;
 			case 'ArrowDown':
 				e.preventDefault();
-				self.selectItem('next');
+				self.highlightItem('next');
 				break;
 			case 'ArrowUp':
 				e.preventDefault();
-				self.selectItem('prev');
+				self.highlightItem('prev');
 				break;
 			case 'Escape':
 				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
@@ -1183,7 +1192,8 @@ function IFM() {
 				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) {
 					e.preventDefault();
 					var item = $('.highlightedItem');
-					if( item.is( 'tr' ) ) item.toggleClass( 'active' );
+					if( item.is( 'tr' ) )
+						item.toggleClass( 'selectedItem' );
 				}
 				break;
 		}
@@ -1330,11 +1340,11 @@ ifm.init();
 						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
 						else $item["filesize"] = $item["filesize"] . " Byte";
 					}
-					if( IFMConfig::showrights > 0 ) {
-						if( IFMConfig::showrights == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
-						elseif( IFMConfig::showrights == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
+					if( IFMConfig::showpermissions > 0 ) {
+						if( IFMConfig::showpermissions == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
+						elseif( IFMConfig::showpermissions == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
 						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
-						$item["filepermmode"] = ( IFMConfig::showrights == 1 ) ? "short" : "long";
+						$item["filepermmode"] = ( IFMConfig::showpermissions == 1 ) ? "short" : "long";
 					}
 					if( IFMConfig::showowner == 1  ) {
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
