@@ -597,7 +597,7 @@ function IFM() {
 		var content = arguments.length > 1 ? arguments[1] : "";
 		var overlay = '<form id="showFile">' +
 			'<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>' +
-			'<div id="content" name="content"></div>' +
+			'<div id="content" name="content"></div><br>' +
 			'<button type="button" class="btn btn-default" id="editoroptions">editor options</button><div class="hide" id="editoroptions-head">options</div><div class="hide" id="editoroptions-content">' +
 			'<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>' +
 			'<input type="checkbox" id="editor-softtabs"> use soft tabs</input>' +
