@@ -10,6 +10,9 @@
  * main
 */
 
+error_reporting( E_ALL );
+ini_set( 'display_errors', ON );
+
 class IFM {
 	const VERSION = '2.3.1';
 
@@ -92,7 +95,7 @@ class IFM {
 							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
 							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
 							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
-							if( IFMConfig::showrights > 0 ) print '<th class="hidden-xs">permissions</th>';
+							if( IFMConfig::showpermissions > 0 ) print '<th class="hidden-xs">permissions</th>';
 							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
 							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
 							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
@@ -211,11 +214,11 @@ class IFM {
 						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
 						else $item["filesize"] = $item["filesize"] . " Byte";
 					}
-					if( IFMConfig::showrights > 0 ) {
-						if( IFMConfig::showrights == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
-						elseif( IFMConfig::showrights == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
+					if( IFMConfig::showpermissions > 0 ) {
+						if( IFMConfig::showpermissions == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
+						elseif( IFMConfig::showpermissions == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
 						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
-						$item["filepermmode"] = ( IFMConfig::showrights == 1 ) ? "short" : "long";
+						$item["filepermmode"] = ( IFMConfig::showpermissions == 1 ) ? "short" : "long";
 					}
 					if( IFMConfig::showowner == 1  ) {
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
