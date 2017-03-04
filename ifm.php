@@ -1832,10 +1832,10 @@ ifm.init();
 	}
 
 	private function getValidDir($dir) {
-		if( $this->getScriptRoot() != substr( realpath( $dir ), 0, strlen( $this->getScriptRoot() ) ) ) {
+		if( ! $this->isPathValid( $dir ) || ! is_dir( $dir ) ) {
 			return "";
 		} else {
-			return ( file_exists( realpath( $dir ) ) ) ? substr( realpath( $dir ), strlen( $this->getScriptRoot() ) + 1 ) : "";
+			return $dir;
 		}
 	}
 
@@ -1861,7 +1861,6 @@ ifm.init();
 	}
 
 	private function getScriptRoot() {
-		//return realpath( substr( $_SERVER["SCRIPT_FILENAME"], 0, strrpos( $_SERVER["SCRIPT_FILENAME"], "/" ) ) );
 		return dirname( $_SERVER["SCRIPT_FILENAME"] );
 	}
 
@@ -1887,12 +1886,10 @@ ifm.init();
 	}
 
 	private function getRealpath($dir) {
-		if( $this->getScriptRoot() != substr( realpath( $_POST["dir"] ), 0, strlen( $this->getScriptRoot() ) ) )  {
+		if( ! $this->isPathValid( $dir ) || ! is_dir( $dir ) )  {
 			echo json_encode( array( "realpath" => "" ) );
 		} else {
-			$rp = substr( realpath( $_POST["dir"] ), strlen( $this->getScriptRoot() ) + 1 );
-			if( $rp == false ) $rp = "";
-			echo json_encode( array( "realpath" => $rp ) );
+			echo json_encode( array( "realpath" => $dir ) );
 		}
 	}
 	private function rec_rmdir( $path ) {
