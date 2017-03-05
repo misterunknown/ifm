@@ -130,7 +130,7 @@ class IFMZip {
 */
 
 error_reporting( E_ALL );
-ini_set( 'display_errors', ON );
+ini_set( 'display_errors', 'ON' );
 
 class IFM {
 	const VERSION = '2.3.1';
