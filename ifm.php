@@ -1757,10 +1757,10 @@ ifm.init();
 	 */
 
 	public function checkAuth() {
-		if(IFMConfig::auth == 1 && $_SESSION['auth'] !== true) {
+		if( IFMConfig::auth == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
 			$login_failed = false;
-			if(isset($_POST["user"]) && isset($_POST["pass"])) {
-				if($this->checkCredentials($_POST["user"], $_POST["pass"])) {
+			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
+				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
 					$_SESSION['auth'] = true;
 				}
 				else {
@@ -1769,16 +1769,18 @@ ifm.init();
 				}
 			}
 
-			if($_SESSION['auth'] !== true) {
-				if(isset($_POST["api"]) && $login_failed === true)
-					echo json_encode(array("status"=>"ERROR", "message"=>"authentication failed"));
-				elseif(isset($_POST["api"]) && $login_failed !== true)
-					echo json_encode(array("status"=>"ERROR", "message"=>"not authenticated"));
-				else
-					$this->loginForm($login_failed);
-				return false;
-			} else {
+			if( isset( $_SESSION['auth'] ) && $_SESSION['auth'] === true ) {
 				return true;
+			} else {
+				if( isset( $_POST["api"] ) ) {
+					if( $login_failed === true )
+						echo json_encode( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
+					else
+						echo json_encode( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
+				} else {
+					$this->loginForm($login_failed);
+				}
+				return false;
 			}
 		} else {
 			return true;
