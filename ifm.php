@@ -466,6 +466,7 @@ function IFM() {
 
 	this.IFM_SCFN = "<?=basename($_SERVER['SCRIPT_NAME'])?>";
 	this.config = jQuery.parseJSON('<?php echo json_encode(IFMConfig::getConstants()); ?>');	// serialize the PHP config array, so we can use it in JS too
+	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
@@ -523,16 +524,20 @@ function IFM() {
 			else if( self.config.edit == 1 && data[i].name.toLowerCase().substr(-4) != ".zip" )
 				newRow += ' data-eaction="edit"';
 			newRow += '><td><a tabindex="0"';
+			var guid = self.generateGuid();
 			if(data[i].type=="file") {
-				newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
-				if( data[i].icon.indexOf( 'file-image' ) !== -1 )
-					newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
+				if( self.isDocroot ) {
+					newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
+					if( data[i].icon.indexOf( 'file-image' ) !== -1 )
+						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'"';
+				} else {
+					newRow += ' onclick="$(\'#d_'+guid+'\').submit();"';
+				}
 			} else {
 				newRow += ' onclick="ifm.changeDirectory(\''+data[i].name+'\')"';
 			}
 			newRow += '><span class="'+data[i].icon+'"></span> ' + ( data[i].name == '..' ? '[ up ]' : data[i].name ) + '</a></td>';
 			if( ( data[i].type != "dir" && self.config.download == 1 ) || ( data[i].type == "dir" && self.config.zipnload == 1 ) ) {
-				var guid = self.generateGuid();
 				newRow += '<td><form id="d_' + guid + '">';
 				newRow += '<input type="hidden" name="dir" value="' + self.currentDir + '">';
 				newRow += '<input type="hidden" name="filename" value="' + ( data[i].name == '..' ? '.' : data[i].name ) + '">';
