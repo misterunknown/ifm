@@ -54,7 +54,7 @@ class IFM {
 								<div class="form-group">
 									<div class="input-group">
 										<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">';
-										if( IFMConfig::showpath == 1 ) print $this->getScriptRoot().'/'; else print '/';
+										print ( IFMConfig::showpath == 1 ) ? realpath( IFMConfig::root_dir ) : "/";
 										print '</span></span><input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 									</div>
 								</div>
@@ -126,9 +126,9 @@ class IFM {
 	private function handleRequest() {
 		if($_REQUEST["api"] == "getRealpath") {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
-				$this->getRealpath( $_REQUEST["dir"] );
+				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
-				echo json_encode(array("realpath"=>""));
+				echo json_encode( array( "realpath" => "" ) );
 		}
 		elseif( $_REQUEST["api"] == "getFiles" ) {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) )
@@ -160,6 +160,11 @@ class IFM {
 
 	public function run() {
 		if ( $this->checkAuth() ) {
+			// go to our root_dir
+			if( ! is_dir( realpath( IFMConfig::root_dir ) ) || ! is_readable( realpath( IFMConfig::root_dir ) ) )
+				die( "Cannot access root_dir.");
+			else
+				chdir( IFMConfig::root_dir );
 			if ( ! isset($_REQUEST['api']) ) {
 					$this->getApplication();
 			} else {
@@ -670,14 +675,6 @@ class IFM {
 			</html>';
 	}
 
-	private function getValidDir($dir) {
-		if( $this->getScriptRoot() != substr( realpath( $dir ), 0, strlen( $this->getScriptRoot() ) ) ) {
-			return "";
-		} else {
-			return ( file_exists( realpath( $dir ) ) ) ? substr( realpath( $dir ), strlen( $this->getScriptRoot() ) + 1 ) : "";
-		}
-	}
-
 	private function filePermsDecode( $perms ) {
 		$oct = str_split( strrev( decoct( $perms ) ), 1 );
 		$masks = array( '---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx' );
@@ -690,17 +687,36 @@ class IFM {
 		);
 	}
 
-	private function isPathValid($p) {
-		if( $p == "" ) {
-			return true;
-		} elseif( str_replace( "\\", "/", $this->getScriptRoot() ) == str_replace( "\\", "/", substr( realpath( dirname( $p ) ), 0, strlen( $this->getScriptRoot() ) ) ) ) {
-		   return true;
+	private function getValidDir( $dir ) {
+		if( ! $this->isPathValid( $dir ) || ! is_dir( $dir ) ) {
+			return "";
+		} else {
+			$rpDir = realpath( $dir );
+			$rpConfig = realpath( IFMConfig::root_dir );
+			if( $rpConfig == "/" )
+				return $rpDir;
+			elseif( $rpDir == $rpConfig )
+				return "";
+			else
+				return substr( $rpDir, strlen( $rpConfig ) + 1 );
 		}
-		return false;
+	}
+
+	private function isPathValid( $dir ) {
+		$rpDir = realpath( $dir );
+		$rpConfig = realpath( IFMConfig::root_dir );
+		if( ! is_string( $rpDir ) || ! is_string( $rpConfig ) ) // can happen if open_basedir is in effect
+			return false;
+		elseif( $rpDir == $rpConfig )
+			return true;
+		elseif( 0 === strpos( $rpDir, $rpConfig ) ) {
+			return true;
+		}
+		else
+			return false;
 	}
 
 	private function getScriptRoot() {
-		//return realpath( substr( $_SERVER["SCRIPT_FILENAME"], 0, strrpos( $_SERVER["SCRIPT_FILENAME"], "/" ) ) );
 		return dirname( $_SERVER["SCRIPT_FILENAME"] );
 	}
 
@@ -725,15 +741,6 @@ class IFM {
 		}
 	}
 
-	private function getRealpath($dir) {
-		if( $this->getScriptRoot() != substr( realpath( $_POST["dir"] ), 0, strlen( $this->getScriptRoot() ) ) )  {
-			echo json_encode( array( "realpath" => "" ) );
-		} else {
-			$rp = substr( realpath( $_POST["dir"] ), strlen( $this->getScriptRoot() ) + 1 );
-			if( $rp == false ) $rp = "";
-			echo json_encode( array( "realpath" => $rp ) );
-		}
-	}
 	private function rec_rmdir( $path ) {
 		if( !is_dir( $path ) ) {
 			return -1;
