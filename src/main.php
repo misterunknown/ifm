@@ -616,21 +616,42 @@ class IFM {
 		}
 	}
 
-	private function checkCredentials($user, $pass) {
-		list($src, $srcopt) = explode(";", IFMConfig::auth_source, 2);
-		switch($src) {
+	private function checkCredentials( $user, $pass ) {
+		list( $src, $srcopt ) = explode( ";", IFMConfig::auth_source, 2 );
+		switch( $src ) {
 			case "inline":
-				list($uname, $hash) = explode(":", $srcopt);
+				list( $uname, $hash ) = explode( ":", $srcopt );
+				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
-				if(@file_exists($srcopt) && @is_readable($srcopt)) {
-					list($uname, $hash) = explode(":", fgets(fopen($srcopt, 'r')));
+				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
+					list( $uname, $hash ) = explode( ":", fgets( fopen( $srcopt, 'r' ) ) );
+					return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				} else {
 					return false;
 				}
 				break;
+			case "ldap":
+				$authenticated = false;
+				list( $ldap_server, $rootdn ) = explode( ":", $srcopt );
+				$u = "uid=" . $user . "," . $rootdn;
+				$ds = ldap_connect( $ldap_server ) or ( trigger_error( "Could not reach the ldap server.", E_USER_ERROR ); return false; );
+				ldap_set_option( $ds, LDAP_OPT_PROTOCOL_VERSION, 3 );
+				if( $ds ) {
+					$ldbind = @ldap_bind( $ds, $u, $pass );
+					if( $ldbind ) {
+						$authenticated = true;
+					} else {
+						$authenticated = false;
+					}
+					ldap_unbind( $ds );
+				} else {
+					$authenticated = false;
+				}
+				return $authenticated;
+				break;
 		}
-		return password_verify($pass, trim($hash))?($uname == $user):false;
+		return false;
 	}
 
 	private function loginForm($loginFailed=false) {
