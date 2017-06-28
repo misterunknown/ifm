@@ -529,7 +529,7 @@ function IFM() {
 				if( self.isDocroot ) {
 					newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
 					if( data[i].icon.indexOf( 'file-image' ) !== -1 )
-						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'"';
+						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
 				} else {
 					newRow += ' onclick="$(\'#d_'+guid+'\').submit();"';
 				}
@@ -848,7 +848,7 @@ function IFM() {
 
 	this.extractFileDialog = function(name) {
 		var fuckWorkarounds="";
-		if(fuckWorkarounds.lastIndexOf(".") > 1)
+		if(name.lastIndexOf(".") > 1)
 			fuckWorkarounds = name.substr(0,name.length-4);
 		else fuckWorkarounds = name;
 		self.showModal( '<div class="modal-body">\
