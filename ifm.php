@@ -854,24 +854,25 @@ function IFM() {
 	};
 
 	this.extractFileDialog = function(name) {
-		var fuckWorkarounds="";
+		var targetDirSuggestion="";
 		if(name.lastIndexOf(".") > 1)
-			fuckWorkarounds = name.substr(0,name.length-4);
-		else fuckWorkarounds = name;
-		self.showModal( '<div class="modal-body">\
-			<form id="extractFile">\
-			<fieldset>\
+			targetDirSuggestion = name.substr(0,name.length-4);
+		else targetDirSuggestion = name;
+		self.showModal( '<form id="extractFile"><fieldset>\
+			<div class="modal-body">\
 				<label>Extract '+name+' to:</label>\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 0);ifm.hideModal();return false;">here</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 1);ifm.hideModal();return false;">'+fuckWorkarounds+'/</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</fieldset>\
-			</form>\
-		</div>');
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" checked="checked"></span><span class="form-control">./</span></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation"></span><span class="form-control">./'+targetDirSuggestion+'</span></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation"></span><input type="text" class="form-control" placeholder="custom location" value=""></div>\
+			</div>\
+			<div class="modal-footer">\
+				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', \'\');ifm.hideModal();return false;">extract</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">cancel</button>\
+			</div>\
+		</fieldset></form>');
 	};
 
 	this.extractFile = function(name, t) {
-		var td = (t == 1)? name.substr(0,name.length-4) : "";
 		$.ajax({
 			url: self.IFM_SCFN,
 			type: "POST",
@@ -879,7 +880,7 @@ function IFM() {
 				api: "extractFile",
 				dir: self.currentDir,
 				filename: name,
-				targetdir: td
+				targetdir: t
 			}),
 			dataType: "json",
 			success: function(data) {
