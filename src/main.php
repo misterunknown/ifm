@@ -164,7 +164,7 @@ class IFM {
 			if( ! is_dir( realpath( IFMConfig::root_dir ) ) || ! is_readable( realpath( IFMConfig::root_dir ) ) )
 				die( "Cannot access root_dir.");
 			else
-				chdir( IFMConfig::root_dir );
+				chdir( realpath( IFMConfig::root_dir ) );
 			if ( ! isset($_REQUEST['api']) ) {
 					$this->getApplication();
 			} else {
@@ -527,7 +527,7 @@ class IFM {
 				echo json_encode( array( "status" => "ERROR", "message" => "Filename not allowed" ) );
 			else {
 				unset( $zip );
-				$dfile = uniqid( "ifm-tmp-" ) . ".zip"; // temporary filename
+				$dfile = $this->pathCombine( IFMConfig::tmp_dir, uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
 					IFMZip::create_zip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
@@ -770,10 +770,12 @@ class IFM {
 
 	// combines two parts to a valid path
 	private function pathCombine( $a, $b ) {
-		if( $a=="" && $b=="" )
+		if( trim( $a ) == "" && trim( $b ) == "" )
 			return "";
+		elseif( trim( $a ) == "" )
+			return ltrim( $b, '/' );
 		else
-			return ltrim( rtrim( $a, '/' ) . '/' . ltrim( $b, '/' ), '/' );
+			return rtrim( $a, '/' ) . '/' . ltrim( $b, '/' );
 	}
 
 	// check if filename is allowed
