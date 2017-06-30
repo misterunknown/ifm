@@ -70,6 +70,13 @@ class IFMConfig {
 	const root_dir = "";
 	const defaulttimezone = "Europe/Berlin"; // set default timezone
 
+	/**
+	 * Temp directory for zip files
+	 *
+	 * Default is the upload_tmp_dir which is set in the php.ini, but you may also set an different path
+	 */
+	const tmp_dir = "";
+
 	// development tools
 	const ajaxrequest = 1;		// formular to perform an ajax request
 
