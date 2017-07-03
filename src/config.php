@@ -27,6 +27,7 @@ class IFMConfig {
 	const createdir = 1;		// allow to create directorys
 	const createfile = 1;		// allow to create files
 	const zipnload = 1;			// allow to zip and download directorys
+	const copymove = 1;			// allow to copy and move files and directories
 
 	// view controls
 	const multiselect = 1;		// implement multiselect of files and directories

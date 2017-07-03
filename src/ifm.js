@@ -104,7 +104,7 @@ function IFM() {
 			if( self.config.showgroup > 0 )
 				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
 			// actions
-			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract] ) ) {
+			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract, self.config.copymove] ) ) {
 				newRow += '<td>';
 				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
 					newRow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
@@ -112,6 +112,9 @@ function IFM() {
 					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
 				if( data[i].name != ".." && data[i].name != "." ) {
+					if( self.config.copymove == 1 ) {
+						newRow += '<a tabindex="0" onclick="ifm.copyMoveDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-folder-open-empty" title="copy/move"></span></a>';
+					}
 					if( self.config.rename == 1 )
 						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
 					if( self.config.delete == 1 )
@@ -140,7 +143,6 @@ function IFM() {
 	};
 
 	this.changeDirectory = function( newdir, options={} ) {
-		console.log( "changeDirectory, newdir="+newdir );
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
@@ -382,6 +384,78 @@ function IFM() {
 						} else ifm.showMessage("File could not be renamed: "+data.message, "e");
 					},
 			error: function() { ifm.showMessage("General error occured", "e"); }
+		});
+	};
+
+	this.copyMove = function( source, destination, action ) {
+		var id=self.generateGuid();
+		self.task_add(action.charAt(0).toUpperCase()+action.slice(1)+" "+source+" to "+destination, id);
+		$.ajax({
+			url: self.IFM_SCFN,
+			type: "POST",
+			data: ({
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filename: source,
+				destination: destination
+			}),
+			dataType: "json",
+			success: function(data) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
+				}
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done(id);
+			}
+		});
+	};
+
+	this.copyMoveDialog = function(name) {
+		self.showModal( '<form id="copyMoveFile"><fieldset>\
+			<div class="modal-body">\
+				<label>Select destination:</label>\
+				<div id="copyMoveTree"><span class="icon icon-spin5"></span></div>\
+			</div>\
+			<div class="modal-footer">\
+				<button type="button" class="btn btn-default" id="copyButton">copy</button>\
+				<button type="button" class="btn btn-default" id="moveButton">move</button>\
+				<button type="button" class="btn btn-default" id="cancelButton">cancel</button>\
+			</div>\
+		</fieldset></form>');
+		$.ajax({
+			url: ifm.IFM_SCFN,
+			type: "POST",
+			data: ({
+				api: "getFolderTree",
+				dir: ifm.currentDir
+			}),
+			dataType: "json",
+			success: function(data) {
+				$('#copyMoveTree').treeview({data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty"});
+			},
+			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+		});
+		$('#copyButton').on( 'click', function(e) {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
+			self.hideModal();
+			return false;
+		});
+		$('#moveButton').on( 'click', function(e) {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
+			self.hideModal();
+			return false;
+		});
+		$('#cancelButton').on( 'click', function(e) {
+			self.hideModal();
+			return false;
 		});
 	};
 
@@ -819,8 +893,6 @@ function IFM() {
 				}
 				break;
 		}
-
-		console.log( "key: "+e.key );
 	}
 
 	// initialization

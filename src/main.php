@@ -35,6 +35,7 @@ class IFM {
 				<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
+				<style type="text/css">';?> @@@src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 			</head>
 			<body>
@@ -113,6 +114,7 @@ class IFM {
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/ekko-lightbox.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 			</body>
 			</html>
@@ -146,11 +148,17 @@ class IFM {
 					case "downloadFile": $this->downloadFile( $_REQUEST ); break;
 					case "extractFile": $this->extractFile( $_REQUEST ); break;
 					case "uploadFile": $this->uploadFile( $_REQUEST ); break;
+					case "copyMove": $this->copyMove( $_REQUEST ); break;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
-					default: echo json_encode(array("status"=>"ERROR", "message"=>"No valid api action given")); break;
+					case "getFolderTree":
+						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( IFMConfig::root_dir ) ) ) ), $this->getFolderTreeRecursive( IFMConfig::root_dir ) ) );
+						break;
+					default:
+						echo json_encode( array( "status" => "ERROR", "message" => "No valid api action given" ) );
+						break;
 				}
 			} else {
 				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
@@ -246,6 +254,58 @@ class IFM {
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
 		echo json_encode( array_merge( $dirs, $files ) );
+	}
+
+	private function getFolderTreeRecursive( $start_dir ) {
+		$ret = array();
+		$start_dir = realpath( $start_dir );
+		if( $handle = opendir( $start_dir ) ) {
+			while (false !== ( $result = readdir( $handle ) ) ) {
+				if( is_dir( $this->pathCombine( $start_dir, $result ) ) && $result != "." && $result != ".." ) {
+					array_push( $ret, array( "text" => $result, "dataAttributes" => array( "path" => $this->pathCombine( $start_dir, $result ) ), "nodes" => $this->getFolderTreeRecursive( $this->pathCombine( $start_dir, $result ) ) ) );
+				}
+			}
+		}
+		sort( $ret );
+		return $ret;
+	}
+
+	private function copyMove( $d ) {
+		if( IFMConfig::copymove != 1 ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			exit( 1 );
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid destination directory given." ) );
+			exit( 1 );
+		}
+		if( ! file_exists( $d['filename'] ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid filename given." ) );
+			exit( 1 );
+		}
+		if( $d['action'] == "copy" ) {
+			if( $this->copyr( $d['filename'], $d['destination'] ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} elseif( $d['action'] == "move" ) {
+			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} else {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid action given." ) );
+			exit( 1 );
+		}
 	}
 
 	// creates a directory
@@ -786,6 +846,53 @@ class IFM {
 		$res = @rmdir( $path );
 		if( !$res ) { return -2; }
 		return 0;
+	}
+
+	/**
+	 * Copy a file, or recursively copy a folder and its contents
+	 *
+	 * @author      Aidan Lister <aidan@php.net>
+	 * @version     1.0.1
+	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
+	 * @param       string   $source    Source path
+	 * @param       string   $dest      Destination path
+	 * @return      bool     Returns TRUE on success, FALSE on failure
+	 */
+	private function copyr( $source, $dest )
+	{
+		// Check for symlinks
+		if (is_link($source)) {
+			return symlink(readlink($source), $dest);
+		}
+
+		// Simple copy for a file
+		if (is_file($source)) {
+			$dest = ( is_dir( $dest ) ) ? $this->pathCombine( $dest, basename( $source ) ) : $dest;
+			return copy($source, $dest);
+		} else {
+			$dest = $this->pathCombine( $dest, basename( $source ) );
+		}
+
+		// Make destination directory
+		if (!is_dir($dest)) {
+			mkdir($dest);
+		}
+
+		// Loop through the folder
+		$dir = dir($source);
+		while (false !== $entry = $dir->read()) {
+			// Skip pointers
+			if ($entry == '.' || $entry == '..') {
+				continue;
+			}
+
+			// Deep copy directories
+			$this->copyr("$source/$entry", "$dest/$entry");
+		}
+
+		// Clean up
+		$dir->close();
+		return true;
 	}
 
 	// combines two parts to a valid path
