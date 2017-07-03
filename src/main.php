@@ -14,7 +14,7 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '2.3.1';
+	const VERSION = '2.4.0';
 
 	public function __construct() {
 		session_start();
