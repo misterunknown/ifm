@@ -53,7 +53,7 @@ class IFMConfig {
 
 	   LDAP auth syntax
 	 
-	   const auth_source = 'ldap;<ldap_sever_host>:<rootdn>';
+	   const auth_source = 'ldap;<ldap_sever_host>;<rootdn>';
 	 
 	   The script will add "uid=<username>," to the rootdn for binding. If your ldap server
 	   does not use uid for usernames you can change it in the function checkCredentials.

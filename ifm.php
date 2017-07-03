@@ -53,7 +53,7 @@ class IFMConfig {
 
 	   LDAP auth syntax
 	 
-	   const auth_source = 'ldap;<ldap_sever_host>:<rootdn>';
+	   const auth_source = 'ldap;<ldap_sever_host>;<rootdn>';
 	 
 	   The script will add "uid=<username>," to the rootdn for binding. If your ldap server
 	   does not use uid for usernames you can change it in the function checkCredentials.
@@ -1855,15 +1855,19 @@ ifm.init();
 				break;
 			case "ldap":
 				$authenticated = false;
-				list( $ldap_server, $rootdn ) = explode( ":", $srcopt );
+				list( $ldap_server, $rootdn ) = explode( ";", $srcopt );
 				$u = "uid=" . $user . "," . $rootdn;
-				$ds = ldap_connect( $ldap_server ) or ( trigger_error( "Could not reach the ldap server.", E_USER_ERROR ); return false; );
+				if( ! $ds = ldap_connect( $ldap_server ) ) {
+					trigger_error( "Could not reach the ldap server.", E_USER_ERROR );
+					return false;
+				}
 				ldap_set_option( $ds, LDAP_OPT_PROTOCOL_VERSION, 3 );
 				if( $ds ) {
 					$ldbind = @ldap_bind( $ds, $u, $pass );
 					if( $ldbind ) {
 						$authenticated = true;
 					} else {
+						trigger_error( ldap_error( $ds ), E_USER_ERROR );
 						$authenticated = false;
 					}
 					ldap_unbind( $ds );
