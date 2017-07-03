@@ -27,6 +27,7 @@ class IFMConfig {
 	const createdir = 1;		// allow to create directorys
 	const createfile = 1;		// allow to create files
 	const zipnload = 1;			// allow to zip and download directorys
+	const copymove = 1;			// allow to copy and move files and directories
 
 	// view controls
 	const multiselect = 1;		// implement multiselect of files and directories
@@ -174,7 +175,7 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '2.3.1';
+	const VERSION = '2.4.0';
 
 	public function __construct() {
 		session_start();
@@ -306,6 +307,8 @@ class IFM {
 .icon-file-code:before { content: '\f1c9'; } /* '' */
 .icon-sliders:before { content: '\f1de'; } /* '' */
 .icon-trash:before { content: '\f1f8'; } /* '' */ <?php print '</style>
+				<style type="text/css">';?> .treeview .list-group-item{cursor:pointer}.treeview span.indent{margin-left:10px;margin-right:10px}.treeview span.icon{width:12px;margin-right:5px}.treeview .node-disabled{color:silver;cursor:not-allowed}
+ <?php print '</style>
 				<style type="text/css">';?> body {
 	padding-top: 70px;
 	overflow-y: scroll;
@@ -474,6 +477,8 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 				<script>';?> !function(t){"function"==typeof define&&define.amd?define(["jquery"],t):t("object"==typeof exports?require("jquery"):jQuery)}(function(t){function s(s){var e=!1;return t('[data-notify="container"]').each(function(i,n){var a=t(n),o=a.find('[data-notify="title"]').text().trim(),r=a.find('[data-notify="message"]').html().trim(),l=o===t("<div>"+s.settings.content.title+"</div>").html().trim(),d=r===t("<div>"+s.settings.content.message+"</div>").html().trim(),g=a.hasClass("alert-"+s.settings.type);return l&&d&&g&&(e=!0),!e}),e}function e(e,n,a){var o={content:{message:"object"==typeof n?n.message:n,title:n.title?n.title:"",icon:n.icon?n.icon:"",url:n.url?n.url:"#",target:n.target?n.target:"-"}};a=t.extend(!0,{},o,a),this.settings=t.extend(!0,{},i,a),this._defaults=i,"-"===this.settings.content.target&&(this.settings.content.target=this.settings.url_target),this.animations={start:"webkitAnimationStart oanimationstart MSAnimationStart animationstart",end:"webkitAnimationEnd oanimationend MSAnimationEnd animationend"},"number"==typeof this.settings.offset&&(this.settings.offset={x:this.settings.offset,y:this.settings.offset}),(this.settings.allow_duplicates||!this.settings.allow_duplicates&&!s(this))&&this.init()}var i={element:"body",position:null,type:"info",allow_dismiss:!0,allow_duplicates:!0,newest_on_top:!1,showProgressbar:!1,placement:{from:"top",align:"right"},offset:20,spacing:10,z_index:1031,delay:5e3,timer:1e3,url_target:"_blank",mouse_over:null,animate:{enter:"animated fadeInDown",exit:"animated fadeOutUp"},onShow:null,onShown:null,onClose:null,onClosed:null,icon_type:"class",template:'<div data-notify="container" class="col-xs-11 col-sm-4 alert alert-{0}" role="alert"><button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button><span data-notify="icon"></span> <span data-notify="title">{1}</span> <span data-notify="message">{2}</span><div class="progress" data-notify="progressbar"><div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div></div><a href="{3}" target="{4}" data-notify="url"></a></div>'};String.format=function(){for(var t=arguments[0],s=1;s<arguments.length;s++)t=t.replace(RegExp("\\{"+(s-1)+"\\}","gm"),arguments[s]);return t},t.extend(e.prototype,{init:function(){var t=this;this.buildNotify(),this.settings.content.icon&&this.setIcon(),"#"!=this.settings.content.url&&this.styleURL(),this.styleDismiss(),this.placement(),this.bind(),this.notify={$ele:this.$ele,update:function(s,e){var i={};"string"==typeof s?i[s]=e:i=s;for(var n in i)switch(n){case"type":this.$ele.removeClass("alert-"+t.settings.type),this.$ele.find('[data-notify="progressbar"] > .progress-bar').removeClass("progress-bar-"+t.settings.type),t.settings.type=i[n],this.$ele.addClass("alert-"+i[n]).find('[data-notify="progressbar"] > .progress-bar').addClass("progress-bar-"+i[n]);break;case"icon":var a=this.$ele.find('[data-notify="icon"]');"class"===t.settings.icon_type.toLowerCase()?a.removeClass(t.settings.content.icon).addClass(i[n]):(a.is("img")||a.find("img"),a.attr("src",i[n]));break;case"progress":var o=t.settings.delay-t.settings.delay*(i[n]/100);this.$ele.data("notify-delay",o),this.$ele.find('[data-notify="progressbar"] > div').attr("aria-valuenow",i[n]).css("width",i[n]+"%");break;case"url":this.$ele.find('[data-notify="url"]').attr("href",i[n]);break;case"target":this.$ele.find('[data-notify="url"]').attr("target",i[n]);break;default:this.$ele.find('[data-notify="'+n+'"]').html(i[n])}var r=this.$ele.outerHeight()+parseInt(t.settings.spacing)+parseInt(t.settings.offset.y);t.reposition(r)},close:function(){t.close()}}},buildNotify:function(){var s=this.settings.content;this.$ele=t(String.format(this.settings.template,this.settings.type,s.title,s.message,s.url,s.target)),this.$ele.attr("data-notify-position",this.settings.placement.from+"-"+this.settings.placement.align),this.settings.allow_dismiss||this.$ele.find('[data-notify="dismiss"]').css("display","none"),(this.settings.delay<=0&&!this.settings.showProgressbar||!this.settings.showProgressbar)&&this.$ele.find('[data-notify="progressbar"]').remove()},setIcon:function(){"class"===this.settings.icon_type.toLowerCase()?this.$ele.find('[data-notify="icon"]').addClass(this.settings.content.icon):this.$ele.find('[data-notify="icon"]').is("img")?this.$ele.find('[data-notify="icon"]').attr("src",this.settings.content.icon):this.$ele.find('[data-notify="icon"]').append('<img src="'+this.settings.content.icon+'" alt="Notify Icon" />')},styleDismiss:function(){this.$ele.find('[data-notify="dismiss"]').css({position:"absolute",right:"10px",top:"5px",zIndex:this.settings.z_index+2})},styleURL:function(){this.$ele.find('[data-notify="url"]').css({backgroundImage:"url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)",height:"100%",left:0,position:"absolute",top:0,width:"100%",zIndex:this.settings.z_index+1})},placement:function(){var s=this,e=this.settings.offset.y,i={display:"inline-block",margin:"0px auto",position:this.settings.position?this.settings.position:"body"===this.settings.element?"fixed":"absolute",transition:"all .5s ease-in-out",zIndex:this.settings.z_index},n=!1,a=this.settings;switch(t('[data-notify-position="'+this.settings.placement.from+"-"+this.settings.placement.align+'"]:not([data-closing="true"])').each(function(){e=Math.max(e,parseInt(t(this).css(a.placement.from))+parseInt(t(this).outerHeight())+parseInt(a.spacing))}),this.settings.newest_on_top===!0&&(e=this.settings.offset.y),i[this.settings.placement.from]=e+"px",this.settings.placement.align){case"left":case"right":i[this.settings.placement.align]=this.settings.offset.x+"px";break;case"center":i.left=0,i.right=0}this.$ele.css(i).addClass(this.settings.animate.enter),t.each(Array("webkit-","moz-","o-","ms-",""),function(t,e){s.$ele[0].style[e+"AnimationIterationCount"]=1}),t(this.settings.element).append(this.$ele),this.settings.newest_on_top===!0&&(e=parseInt(e)+parseInt(this.settings.spacing)+this.$ele.outerHeight(),this.reposition(e)),t.isFunction(s.settings.onShow)&&s.settings.onShow.call(this.$ele),this.$ele.one(this.animations.start,function(){n=!0}).one(this.animations.end,function(){s.$ele.removeClass(s.settings.animate.enter),t.isFunction(s.settings.onShown)&&s.settings.onShown.call(this)}),setTimeout(function(){n||t.isFunction(s.settings.onShown)&&s.settings.onShown.call(this)},600)},bind:function(){var s=this;if(this.$ele.find('[data-notify="dismiss"]').on("click",function(){s.close()}),this.$ele.mouseover(function(){t(this).data("data-hover","true")}).mouseout(function(){t(this).data("data-hover","false")}),this.$ele.data("data-hover","false"),this.settings.delay>0){s.$ele.data("notify-delay",s.settings.delay);var e=setInterval(function(){var t=parseInt(s.$ele.data("notify-delay"))-s.settings.timer;if("false"===s.$ele.data("data-hover")&&"pause"===s.settings.mouse_over||"pause"!=s.settings.mouse_over){var i=(s.settings.delay-t)/s.settings.delay*100;s.$ele.data("notify-delay",t),s.$ele.find('[data-notify="progressbar"] > div').attr("aria-valuenow",i).css("width",i+"%")}t<=-s.settings.timer&&(clearInterval(e),s.close())},s.settings.timer)}},close:function(){var s=this,e=parseInt(this.$ele.css(this.settings.placement.from)),i=!1;this.$ele.attr("data-closing","true").addClass(this.settings.animate.exit),s.reposition(e),t.isFunction(s.settings.onClose)&&s.settings.onClose.call(this.$ele),this.$ele.one(this.animations.start,function(){i=!0}).one(this.animations.end,function(){t(this).remove(),t.isFunction(s.settings.onClosed)&&s.settings.onClosed.call(this)}),setTimeout(function(){i||(s.$ele.remove(),s.settings.onClosed&&s.settings.onClosed(s.$ele))},600)},reposition:function(s){var e=this,i='[data-notify-position="'+this.settings.placement.from+"-"+this.settings.placement.align+'"]:not([data-closing="true"])',n=this.$ele.nextAll(i);this.settings.newest_on_top===!0&&(n=this.$ele.prevAll(i)),n.each(function(){t(this).css(e.settings.placement.from,s),s=parseInt(s)+parseInt(e.settings.spacing)+t(this).outerHeight()})}}),t.notify=function(t,s){var i=new e(this,t,s);return i.notify},t.notifyDefaults=function(s){return i=t.extend(!0,{},i,s)},t.notifyClose=function(s){"warning"===s&&(s="danger"),"undefined"==typeof s||"all"===s?t("[data-notify]").find('[data-notify="dismiss"]').trigger("click"):"success"===s||"info"===s||"warning"===s||"danger"===s?t(".alert-"+s+"[data-notify]").find('[data-notify="dismiss"]').trigger("click"):s?t(s+"[data-notify]").find('[data-notify="dismiss"]').trigger("click"):t('[data-notify-position="'+s+'"]').find('[data-notify="dismiss"]').trigger("click")},t.notifyCloseExcept=function(s){"warning"===s&&(s="danger"),"success"===s||"info"===s||"warning"===s||"danger"===s?t("[data-notify]").not(".alert-"+s).find('[data-notify="dismiss"]').trigger("click"):t("[data-notify]").not(s).find('[data-notify="dismiss"]').trigger("click")}}); <?php print '</script>
 				<script>';?> +function(a){"use strict";function b(a,b){if(!(a instanceof b))throw new TypeError("Cannot call a class as a function")}var c=function(){function a(a,b){for(var c=0;c<b.length;c++){var d=b[c];d.enumerable=d.enumerable||!1,d.configurable=!0,"value"in d&&(d.writable=!0),Object.defineProperty(a,d.key,d)}}return function(b,c,d){return c&&a(b.prototype,c),d&&a(b,d),b}}();(function(a){var d="ekkoLightbox",e=a.fn[d],f={title:"",footer:"",showArrows:!0,type:null,alwaysShowClose:!1,loadingMessage:'<div class="ekko-lightbox-loader"><div><div></div><div></div></div></div>',leftArrow:"<span>&#10094;</span>",rightArrow:"<span>&#10095;</span>",strings:{close:"Close",fail:"Failed to load image:",type:"Could not detect remote target type. Force the type using data-type"},doc:document,onShow:function(){},onShown:function(){},onHide:function(){},onHidden:function(){},onNavigate:function(){},onContentLoaded:function(){}},g=function(){function d(c,e){var g=this;b(this,d),this._config=a.extend({},f,e),this._$modalArrows=null,this._galleryIndex=0,this._galleryName=null,this._padding=null,this._border=null,this._titleIsShown=!1,this._footerIsShown=!1,this._wantedWidth=0,this._wantedHeight=0,this._modalId="ekkoLightbox-"+Math.floor(1e3*Math.random()+1),this._$element=c instanceof jQuery?c:a(c),this._isBootstrap3=3==a.fn.modal.Constructor.VERSION[0];var h='<h4 class="modal-title">'+(this._config.title||"&nbsp;")+"</h4>",i='<button type="button" class="close" data-dismiss="modal" aria-label="'+this._config.strings.close+'"><span aria-hidden="true">&times;</span></button>',j='<div class="modal-header"'+(this._config.title||this._config.alwaysShowClose?"":' style="display:none"')+">"+(this._isBootstrap3?i+h:h+i)+"</div>",k='<div class="modal-footer"'+(this._config.footer?"":' style="display:none"')+">"+(this._config.footer||"&nbsp;")+"</div>",l='<div class="modal-body"><div class="ekko-lightbox-container"><div class="ekko-lightbox-item fade in show"></div><div class="ekko-lightbox-item fade"></div></div></div>',m='<div class="modal-dialog" role="document"><div class="modal-content">'+j+l+k+"</div></div>";a(this._config.doc.body).append('<div id="'+this._modalId+'" class="ekko-lightbox modal fade" tabindex="-1" tabindex="-1" role="dialog" aria-hidden="true">'+m+"</div>"),this._$modal=a("#"+this._modalId,this._config.doc),this._$modalDialog=this._$modal.find(".modal-dialog").first(),this._$modalContent=this._$modal.find(".modal-content").first(),this._$modalBody=this._$modal.find(".modal-body").first(),this._$modalHeader=this._$modal.find(".modal-header").first(),this._$modalFooter=this._$modal.find(".modal-footer").first(),this._$lightboxContainer=this._$modalBody.find(".ekko-lightbox-container").first(),this._$lightboxBodyOne=this._$lightboxContainer.find("> div:first-child").first(),this._$lightboxBodyTwo=this._$lightboxContainer.find("> div:last-child").first(),this._border=this._calculateBorders(),this._padding=this._calculatePadding(),this._galleryName=this._$element.data("gallery"),this._galleryName&&(this._$galleryItems=a(document.body).find('*[data-gallery="'+this._galleryName+'"]'),this._galleryIndex=this._$galleryItems.index(this._$element),a(document).on("keydown.ekkoLightbox",this._navigationalBinder.bind(this)),this._config.showArrows&&this._$galleryItems.length>1&&(this._$lightboxContainer.append('<div class="ekko-lightbox-nav-overlay"><a href="#">'+this._config.leftArrow+'</a><a href="#">'+this._config.rightArrow+"</a></div>"),this._$modalArrows=this._$lightboxContainer.find("div.ekko-lightbox-nav-overlay").first(),this._$lightboxContainer.on("click","a:first-child",function(a){return a.preventDefault(),g.navigateLeft()}),this._$lightboxContainer.on("click","a:last-child",function(a){return a.preventDefault(),g.navigateRight()}))),this._$modal.on("show.bs.modal",this._config.onShow.bind(this)).on("shown.bs.modal",function(){return g._toggleLoading(!0),g._handle(),g._config.onShown.call(g)}).on("hide.bs.modal",this._config.onHide.bind(this)).on("hidden.bs.modal",function(){return g._galleryName&&(a(document).off("keydown.ekkoLightbox"),a(window).off("resize.ekkoLightbox")),g._$modal.remove(),g._config.onHidden.call(g)}).modal(this._config),a(window).on("resize.ekkoLightbox",function(){g._resize(g._wantedWidth,g._wantedHeight)})}return c(d,null,[{key:"Default",get:function(){return f}}]),c(d,[{key:"element",value:function(){return this._$element}},{key:"modal",value:function(){return this._$modal}},{key:"navigateTo",value:function(b){return b<0||b>this._$galleryItems.length-1?this:(this._galleryIndex=b,this._$element=a(this._$galleryItems.get(this._galleryIndex)),void this._handle())}},{key:"navigateLeft",value:function(){if(1!==this._$galleryItems.length)return 0===this._galleryIndex?this._galleryIndex=this._$galleryItems.length-1:this._galleryIndex--,this._config.onNavigate.call(this,"left",this._galleryIndex),this.navigateTo(this._galleryIndex)}},{key:"navigateRight",value:function(){if(1!==this._$galleryItems.length)return this._galleryIndex===this._$galleryItems.length-1?this._galleryIndex=0:this._galleryIndex++,this._config.onNavigate.call(this,"right",this._galleryIndex),this.navigateTo(this._galleryIndex)}},{key:"close",value:function(){return this._$modal.modal("hide")}},{key:"_navigationalBinder",value:function(a){return a=a||window.event,39===a.keyCode?this.navigateRight():37===a.keyCode?this.navigateLeft():void 0}},{key:"_detectRemoteType",value:function(a,b){return b=b||!1,!b&&this._isImage(a)&&(b="image"),!b&&this._getYoutubeId(a)&&(b="youtube"),!b&&this._getVimeoId(a)&&(b="vimeo"),!b&&this._getInstagramId(a)&&(b="instagram"),(!b||["image","youtube","vimeo","instagram","video","url"].indexOf(b)<0)&&(b="url"),b}},{key:"_isImage",value:function(a){return a&&a.match(/(^data:image\/.*,)|(\.(jp(e|g|eg)|gif|png|bmp|webp|svg)((\?|#).*)?$)/i)}},{key:"_containerToUse",value:function(){var a=this,b=this._$lightboxBodyTwo,c=this._$lightboxBodyOne;return this._$lightboxBodyTwo.hasClass("in")&&(b=this._$lightboxBodyOne,c=this._$lightboxBodyTwo),c.removeClass("in show"),setTimeout(function(){a._$lightboxBodyTwo.hasClass("in")||a._$lightboxBodyTwo.empty(),a._$lightboxBodyOne.hasClass("in")||a._$lightboxBodyOne.empty()},500),b.addClass("in show"),b}},{key:"_handle",value:function(){var a=this._containerToUse();this._updateTitleAndFooter();var b=this._$element.attr("data-remote")||this._$element.attr("href"),c=this._detectRemoteType(b,this._$element.attr("data-type")||!1);if(["image","youtube","vimeo","instagram","video","url"].indexOf(c)<0)return this._error(this._config.strings.type);switch(c){case"image":this._preloadImage(b,a),this._preloadImageByIndex(this._galleryIndex,3);break;case"youtube":this._showYoutubeVideo(b,a);break;case"vimeo":this._showVimeoVideo(this._getVimeoId(b),a);break;case"instagram":this._showInstagramVideo(this._getInstagramId(b),a);break;case"video":this._showHtml5Video(b,a);break;default:this._loadRemoteContent(b,a)}return this}},{key:"_getYoutubeId",value:function(a){if(!a)return!1;var b=a.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);return!(!b||11!==b[2].length)&&b[2]}},{key:"_getVimeoId",value:function(a){return!!(a&&a.indexOf("vimeo")>0)&&a}},{key:"_getInstagramId",value:function(a){return!!(a&&a.indexOf("instagram")>0)&&a}},{key:"_toggleLoading",value:function(b){return b=b||!1,b?(this._$modalDialog.css("display","none"),this._$modal.removeClass("in show"),a(".modal-backdrop").append(this._config.loadingMessage)):(this._$modalDialog.css("display","block"),this._$modal.addClass("in show"),a(".modal-backdrop").find(".ekko-lightbox-loader").remove()),this}},{key:"_calculateBorders",value:function(){return{top:this._totalCssByAttribute("border-top-width"),right:this._totalCssByAttribute("border-right-width"),bottom:this._totalCssByAttribute("border-bottom-width"),left:this._totalCssByAttribute("border-left-width")}}},{key:"_calculatePadding",value:function(){return{top:this._totalCssByAttribute("padding-top"),right:this._totalCssByAttribute("padding-right"),bottom:this._totalCssByAttribute("padding-bottom"),left:this._totalCssByAttribute("padding-left")}}},{key:"_totalCssByAttribute",value:function(a){return parseInt(this._$modalDialog.css(a),10)+parseInt(this._$modalContent.css(a),10)+parseInt(this._$modalBody.css(a),10)}},{key:"_updateTitleAndFooter",value:function(){var a=this._$element.data("title")||"",b=this._$element.data("footer")||"";return this._titleIsShown=!1,a||this._config.alwaysShowClose?(this._titleIsShown=!0,this._$modalHeader.css("display","").find(".modal-title").html(a||"&nbsp;")):this._$modalHeader.css("display","none"),this._footerIsShown=!1,b?(this._footerIsShown=!0,this._$modalFooter.css("display","").html(b)):this._$modalFooter.css("display","none"),this}},{key:"_showYoutubeVideo",value:function(a,b){var c=this._getYoutubeId(a),d=a.indexOf("&")>0?a.substr(a.indexOf("&")):"",e=this._$element.data("width")||560,f=this._$element.data("height")||e/(560/315);return this._showVideoIframe("//www.youtube.com/embed/"+c+"?badge=0&autoplay=1&html5=1"+d,e,f,b)}},{key:"_showVimeoVideo",value:function(a,b){var c=500,d=this._$element.data("height")||c/(560/315);return this._showVideoIframe(a+"?autoplay=1",c,d,b)}},{key:"_showInstagramVideo",value:function(a,b){var c=this._$element.data("width")||612,d=c+80;return a="/"!==a.substr(-1)?a+"/":a,b.html('<iframe width="'+c+'" height="'+d+'" src="'+a+'embed/" frameborder="0" allowfullscreen></iframe>'),this._resize(c,d),this._config.onContentLoaded.call(this),this._$modalArrows&&this._$modalArrows.css("display","none"),this._toggleLoading(!1),this}},{key:"_showVideoIframe",value:function(a,b,c,d){return c=c||b,d.html('<div class="embed-responsive embed-responsive-16by9"><iframe width="'+b+'" height="'+c+'" src="'+a+'" frameborder="0" allowfullscreen class="embed-responsive-item"></iframe></div>'),this._resize(b,c),this._config.onContentLoaded.call(this),this._$modalArrows&&this._$modalArrows.css("display","none"),this._toggleLoading(!1),this}},{key:"_showHtml5Video",value:function(a,b){var c=this._$element.data("width")||560,d=this._$element.data("height")||c/(560/315);return b.html('<div class="embed-responsive embed-responsive-16by9"><video width="'+c+'" height="'+d+'" src="'+a+'" preload="auto" autoplay controls class="embed-responsive-item"></video></div>'),this._resize(c,d),this._config.onContentLoaded.call(this),this._$modalArrows&&this._$modalArrows.css("display","none"),this._toggleLoading(!1),this}},{key:"_loadRemoteContent",value:function(b,c){var d=this,e=this._$element.data("width")||560,f=this._$element.data("height")||560,g=this._$element.data("disableExternalCheck")||!1;return this._toggleLoading(!1),g||this._isExternal(b)?(c.html('<iframe src="'+b+'" frameborder="0" allowfullscreen></iframe>'),this._config.onContentLoaded.call(this)):c.load(b,a.proxy(function(){return d._$element.trigger("loaded.bs.modal")})),this._$modalArrows&&this._$modalArrows.css("display","none"),this._resize(e,f),this}},{key:"_isExternal",value:function(a){var b=a.match(/^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/);return"string"==typeof b[1]&&b[1].length>0&&b[1].toLowerCase()!==location.protocol||"string"==typeof b[2]&&b[2].length>0&&b[2].replace(new RegExp(":("+{"http:":80,"https:":443}[location.protocol]+")?$"),"")!==location.host}},{key:"_error",value:function(a){return console.error(a),this._containerToUse().html(a),this._resize(300,300),this}},{key:"_preloadImageByIndex",value:function(b,c){if(this._$galleryItems){var d=a(this._$galleryItems.get(b),!1);if("undefined"!=typeof d){var e=d.attr("data-remote")||d.attr("href");return("image"===d.attr("data-type")||this._isImage(e))&&this._preloadImage(e,!1),c>0?this._preloadImageByIndex(b+1,c-1):void 0}}}},{key:"_preloadImage",value:function(b,c){var d=this;c=c||!1;var e=new Image;return c&&!function(){var f=setTimeout(function(){c.append(d._config.loadingMessage)},200);e.onload=function(){f&&clearTimeout(f),f=null;var b=a("<img />");return b.attr("src",e.src),b.addClass("img-fluid"),b.css("width","100%"),c.html(b),d._$modalArrows&&d._$modalArrows.css("display",""),d._resize(e.width,e.height),d._toggleLoading(!1),d._config.onContentLoaded.call(d)},e.onerror=function(){return d._toggleLoading(!1),d._error(d._config.strings.fail+("  "+b))}}(),e.src=b,e}},{key:"_resize",value:function(b,c){c=c||b,this._wantedWidth=b,this._wantedHeight=c;var d=this._padding.left+this._padding.right+this._border.left+this._border.right,e=Math.min(b+d,this._config.doc.body.clientWidth);b+d>e?(c=(e-d)/b*c,b=e):b+=d;var f=0,g=0;this._footerIsShown&&(g=this._$modalFooter.outerHeight(!0)||55),this._titleIsShown&&(f=this._$modalHeader.outerHeight(!0)||67);var h=this._padding.top+this._padding.bottom+this._border.bottom+this._border.top,i=parseFloat(this._$modalDialog.css("margin-top"))+parseFloat(this._$modalDialog.css("margin-bottom")),j=Math.min(c,a(window).height()-h-i-f-g);if(c>j){var k=Math.min(j/c,1);b=Math.ceil(k*b)}if(this._$lightboxContainer.css("height",j),this._$modalDialog.css("width","auto").css("maxWidth",b),this._isBootstrap3){var l=this._$modal.data("bs.modal");l&&l.handleUpdate()}else{var l=this._$modal.data("bs.modal");l&&l._handleUpdate()}return this}}],[{key:"_jQueryInterface",value:function(b){var c=this;return b=b||{},this.each(function(){var e=a(c),f=a.extend({},d.Default,e.data(),"object"==typeof b&&b);new d(c,f)})}}]),d}();return a.fn[d]=g._jQueryInterface,a.fn[d].Constructor=g,a.fn[d].noConflict=function(){return a.fn[d]=e,g._jQueryInterface},g})(jQuery)}(jQuery);
 //# sourceMappingURL=ekko-lightbox.min.js.map <?php print '</script>
+				<script>';?> !function(e,t,o,s){"use strict";var n="treeview",i={};i.settings={injectStyle:!0,levels:2,expandIcon:"glyphicon glyphicon-plus",collapseIcon:"glyphicon glyphicon-minus",emptyIcon:"glyphicon",nodeIcon:"",selectedIcon:"",checkedIcon:"glyphicon glyphicon-check",uncheckedIcon:"glyphicon glyphicon-unchecked",color:s,backColor:s,borderColor:s,onhoverColor:"#F5F5F5",selectedColor:"#FFFFFF",selectedBackColor:"#428bca",searchResultColor:"#D9534F",searchResultBackColor:s,enableLinks:!1,highlightSelected:!0,highlightSearchResults:!0,showBorder:!0,showIcon:!0,showCheckbox:!1,showTags:!1,multiSelect:!1,onNodeChecked:s,onNodeCollapsed:s,onNodeDisabled:s,onNodeEnabled:s,onNodeExpanded:s,onNodeSelected:s,onNodeUnchecked:s,onNodeUnselected:s,onSearchComplete:s,onSearchCleared:s},i.options={silent:!1,ignoreChildren:!1},i.searchOptions={ignoreCase:!0,exactMatch:!1,revealResults:!0};var d=function(t,o){return this.$element=e(t),this.elementId=t.id,this.styleId=this.elementId+"-style",this.init(o),{options:this.options,init:e.proxy(this.init,this),remove:e.proxy(this.remove,this),getNode:e.proxy(this.getNode,this),getParent:e.proxy(this.getParent,this),getSiblings:e.proxy(this.getSiblings,this),getSelected:e.proxy(this.getSelected,this),getUnselected:e.proxy(this.getUnselected,this),getExpanded:e.proxy(this.getExpanded,this),getCollapsed:e.proxy(this.getCollapsed,this),getChecked:e.proxy(this.getChecked,this),getUnchecked:e.proxy(this.getUnchecked,this),getDisabled:e.proxy(this.getDisabled,this),getEnabled:e.proxy(this.getEnabled,this),selectNode:e.proxy(this.selectNode,this),unselectNode:e.proxy(this.unselectNode,this),toggleNodeSelected:e.proxy(this.toggleNodeSelected,this),collapseAll:e.proxy(this.collapseAll,this),collapseNode:e.proxy(this.collapseNode,this),expandAll:e.proxy(this.expandAll,this),expandNode:e.proxy(this.expandNode,this),toggleNodeExpanded:e.proxy(this.toggleNodeExpanded,this),revealNode:e.proxy(this.revealNode,this),checkAll:e.proxy(this.checkAll,this),checkNode:e.proxy(this.checkNode,this),uncheckAll:e.proxy(this.uncheckAll,this),uncheckNode:e.proxy(this.uncheckNode,this),toggleNodeChecked:e.proxy(this.toggleNodeChecked,this),disableAll:e.proxy(this.disableAll,this),disableNode:e.proxy(this.disableNode,this),enableAll:e.proxy(this.enableAll,this),enableNode:e.proxy(this.enableNode,this),toggleNodeDisabled:e.proxy(this.toggleNodeDisabled,this),search:e.proxy(this.search,this),clearSearch:e.proxy(this.clearSearch,this)}};d.prototype.init=function(t){this.tree=[],this.nodes=[],t.data&&("string"==typeof t.data&&(t.data=e.parseJSON(t.data)),this.tree=e.extend(!0,[],t.data),delete t.data),this.options=e.extend({},i.settings,t),this.destroy(),this.subscribeEvents(),this.setInitialStates({nodes:this.tree},0),this.render()},d.prototype.remove=function(){this.destroy(),e.removeData(this,n),e("#"+this.styleId).remove()},d.prototype.destroy=function(){this.initialized&&(this.$wrapper.remove(),this.$wrapper=null,this.unsubscribeEvents(),this.initialized=!1)},d.prototype.unsubscribeEvents=function(){this.$element.off("click"),this.$element.off("nodeChecked"),this.$element.off("nodeCollapsed"),this.$element.off("nodeDisabled"),this.$element.off("nodeEnabled"),this.$element.off("nodeExpanded"),this.$element.off("nodeSelected"),this.$element.off("nodeUnchecked"),this.$element.off("nodeUnselected"),this.$element.off("searchComplete"),this.$element.off("searchCleared")},d.prototype.subscribeEvents=function(){this.unsubscribeEvents(),this.$element.on("click",e.proxy(this.clickHandler,this)),"function"==typeof this.options.onNodeChecked&&this.$element.on("nodeChecked",this.options.onNodeChecked),"function"==typeof this.options.onNodeCollapsed&&this.$element.on("nodeCollapsed",this.options.onNodeCollapsed),"function"==typeof this.options.onNodeDisabled&&this.$element.on("nodeDisabled",this.options.onNodeDisabled),"function"==typeof this.options.onNodeEnabled&&this.$element.on("nodeEnabled",this.options.onNodeEnabled),"function"==typeof this.options.onNodeExpanded&&this.$element.on("nodeExpanded",this.options.onNodeExpanded),"function"==typeof this.options.onNodeSelected&&this.$element.on("nodeSelected",this.options.onNodeSelected),"function"==typeof this.options.onNodeUnchecked&&this.$element.on("nodeUnchecked",this.options.onNodeUnchecked),"function"==typeof this.options.onNodeUnselected&&this.$element.on("nodeUnselected",this.options.onNodeUnselected),"function"==typeof this.options.onSearchComplete&&this.$element.on("searchComplete",this.options.onSearchComplete),"function"==typeof this.options.onSearchCleared&&this.$element.on("searchCleared",this.options.onSearchCleared)},d.prototype.setInitialStates=function(t,o){if(t.nodes){o+=1;var s=t,n=this;e.each(t.nodes,function(e,t){t.nodeId=n.nodes.length,t.parentId=s.nodeId,t.hasOwnProperty("selectable")||(t.selectable=!0),t.state=t.state||{},t.state.hasOwnProperty("checked")||(t.state.checked=!1),t.state.hasOwnProperty("disabled")||(t.state.disabled=!1),t.state.hasOwnProperty("expanded")||(!t.state.disabled&&o<n.options.levels&&t.nodes&&t.nodes.length>0?t.state.expanded=!0:t.state.expanded=!1),t.state.hasOwnProperty("selected")||(t.state.selected=!1),n.nodes.push(t),t.nodes&&n.setInitialStates(t,o)})}},d.prototype.clickHandler=function(t){this.options.enableLinks||t.preventDefault();var o=e(t.target),s=this.findNode(o);if(s&&!s.state.disabled){var n=o.attr("class")?o.attr("class").split(" "):[];-1!==n.indexOf("expand-icon")?(this.toggleExpandedState(s,i.options),this.render()):-1!==n.indexOf("check-icon")?(this.toggleCheckedState(s,i.options),this.render()):(s.selectable?this.toggleSelectedState(s,i.options):this.toggleExpandedState(s,i.options),this.render())}},d.prototype.findNode=function(e){var t=e.closest("li.list-group-item").attr("data-nodeid"),o=this.nodes[t];return o||console.log("Error: node does not exist"),o},d.prototype.toggleExpandedState=function(e,t){e&&this.setExpandedState(e,!e.state.expanded,t)},d.prototype.setExpandedState=function(t,o,s){o!==t.state.expanded&&(o&&t.nodes?(t.state.expanded=!0,s.silent||this.$element.trigger("nodeExpanded",e.extend(!0,{},t))):o||(t.state.expanded=!1,s.silent||this.$element.trigger("nodeCollapsed",e.extend(!0,{},t)),t.nodes&&!s.ignoreChildren&&e.each(t.nodes,e.proxy(function(e,t){this.setExpandedState(t,!1,s)},this))))},d.prototype.toggleSelectedState=function(e,t){e&&this.setSelectedState(e,!e.state.selected,t)},d.prototype.setSelectedState=function(t,o,s){o!==t.state.selected&&(o?(this.options.multiSelect||e.each(this.findNodes("true","g","state.selected"),e.proxy(function(e,t){this.setSelectedState(t,!1,s)},this)),t.state.selected=!0,s.silent||this.$element.trigger("nodeSelected",e.extend(!0,{},t))):(t.state.selected=!1,s.silent||this.$element.trigger("nodeUnselected",e.extend(!0,{},t))))},d.prototype.toggleCheckedState=function(e,t){e&&this.setCheckedState(e,!e.state.checked,t)},d.prototype.setCheckedState=function(t,o,s){o!==t.state.checked&&(o?(t.state.checked=!0,s.silent||this.$element.trigger("nodeChecked",e.extend(!0,{},t))):(t.state.checked=!1,s.silent||this.$element.trigger("nodeUnchecked",e.extend(!0,{},t))))},d.prototype.setDisabledState=function(t,o,s){o!==t.state.disabled&&(o?(t.state.disabled=!0,this.setExpandedState(t,!1,s),this.setSelectedState(t,!1,s),this.setCheckedState(t,!1,s),s.silent||this.$element.trigger("nodeDisabled",e.extend(!0,{},t))):(t.state.disabled=!1,s.silent||this.$element.trigger("nodeEnabled",e.extend(!0,{},t))))},d.prototype.render=function(){this.initialized||(this.$element.addClass(n),this.$wrapper=e(this.template.list),this.injectStyle(),this.initialized=!0),this.$element.empty().append(this.$wrapper.empty()),this.buildTree(this.tree,0)},d.prototype.buildTree=function(t,o){if(t){o+=1;var s=this;e.each(t,function(t,n){var i=e(s.template.item).addClass("node-"+s.elementId).addClass(n.state.checked?"node-checked":"").addClass(n.state.disabled?"node-disabled":"").addClass(n.state.selected?"node-selected":"").addClass(n.searchResult?"search-result":"").attr("data-nodeid",n.nodeId).attr("style",s.buildStyleOverride(n));n.dataAttributes&&e.each(n.dataAttributes,function(e,t){i.attr("data-"+e,t)});for(var d=0;o-1>d;d++)i.append(s.template.indent);var r=[];if(n.nodes?(r.push("expand-icon"),n.state.expanded?r.push(s.options.collapseIcon):r.push(s.options.expandIcon)):r.push(s.options.emptyIcon),i.append(e(s.template.icon).addClass(r.join(" "))),s.options.showIcon){var r=["node-icon"];r.push(n.icon||s.options.nodeIcon),n.state.selected&&(r.pop(),r.push(n.selectedIcon||s.options.selectedIcon||n.icon||s.options.nodeIcon)),i.append(e(s.template.icon).addClass(r.join(" ")))}if(s.options.showCheckbox){var r=["check-icon"];n.state.checked?r.push(s.options.checkedIcon):r.push(s.options.uncheckedIcon),i.append(e(s.template.icon).addClass(r.join(" ")))}return s.options.enableLinks?i.append(e(s.template.link).attr("href",n.href).append(n.text)):i.append(n.text),s.options.showTags&&n.tags&&e.each(n.tags,function(t,o){i.append(e(s.template.badge).append(o))}),s.$wrapper.append(i),n.nodes&&n.state.expanded&&!n.state.disabled?s.buildTree(n.nodes,o):void 0})}},d.prototype.buildStyleOverride=function(e){if(e.state.disabled)return"";var t=e.color,o=e.backColor;return this.options.highlightSelected&&e.state.selected&&(this.options.selectedColor&&(t=this.options.selectedColor),this.options.selectedBackColor&&(o=this.options.selectedBackColor)),this.options.highlightSearchResults&&e.searchResult&&!e.state.disabled&&(this.options.searchResultColor&&(t=this.options.searchResultColor),this.options.searchResultBackColor&&(o=this.options.searchResultBackColor)),"color:"+t+";background-color:"+o+";"},d.prototype.injectStyle=function(){this.options.injectStyle&&!o.getElementById(this.styleId)&&e('<style type="text/css" id="'+this.styleId+'"> '+this.buildStyle()+" </style>").appendTo("head")},d.prototype.buildStyle=function(){var e=".node-"+this.elementId+"{";return this.options.color&&(e+="color:"+this.options.color+";"),this.options.backColor&&(e+="background-color:"+this.options.backColor+";"),this.options.showBorder?this.options.borderColor&&(e+="border:1px solid "+this.options.borderColor+";"):e+="border:none;",e+="}",this.options.onhoverColor&&(e+=".node-"+this.elementId+":not(.node-disabled):hover{background-color:"+this.options.onhoverColor+";}"),this.css+e},d.prototype.template={list:'<ul class="list-group"></ul>',item:'<li class="list-group-item"></li>',indent:'<span class="indent"></span>',icon:'<span class="icon"></span>',link:'<a href="#" style="color:inherit;"></a>',badge:'<span class="badge"></span>'},d.prototype.css=".treeview .list-group-item{cursor:pointer}.treeview span.indent{margin-left:10px;margin-right:10px}.treeview span.icon{width:12px;margin-right:5px}.treeview .node-disabled{color:silver;cursor:not-allowed}",d.prototype.getNode=function(e){return this.nodes[e]},d.prototype.getParent=function(e){var t=this.identifyNode(e);return this.nodes[t.parentId]},d.prototype.getSiblings=function(e){var t=this.identifyNode(e),o=this.getParent(t),s=o?o.nodes:this.tree;return s.filter(function(e){return e.nodeId!==t.nodeId})},d.prototype.getSelected=function(){return this.findNodes("true","g","state.selected")},d.prototype.getUnselected=function(){return this.findNodes("false","g","state.selected")},d.prototype.getExpanded=function(){return this.findNodes("true","g","state.expanded")},d.prototype.getCollapsed=function(){return this.findNodes("false","g","state.expanded")},d.prototype.getChecked=function(){return this.findNodes("true","g","state.checked")},d.prototype.getUnchecked=function(){return this.findNodes("false","g","state.checked")},d.prototype.getDisabled=function(){return this.findNodes("true","g","state.disabled")},d.prototype.getEnabled=function(){return this.findNodes("false","g","state.disabled")},d.prototype.selectNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setSelectedState(e,!0,t)},this)),this.render()},d.prototype.unselectNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setSelectedState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeSelected=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleSelectedState(e,t)},this)),this.render()},d.prototype.collapseAll=function(t){var o=this.findNodes("true","g","state.expanded");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setExpandedState(e,!1,t)},this)),this.render()},d.prototype.collapseNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setExpandedState(e,!1,t)},this)),this.render()},d.prototype.expandAll=function(t){if(t=e.extend({},i.options,t),t&&t.levels)this.expandLevels(this.tree,t.levels,t);else{var o=this.findNodes("false","g","state.expanded");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setExpandedState(e,!0,t)},this))}this.render()},d.prototype.expandNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setExpandedState(e,!0,t),e.nodes&&t&&t.levels&&this.expandLevels(e.nodes,t.levels-1,t)},this)),this.render()},d.prototype.expandLevels=function(t,o,s){s=e.extend({},i.options,s),e.each(t,e.proxy(function(e,t){this.setExpandedState(t,o>0?!0:!1,s),t.nodes&&this.expandLevels(t.nodes,o-1,s)},this))},d.prototype.revealNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){for(var o=this.getParent(e);o;)this.setExpandedState(o,!0,t),o=this.getParent(o)},this)),this.render()},d.prototype.toggleNodeExpanded=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleExpandedState(e,t)},this)),this.render()},d.prototype.checkAll=function(t){var o=this.findNodes("false","g","state.checked");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setCheckedState(e,!0,t)},this)),this.render()},d.prototype.checkNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setCheckedState(e,!0,t)},this)),this.render()},d.prototype.uncheckAll=function(t){var o=this.findNodes("true","g","state.checked");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setCheckedState(e,!1,t)},this)),this.render()},d.prototype.uncheckNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setCheckedState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeChecked=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleCheckedState(e,t)},this)),this.render()},d.prototype.disableAll=function(t){var o=this.findNodes("false","g","state.disabled");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setDisabledState(e,!0,t)},this)),this.render()},d.prototype.disableNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!0,t)},this)),this.render()},d.prototype.enableAll=function(t){var o=this.findNodes("true","g","state.disabled");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setDisabledState(e,!1,t)},this)),this.render()},d.prototype.enableNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeDisabled=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!e.state.disabled,t)},this)),this.render()},d.prototype.forEachIdentifier=function(t,o,s){o=e.extend({},i.options,o),t instanceof Array||(t=[t]),e.each(t,e.proxy(function(e,t){s(this.identifyNode(t),o)},this))},d.prototype.identifyNode=function(e){return"number"==typeof e?this.nodes[e]:e},d.prototype.search=function(t,o){o=e.extend({},i.searchOptions,o),this.clearSearch({render:!1});var s=[];if(t&&t.length>0){o.exactMatch&&(t="^"+t+"$");var n="g";o.ignoreCase&&(n+="i"),s=this.findNodes(t,n),e.each(s,function(e,t){t.searchResult=!0})}return o.revealResults?this.revealNode(s):this.render(),this.$element.trigger("searchComplete",e.extend(!0,{},s)),s},d.prototype.clearSearch=function(t){t=e.extend({},{render:!0},t);var o=e.each(this.findNodes("true","g","searchResult"),function(e,t){t.searchResult=!1});t.render&&this.render(),this.$element.trigger("searchCleared",e.extend(!0,{},o))},d.prototype.findNodes=function(t,o,s){o=o||"g",s=s||"text";var n=this;return e.grep(this.nodes,function(e){var i=n.getNodeValue(e,s);return"string"==typeof i?i.match(new RegExp(t,o)):void 0})},d.prototype.getNodeValue=function(e,t){var o=t.indexOf(".");if(o>0){var n=e[t.substring(0,o)],i=t.substring(o+1,t.length);return this.getNodeValue(n,i)}return e.hasOwnProperty(t)?e[t].toString():s};var r=function(e){t.console&&t.console.error(e)};e.fn[n]=function(t,o){var s;return this.each(function(){var i=e.data(this,n);"string"==typeof t?i?e.isFunction(i[t])&&"_"!==t.charAt(0)?(o instanceof Array||(o=[o]),s=i[t].apply(i,o)):r("No such method : "+t):r("Not initialized, can not call method : "+t):"boolean"==typeof t?s=i:e.data(this,n,new d(this,e.extend(!0,{},t)))}),s||this}}(jQuery,window,document);
+ <?php print '</script>
 				<script>';?> // IFM - js app
 
 function IFM() {
@@ -580,7 +585,7 @@ function IFM() {
 			if( self.config.showgroup > 0 )
 				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
 			// actions
-			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract] ) ) {
+			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract, self.config.copymove] ) ) {
 				newRow += '<td>';
 				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
 					newRow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
@@ -588,6 +593,9 @@ function IFM() {
 					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
 				if( data[i].name != ".." && data[i].name != "." ) {
+					if( self.config.copymove == 1 ) {
+						newRow += '<a tabindex="0" onclick="ifm.copyMoveDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-folder-open-empty" title="copy/move"></span></a>';
+					}
 					if( self.config.rename == 1 )
 						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
 					if( self.config.delete == 1 )
@@ -616,7 +624,6 @@ function IFM() {
 	};
 
 	this.changeDirectory = function( newdir, options={} ) {
-		console.log( "changeDirectory, newdir="+newdir );
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
@@ -858,6 +865,78 @@ function IFM() {
 						} else ifm.showMessage("File could not be renamed: "+data.message, "e");
 					},
 			error: function() { ifm.showMessage("General error occured", "e"); }
+		});
+	};
+
+	this.copyMove = function( source, destination, action ) {
+		var id=self.generateGuid();
+		self.task_add(action.charAt(0).toUpperCase()+action.slice(1)+" "+source+" to "+destination, id);
+		$.ajax({
+			url: self.IFM_SCFN,
+			type: "POST",
+			data: ({
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filename: source,
+				destination: destination
+			}),
+			dataType: "json",
+			success: function(data) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
+				}
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done(id);
+			}
+		});
+	};
+
+	this.copyMoveDialog = function(name) {
+		self.showModal( '<form id="copyMoveFile"><fieldset>\
+			<div class="modal-body">\
+				<label>Select destination:</label>\
+				<div id="copyMoveTree"><span class="icon icon-spin5"></span></div>\
+			</div>\
+			<div class="modal-footer">\
+				<button type="button" class="btn btn-default" id="copyButton">copy</button>\
+				<button type="button" class="btn btn-default" id="moveButton">move</button>\
+				<button type="button" class="btn btn-default" id="cancelButton">cancel</button>\
+			</div>\
+		</fieldset></form>');
+		$.ajax({
+			url: ifm.IFM_SCFN,
+			type: "POST",
+			data: ({
+				api: "getFolderTree",
+				dir: ifm.currentDir
+			}),
+			dataType: "json",
+			success: function(data) {
+				$('#copyMoveTree').treeview({data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty"});
+			},
+			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+		});
+		$('#copyButton').on( 'click', function(e) {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
+			self.hideModal();
+			return false;
+		});
+		$('#moveButton').on( 'click', function(e) {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
+			self.hideModal();
+			return false;
+		});
+		$('#cancelButton').on( 'click', function(e) {
+			self.hideModal();
+			return false;
 		});
 	};
 
@@ -1295,8 +1374,6 @@ function IFM() {
 				}
 				break;
 		}
-
-		console.log( "key: "+e.key );
 	}
 
 	// initialization
@@ -1368,11 +1445,17 @@ ifm.init();
 					case "downloadFile": $this->downloadFile( $_REQUEST ); break;
 					case "extractFile": $this->extractFile( $_REQUEST ); break;
 					case "uploadFile": $this->uploadFile( $_REQUEST ); break;
+					case "copyMove": $this->copyMove( $_REQUEST ); break;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
-					default: echo json_encode(array("status"=>"ERROR", "message"=>"No valid api action given")); break;
+					case "getFolderTree":
+						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( IFMConfig::root_dir ) ) ) ), $this->getFolderTreeRecursive( IFMConfig::root_dir ) ) );
+						break;
+					default:
+						echo json_encode( array( "status" => "ERROR", "message" => "No valid api action given" ) );
+						break;
 				}
 			} else {
 				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
@@ -1468,6 +1551,58 @@ ifm.init();
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
 		echo json_encode( array_merge( $dirs, $files ) );
+	}
+
+	private function getFolderTreeRecursive( $start_dir ) {
+		$ret = array();
+		$start_dir = realpath( $start_dir );
+		if( $handle = opendir( $start_dir ) ) {
+			while (false !== ( $result = readdir( $handle ) ) ) {
+				if( is_dir( $this->pathCombine( $start_dir, $result ) ) && $result != "." && $result != ".." ) {
+					array_push( $ret, array( "text" => $result, "dataAttributes" => array( "path" => $this->pathCombine( $start_dir, $result ) ), "nodes" => $this->getFolderTreeRecursive( $this->pathCombine( $start_dir, $result ) ) ) );
+				}
+			}
+		}
+		sort( $ret );
+		return $ret;
+	}
+
+	private function copyMove( $d ) {
+		if( IFMConfig::copymove != 1 ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			exit( 1 );
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid destination directory given." ) );
+			exit( 1 );
+		}
+		if( ! file_exists( $d['filename'] ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid filename given." ) );
+			exit( 1 );
+		}
+		if( $d['action'] == "copy" ) {
+			if( $this->copyr( $d['filename'], $d['destination'] ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} elseif( $d['action'] == "move" ) {
+			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} else {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid action given." ) );
+			exit( 1 );
+		}
 	}
 
 	// creates a directory
@@ -2008,6 +2143,53 @@ ifm.init();
 		$res = @rmdir( $path );
 		if( !$res ) { return -2; }
 		return 0;
+	}
+
+	/**
+	 * Copy a file, or recursively copy a folder and its contents
+	 *
+	 * @author      Aidan Lister <aidan@php.net>
+	 * @version     1.0.1
+	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
+	 * @param       string   $source    Source path
+	 * @param       string   $dest      Destination path
+	 * @return      bool     Returns TRUE on success, FALSE on failure
+	 */
+	private function copyr( $source, $dest )
+	{
+		// Check for symlinks
+		if (is_link($source)) {
+			return symlink(readlink($source), $dest);
+		}
+
+		// Simple copy for a file
+		if (is_file($source)) {
+			$dest = ( is_dir( $dest ) ) ? $this->pathCombine( $dest, basename( $source ) ) : $dest;
+			return copy($source, $dest);
+		} else {
+			$dest = $this->pathCombine( $dest, basename( $source ) );
+		}
+
+		// Make destination directory
+		if (!is_dir($dest)) {
+			mkdir($dest);
+		}
+
+		// Loop through the folder
+		$dir = dir($source);
+		while (false !== $entry = $dir->read()) {
+			// Skip pointers
+			if ($entry == '.' || $entry == '..') {
+				continue;
+			}
+
+			// Deep copy directories
+			$this->copyr("$source/$entry", "$dest/$entry");
+		}
+
+		// Clean up
+		$dir->close();
+		return true;
 	}
 
 	// combines two parts to a valid path
