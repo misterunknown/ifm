@@ -861,15 +861,29 @@ function IFM() {
 		self.showModal( '<form id="extractFile"><fieldset>\
 			<div class="modal-body">\
 				<label>Extract '+name+' to:</label>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" checked="checked"></span><span class="form-control">./</span></div>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation"></span><span class="form-control">./'+targetDirSuggestion+'</span></div>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation"></span><input type="text" class="form-control" placeholder="custom location" value=""></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span><span class="form-control">./</span></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./'+targetDirSuggestion+'"></span><span class="form-control">./'+targetDirSuggestion+'</span></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span><input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value=""></div>\
 			</div>\
 			<div class="modal-footer">\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', \'\');ifm.hideModal();return false;">extract</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">cancel</button>\
+				<button type="button" class="btn btn-default" id="extractFileButton">extract</button>\
+				<button type="button" class="btn btn-default" id="extractCancelButton">cancel</button>\
 			</div>\
 		</fieldset></form>');
+		$('#extractFileButton').on( 'click', function() {
+			var t = $('input[name=extractTargetLocation]:checked').val();
+			if( t == "custom" ) t = $('#extractCustomLocation').val();
+			self.extractFile( self.JSEncode( name ), t );
+			self.hideModal();
+			return false;
+		});
+		$('#extractCancelButton').on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+		$('#extractCustomLocation').on( 'click', function(e) {
+			$(e.target).prev().children().first().prop( 'checked', true );
+		});
 	};
 
 	this.extractFile = function(name, t) {
@@ -1608,39 +1622,24 @@ ifm.init();
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( ! file_exists( $d['filename'] ) || substr( $d['filename'],-4 ) != ".zip" )
+			if( ! file_exists( $d['filename'] ) || substr( $d['filename'],-4 ) != ".zip" ) {
 				echo json_encode( array( "status" => "ERROR","message" => "No valid zip file found" ) );
-			else {
-				if( ! isset( $d['targetdir'] ) )
-					$d['targetdir'] = "";
-				if( strpos( $d['targetdir'], "/" ) !== false )
-					echo json_encode( array( "status" => "ERROR","message" => "Target directory must not contain slashes" ) );
-				else {
-					switch( $d['targetdir'] ){
-						case "":
-							if( $this->unzip( $_POST["filename"] ) )
-								echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
-							else
-								echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
-							break;
-						default:
-							if( ! mkdir( $d['targetdir'] ) )
-								echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory" ) );
-							else {
-								chdir( $d['targetdir'] );
-								if( ! $this->unzip( "../" . $d["filename"] ) ) {
-									chdir( ".." );
-									rmdir( $d['targetdir'] );
-									echo json_encode( array( "status" => "ERROR","message" => "Could not extract file" ) );
-								}
-								else {
-									chdir( ".." );
-									echo json_encode( array( "status" => "OK","message" => "File successfully extracted" ) );
-								}
-							}
-						break;
-					}
-				}
+				exit( 1 );
+			}
+			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
+				$d['targetdir'] = "./";
+			if( ! $this->isPathValid( $d['targetdir'] ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
+				exit( 1 );
+			}
+			if( ! is_dir( $d['targetdir'] ) && ! mkdir( $d['targetdir'], 0777, true ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
+				exit( 1 );
+			}
+			if( ! $this->unzip( $d['filename'], $d['targetdir'] ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+			} else {
+				echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
 			}
 		}
 	}
@@ -1903,15 +1902,25 @@ ifm.init();
 	}
 
 	private function isPathValid( $dir ) {
-		$rpDir = realpath( $dir );
-		$rpConfig = realpath( IFMConfig::root_dir );
+		/**
+		 * This function is also used to check non-existent paths, but the PHP realpath function returns false for
+		 * nonexistent paths. Hence we need to check the path manually in the following lines.
+		 */
+		$tmp_d = $dir;
+		$tmp_missing_parts = array();
+		while( realpath( $tmp_d ) === false ) {
+			$tmp_i = pathinfo( $tmp_d );
+			array_push( $tmp_missing_parts, $tmp_i['filename'] );
+			$tmp_d = dirname( $tmp_d );
+		}
+		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
+		$rpConfig = ( IFMConfig::root_dir == "" ) ? realpath( dirname( __FILE__ ) ) : realpath( IFMConfig::root_dir );
 		if( ! is_string( $rpDir ) || ! is_string( $rpConfig ) ) // can happen if open_basedir is in effect
 			return false;
 		elseif( $rpDir == $rpConfig )
 			return true;
-		elseif( 0 === strpos( $rpDir, $rpConfig ) ) {
+		elseif( 0 === strpos( $rpDir, $rpConfig ) )
 			return true;
-		}
 		else
 			return false;
 	}
@@ -1996,11 +2005,11 @@ ifm.init();
 	}
 
 	// unzip an archive
-	private function unzip( $file ) {
+	private function unzip( $file, $destination="./" ) {
 		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
-			$zip->extractTo( './' );
+			$zip->extractTo( $destination );
 			$zip->close();
 			return true;
 		} else {

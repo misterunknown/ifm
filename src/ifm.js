@@ -395,13 +395,27 @@ function IFM() {
 				<label>Extract '+name+' to:</label>\
 				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span><span class="form-control">./</span></div>\
 				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./'+targetDirSuggestion+'"></span><span class="form-control">./'+targetDirSuggestion+'</span></div>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span><input type="text" class="form-control" placeholder="custom location" value=""></div>\
+				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span><input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value=""></div>\
 			</div>\
 			<div class="modal-footer">\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', \'\');ifm.hideModal();return false;">extract</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">cancel</button>\
+				<button type="button" class="btn btn-default" id="extractFileButton">extract</button>\
+				<button type="button" class="btn btn-default" id="extractCancelButton">cancel</button>\
 			</div>\
 		</fieldset></form>');
+		$('#extractFileButton').on( 'click', function() {
+			var t = $('input[name=extractTargetLocation]:checked').val();
+			if( t == "custom" ) t = $('#extractCustomLocation').val();
+			self.extractFile( self.JSEncode( name ), t );
+			self.hideModal();
+			return false;
+		});
+		$('#extractCancelButton').on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+		$('#extractCustomLocation').on( 'click', function(e) {
+			$(e.target).prev().children().first().prop( 'checked', true );
+		});
 	};
 
 	this.extractFile = function(name, t) {
