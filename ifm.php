@@ -62,7 +62,7 @@ class IFMConfig {
        examples:
 	   	const auth_source = 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC';
 	   	const auth_source = 'file;/path/to/file';
-	    const auth_source = 'ldap;<ldap_sever_host>:<rootdn>';
+	    const auth_source = 'ldap;<ldap_sever_host>;<rootdn>';
 	*/
 	const auth = 0;
 	const auth_source = 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC';
