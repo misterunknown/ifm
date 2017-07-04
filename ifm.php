@@ -108,6 +108,9 @@ class IFMConfig {
 */
 
 class IFMZip {
+	/**
+	 * Add a folder to the zip file
+	 */
 	private static function folderToZip($folder, &$zipFile, $exclusiveLength) {
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
@@ -129,7 +132,10 @@ class IFMZip {
 		closedir( $handle );
 	}
 
-	public static function create_zip( $src, $out, $root=false )
+	/**
+	 * Create a zip file
+	 */
+	public static function create( $src, $out, $root=false )
 	{
 		$z = new ZipArchive();
 		$z->open( $out, ZIPARCHIVE::CREATE);
@@ -148,11 +154,14 @@ class IFMZip {
 		}
 	}
 
-	public static function unzip_file( $file ) {
-		$zip = new ZipArchive();
+	/**
+	 * Unzip a zip file
+	 */
+	public function extract( $file, $destination="./" ) {
+		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
-			$zip->extractTo( './' );
+			$zip->extractTo( $destination );
 			$zip->close();
 			return true;
 		} else {
@@ -1779,7 +1788,7 @@ ifm.init();
 				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
 				exit( 1 );
 			}
-			if( ! $this->unzip( $d['filename'], $d['targetdir'] ) ) {
+			if( ! IFMZip::extract( $d['filename'], $d['targetdir'] ) ) {
 				echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
 			} else {
 				echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
@@ -1871,7 +1880,7 @@ ifm.init();
 				unset( $zip );
 				$dfile = $this->pathCombine( IFMConfig::tmp_dir, uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMZip::create_zip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMZip::create( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -2217,19 +2226,6 @@ ifm.init();
 	private function sortByName( $a, $b ) {
 		if( strtolower( $a['name'] ) == strtolower( $b['name'] ) ) return 0;
 		return ( strtolower( $a['name'] ) < strtolower( $b['name'] ) ) ? -1 : 1;
-	}
-
-	// unzip an archive
-	private function unzip( $file, $destination="./" ) {
-		$zip = new ZipArchive;
-		$res = $zip->open( $file );
-		if( $res === true ) {
-			$zip->extractTo( $destination );
-			$zip->close();
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	// is cURL extention avaliable?
