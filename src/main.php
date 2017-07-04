@@ -16,14 +16,21 @@ ini_set( 'display_errors', 'OFF' );
 class IFM {
 	const VERSION = '2.4.0';
 
-	public function __construct() {
+	private $config = array();
+
+	public function __construct( $config ) {
 		session_start();
+		if( ! is_array( $config ) ) {
+			trigger_error( "IFM: could not load config" );
+			exit( 1 );
+		} else {
+			$this->config = $config;
+		}
 	}
 
-	/*
-	   this function contains the client-side application
+	/**
+	 * This function contains the client-side application
 	 */
-
 	public function getApplication() {
 		print '<!DOCTYPE HTML>
 		<html>
@@ -115,6 +122,7 @@ class IFM {
 				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/ekko-lightbox.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 			</body>
 			</html>
@@ -137,6 +145,9 @@ class IFM {
 				$this->getFiles( $_REQUEST["dir"] );
 			else
 				$this->getFiles( "" );
+		}
+		elseif( $_REQUEST["api"] == "getConfig" ) {
+			echo json_encode( IFMConfig::getConstants() );
 		} else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
@@ -956,5 +967,5 @@ class IFM {
    start program
  */
 
-$ifm = new IFM();
+$ifm = new IFM( IFMConfig::getConstants() );
 $ifm->run();

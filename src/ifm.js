@@ -1,16 +1,44 @@
-// IFM - js app
-
-function IFM() {
+/**
+ * IFM constructor
+ */
+function IFM( params ) {
 	var self = this; // reference to ourself, because "this" does not work within callbacks
 
-	this.IFM_SCFN = "<?=basename($_SERVER['SCRIPT_NAME'])?>";
-	this.config = jQuery.parseJSON('<?php echo json_encode(IFMConfig::getConstants()); ?>');	// serialize the PHP config array, so we can use it in JS too
+	// set the backend for the application
+	if( ! params.api ) {
+		throw new Error( "IFM: no backend configured" );
+	} else {
+		self.api = params.api;
+	}
+
+	// load the configuration from the backend
+	$.ajax({
+		url: self.api,
+		type: "POST",
+		data: {
+			api: "getConfig"
+		},
+		dataType: "json",
+		success: function(d) {
+			self.config = d;
+			self.log( "configuration loaded" );
+		},
+		error: function() {
+			throw new Error( "IFM: could not load configuration" );
+		}
+	});
+
 	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 
-	// modal functions
+	/**
+	 * Shows a bootstrap modal
+	 *
+	 * @param string content - content of the modal
+	 * @param object options - options for the modal
+	 */
 	this.showModal = function( content, options = {} ) {
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
@@ -36,24 +64,38 @@ function IFM() {
 		modal.modal('show');
 	};
 
+	/**
+	 * Hides a bootstrap modal
+	 */
 	this.hideModal = function() {
 		$('#ifmmodal').modal('hide');
 	};
 
+	/**
+	 * Reloads the file table
+	 */
 	this.refreshFileTable = function () {
-		var id=self.generateGuid();
-		self.task_add("Refresh", id);
+		var id = self.generateGuid();
+		self.task_add( "Refresh", id );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
-			data: "api=getFiles&dir=" + self.currentDir,
+			data: {
+				api: "getFiles",
+				dir: self.currentDir
+			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function(response) { ifm.showMessage("General error occured: No or broken response", "e"); },
+			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
 
+	/**
+	 * Rebuilds the file table with fetched items
+	 *
+	 * @param object data - object with items
+	 */
 	this.rebuildFileTable = function( data ) {
 		var newTBody = $(document.createElement('tbody'));
 		for( var i=0; i < data.length; i++ ) {
@@ -142,12 +184,18 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Changes the current directory
+	 *
+	 * @param string newdir - target directory
+	 * @param object options - options for changing the directory
+	 */
 	this.changeDirectory = function( newdir, options={} ) {
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "getRealpath",
@@ -164,6 +212,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Shows a file, either a new file or an existing
+	 */
 	this.showFileForm = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
@@ -211,6 +262,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Shows the create directory dialog
+	 */
 	this.createDirForm = function() {
 		self.showModal( '<form id="createDir">\
 				<div class="modal-body">\
@@ -226,114 +280,12 @@ function IFM() {
 				</form>' );
 	};
 
-	this.ajaxRequestDialog = function() {
-		self.showModal( '<form id="ajaxrequest">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
-				<label>Data</label><br>\
-				<textarea class="form-control" id="ajaxdata"></textarea><br>\
-				<label>Method</label><br>\
-				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
-				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
-				<label>Response</label><br>\
-				<textarea class="form-control" id="ajaxresponse"></textarea>\
-				</fieldset>\
-				</form>\
-				</div>');
-	};
-
-	this.ajaxRequest = function() {
-		$.ajax({
-			url		: $("#ajaxurl").val(),
-			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
-		});
-	};
-
-	this.saveFile = function() {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				api: "saveFile",
-				dir: self.currentDir,
-				filename: $("#showFile input[name^=filename]").val(),
-				content: ifm.editor.getValue()
-			}),
-			dataType: "json",
-			success: function( data ) {
-						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
-							self.refreshFileTable();
-						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
-					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
-		});
-		self.fileChanged = false;
-	};
-
-	this.editFile = function( name ) {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			dataType: "json",
-			data: ({
-				api: "getContent",
-				dir: self.currentDir,
-				filename: name
-			}),
-			success: function( data ) {
-						if( data.status == "OK" && data.data.content != null ) {
-							self.showFileForm( data.data.filename, data.data.content );
-						}
-						else if( data.status == "OK" && data.data.content == null ) {
-							self.showMessage( "The content of this file cannot be fetched.", "e" );
-						}
-						else self.showMessage( "Error: "+data.message, "e" );
-					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
-		});
-	};
-
-	this.deleteFileDialog = function( name ) {
-		self.showModal( '<form id="deleteFile">\
-				<div class="modal-body">\
-				<label>Do you really want to delete the file '+name+'?\
-				</div><div class="modal-footer">\
-				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
-				</div>\
-				</form>' );
-	};
-	this.deleteFile = function( name ) {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				api: "deleteFile",
-				dir: self.currentDir,
-				filename: name
-			}),
-			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully deleted", "s");
-							self.refreshFileTable();
-						} else self.showMessage("File could not be deleted", "e");
-					},
-			error: function() { self.showMessage("General error occured", "e"); }
-		});
-	};
-
+	/**
+	 * Create a directory
+	 */
 	this.createDir = function() {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "createDir",
@@ -354,7 +306,107 @@ function IFM() {
 		});
 	};
 
-	this.renameFileDialog = function(name) {
+
+	/**
+	 * Saves a file
+	 */
+	this.saveFile = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "saveFile",
+				dir: self.currentDir,
+				filename: $("#showFile input[name^=filename]").val(),
+				content: ifm.editor.getValue()
+			}),
+			dataType: "json",
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File successfully edited/created.", "s" );
+							self.refreshFileTable();
+						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
+					},
+			error: function() { self.showMessage( "General error occured", "e" ); }
+		});
+		self.fileChanged = false;
+	};
+
+	/**
+	 * Edit a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.editFile = function( name ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			dataType: "json",
+			data: ({
+				api: "getContent",
+				dir: self.currentDir,
+				filename: name
+			}),
+			success: function( data ) {
+						if( data.status == "OK" && data.data.content != null ) {
+							self.showFileForm( data.data.filename, data.data.content );
+						}
+						else if( data.status == "OK" && data.data.content == null ) {
+							self.showMessage( "The content of this file cannot be fetched.", "e" );
+						}
+						else self.showMessage( "Error: "+data.message, "e" );
+					},
+			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
+		});
+	};
+
+	/**
+	 * Shows the delete file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.deleteFileDialog = function( name ) {
+		self.showModal( '<form id="deleteFile">\
+				<div class="modal-body">\
+				<label>Do you really want to delete the file '+name+'?\
+				</div><div class="modal-footer">\
+				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
+				</div>\
+				</form>' );
+	};
+
+	/**
+	 * Deletes a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.deleteFile = function( name ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "deleteFile",
+				dir: self.currentDir,
+				filename: name
+			}),
+			dataType: "json",
+			success: function(data) {
+						if(data.status == "OK") {
+							self.showMessage("File successfully deleted", "s");
+							self.refreshFileTable();
+						} else self.showMessage("File could not be deleted", "e");
+					},
+			error: function() { self.showMessage("General error occured", "e"); }
+		});
+	};
+
+	/**
+	 * Show the rename file dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.renameFileDialog = function( name ) {
 		self.showModal( '<div class="modal-body">\
 			<form id="renameFile">\
 			<fieldset>\
@@ -366,9 +418,14 @@ function IFM() {
 		</div>' );
 	};
 
-	this.renameFile = function(name) {
+	/**
+	 * Renames a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.renameFile = function( name ) {
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "renameFile",
@@ -387,38 +444,12 @@ function IFM() {
 		});
 	};
 
-	this.copyMove = function( source, destination, action ) {
-		var id=self.generateGuid();
-		self.task_add(action.charAt(0).toUpperCase()+action.slice(1)+" "+source+" to "+destination, id);
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				dir: self.currentDir,
-				api: "copyMove",
-				action: action,
-				filename: source,
-				destination: destination
-			}),
-			dataType: "json",
-			success: function(data) {
-				if( data.status == "OK" ) {
-					self.showMessage( data.message, "s" );
-				} else {
-					self.showMessage( data.message, "e" );
-				}
-				self.refreshFileTable();
-			},
-			error: function() {
-				self.showMessage( "General error occured.", "e" );
-			},
-			complete: function() {
-				self.task_done(id);
-			}
-		});
-	};
-
-	this.copyMoveDialog = function(name) {
+	/**
+	 * Show the copy/move dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.copyMoveDialog = function( name ) {
 		self.showModal( '<form id="copyMoveFile"><fieldset>\
 			<div class="modal-body">\
 				<label>Select destination:</label>\
@@ -431,7 +462,7 @@ function IFM() {
 			</div>\
 		</fieldset></form>');
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "getFolderTree",
@@ -459,10 +490,51 @@ function IFM() {
 		});
 	};
 
-	this.extractFileDialog = function(name) {
-		var targetDirSuggestion="";
-		if(name.lastIndexOf(".") > 1)
-			targetDirSuggestion = name.substr(0,name.length-4);
+	/**
+	 * Copy or moves a file
+	 * 
+	 * @params string name - name of the file
+	 */
+	this.copyMove = function( source, destination, action ) {
+		var id=self.generateGuid();
+		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filename: source,
+				destination: destination
+			},
+			dataType: "json",
+			success: function(data) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
+				}
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done( id );
+			}
+		});
+	};
+
+	/**
+	 * Shows the extract file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.extractFileDialog = function( name ) {
+		var targetDirSuggestion = "";
+		if( name.lastIndexOf( "." ) > 1 )
+			targetDirSuggestion = name.substr( 0, name.length - 4 );
 		else targetDirSuggestion = name;
 		self.showModal( '<form id="extractFile"><fieldset>\
 			<div class="modal-body">\
@@ -492,27 +564,36 @@ function IFM() {
 		});
 	};
 
-	this.extractFile = function(name, t) {
+	/**
+	 * Extracts a file
+	 *
+	 * @param string name - name of the file
+	 * @param string t - name of the target directory
+	 */
+	this.extractFile = function( name, t ) {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
-			data: ({
+			data: {
 				api: "extractFile",
 				dir: self.currentDir,
 				filename: name,
 				targetdir: t
-			}),
+			},
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully extracted", "s");
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File successfully extracted", "s" );
 							self.refreshFileTable();
-						} else self.showMessage("File could not be extracted. Error: "+data.message, "e");
+						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			error: function() { self.showMessage( "General error occured", "e" ); }
 		});
 	};
 
+	/**
+	 * Shows the upload file dialog
+	 */
 	this.uploadFileDialog = function() {
 		self.showModal( '<form id="uploadFile">\
 			<div class="modal-body">\
@@ -526,11 +607,14 @@ function IFM() {
 				<button class="btn btn-default" onclick="ifm.uploadFile();ifm.hideModal();return false;">Upload</button>\
 				<button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
 			</div>\
-			</form>');
+			</form>' );
 	};
 
+	/**
+	 * Uploads a file
+	 */
 	this.uploadFile = function() {
-		var ufile = document.getElementById('ufile').files[0];
+		var ufile = document.getElementById( 'ufile' ).files[0];
 		var data = new FormData();
 		var newfilename = $("#uploadFile input[name^=newfilename]").val();
 		data.append('api', 'uploadFile');
@@ -539,7 +623,7 @@ function IFM() {
 		data.append('newfilename', newfilename);
 		var id = self.generateGuid();
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: data,
 			processData: false,
@@ -563,10 +647,16 @@ function IFM() {
 		self.task_add("Upload "+ufile.name, id);
 	};
 
+	/**
+	 * Change the permissions of a file
+	 *
+	 * @params object e - event object
+	 * @params string name - name of the file
+	 */
 	this.changePermissions = function(e, name) {
 		if(e.keyCode == '13')
 			$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "changePermissions",
@@ -588,6 +678,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Show the remote upload dialog
+	 */
 	this.remoteUploadDialog = function() {
 		self.showModal( '<form id="uploadFile">\
 			<div class="modal-body">\
@@ -612,11 +705,14 @@ function IFM() {
 		$("#filename").on("keyup", function() { $("#url").off(); });
 	};
 
+	/**
+	 * Remote uploads a file
+	 */
 	this.remoteUpload = function() {
 		var filename = $("#filename").val();
 		var id = ifm.generateGuid();
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "remoteUpload",
@@ -638,68 +734,78 @@ function IFM() {
 		ifm.task_add("Remote upload: "+filename, id);
 	};
 
-	// --------------------
-	// additional functions
-	// --------------------
-	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
-		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
-		);
+	/**
+	 * Shows the ajax request dialog
+	 */
+	this.ajaxRequestDialog = function() {
+		self.showModal( '<form id="ajaxrequest">\
+				<div class="modal-body">\
+				<fieldset>\
+				<label>URL</label><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
+				<label>Data</label><br>\
+				<textarea class="form-control" id="ajaxdata"></textarea><br>\
+				<label>Method</label><br>\
+				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
+				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
+				<label>Response</label><br>\
+				<textarea class="form-control" id="ajaxresponse"></textarea>\
+				</fieldset>\
+				</form>\
+				</div>');
 	};
-	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
-		return a+"/"+b;
+
+	/**
+	 * Performs an ajax request
+	 */
+	this.ajaxRequest = function() {
+		$.ajax({
+			url		: $("#ajaxurl").val(),
+			cache	: false,
+			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
+			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
+			success	: function(response) { $("#ajaxresponse").text(response); },
+			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+		});
 	};
-	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
+
+
+	/**
+	 * Shows a popup to prevent that the user closes the file editor accidentally
+	 */
 	this.showSaveQuestion = function() {
 		var a = '<div id="savequestion"><label>Do you want to save this file?</label><br><button onclick="ifm.saveFile();ifm.closeFileForm(); return false;">Save</button><button onclick="ifm.closeFileForm();return false;">Dismiss</button>';
 		$(document.body).prepend(a);
 		self.bindOverlayClickEvent();
 	};
+
+	/**
+	 * Hides the save question
+	 */
 	this.hideSaveQuestion = function() {
 		$("#savequestion").remove();
 	};
-	this.handleMultiselect = function() {
-		var amount = $("#filetable tr.selectedItem").length;
-		if(amount > 0) {
-			if(document.getElementById("multiseloptions")===null) {
-				$(document.body).prepend('<div id="multiseloptions">\
-					<div style="font-size:0.8em;background-color:#00A3A3;padding:2px;">\
-						<a style="color:#FFF" onclick="$(\'input[name=multisel]\').attr(\'checked\', false);$(\'#multiseloptions\').remove();">[close]</a>\
-					</div>\
-					<ul><li><a onclick="ifm.multiDelete();"><span class="icon icon-trash"></span> delete (<span class="amount"></span>)</a></li></ul></div>\
-				');
-				$("#multiseloptions").draggable();
-				//$("#multiseloptions").resizable({ghost: true, minHeight: 50, minWidth: 100});
-			}
-			$("#multiseloptions .amount").text(amount);
-		}
-		else {
-			if(document.getElementById("multiseloptions")!==null)
-				$("#multiseloptions").remove();
-		}
-	};
+
+	/**
+	 * Shows the delete dialog for multiple files
+	 */
 	this.multiDeleteDialog = function() {
 		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.selectedItem').length+' files?</label>';
 		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
 		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
 		self.showModal( form );
 	};
+
+	/**
+	 * Deletes multiple files
+	 */
 	this.multiDelete = function() {
 		var elements = $('#filetable tr.selectedItem');
 		var filenames = [];
 		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "deleteMultipleFiles",
@@ -721,25 +827,107 @@ function IFM() {
 			error: function() { ifm.showMessage("General error occured", "e"); }
 		});
 	};
+
+	// --------------------
+	// helper functions
+	// --------------------
+
+	/**
+	 * Shows a notification
+	 *
+	 * @param string m - message text
+	 * @param string t - message type (e: error, s: success)
+	 */
+	this.showMessage = function(m, t) {
+		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		$.notify(
+				{ message: m },
+				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
+		);
+	};
+
+	/**
+	 * Combines two path components
+	 *
+	 * @param string a - component 1
+	 * @param string b - component 2
+	 */
+	this.pathCombine = function(a, b) {
+		if(a == "" && b == "") return "";
+		if(b[0] == "/") b = b.substring(1);
+		if(a == "") return b;
+		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
+		if(b == "") return a;
+		return a+"/"+b;
+	};
+
+	/**
+	 * Prevents a user to submit a form via clicking enter
+	 */
+	this.preventEnter = function(e) {
+		if( e.keyCode == 13 ) return false;
+		else return true;
+	}
+
+	/**
+	 * Checks if an element is part of an array
+	 *
+	 * @param obj needle - search item
+	 * @param array haystack - array to search
+	 */
 	this.inArray = function(needle, haystack) {
 		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
 	};
-	this.task_add = function(name,id) { // uFI stands for uploadFileInformation
-		if(!document.getElementById("waitqueue")) {
-			$(document.body).prepend('<div id="waitqueue"></div>');
-			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
+
+	/**
+	 * Adds a task to the taskbar.
+	 *
+	 * @param string name - description of the task
+	 * @param string id - identifier for the task
+	 */
+	this.task_add = function( name, id ) {
+		if( ! document.getElementById( "waitqueue" ) ) {
+			$( document.body ).prepend( '<div id="waitqueue"></div>' );
 		}
-		$("#waitqueue").prepend('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
+		$( "#waitqueue" ).prepend('\
+			<div id="'+id+'" class="panel panel-default">\
+				<div class="panel-body">\
+					<div class="progress">\
+						<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>\
+						<span class="progbarlabel">'+name+'</span>\
+					</div>\
+				</div>\
+			</div>\
+		');
 	};
+
+	/**
+	 * Removes a task from the taskbar
+	 *
+	 * @param string id - task identifier
+	 */
 	this.task_done = function(id) {
 		$("#"+id).remove();
 		if($("#waitqueue>div").length == 0) {
 			$("#waitqueue").remove();
 		}
 	};
+
+	/**
+	 * Updates a task
+	 *
+	 * @param integer progress - percentage of status
+	 * @param string id - task identifier
+	 */
 	this.task_update = function(progress, id) {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
+
+	/**
+	 * Highlights an item in the file table
+	 *
+	 * @param object param - either an element id or a jQuery object
+	 */
 	this.highlightItem = function( param ) {
 		var highlight = function( el ) {
 			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
@@ -768,7 +956,13 @@ function IFM() {
 			}
 		}
 	};
-	this.isElementInViewport = function isElementInViewport (el) {
+
+	/**
+	 * Checks if an element is within the viewport
+	 *
+	 * @param object el - element object
+	 */
+	this.isElementInViewport = function (el) {
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
 		}
@@ -780,6 +974,10 @@ function IFM() {
 				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
 			   );
 	}
+
+	/**
+	 * Generates a GUID
+	 */
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
@@ -789,14 +987,43 @@ function IFM() {
 		}
 		return result;
 	};
+
+	/**
+	 * Logs a message if debug mode is on
+	 *
+	 * @param string m - message text
+	 */
+	this.log = function( m ) {
+		if( self.debug ) {
+			console.log( "IFM (debug): " + m );
+		}
+	};
+
+	/**
+	 * Encodes a string for use within javascript
+	 *
+	 * @param string s - encoding string
+	 */
 	this.JSEncode = function(s) {
 		return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
 	};
+
+	/**
+	 * Handles the javascript pop states
+	 *
+	 * @param object event - event object
+	 */
 	this.historyPopstateHandler = function(event) {
 		var dir = "";
 		if( event.state && event.state.dir ) dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
+
+	/**
+	 * Handles keystrokes
+	 *
+	 * @param object e - event object
+	 */
 	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
 		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
@@ -895,7 +1122,9 @@ function IFM() {
 		}
 	}
 
-	// initialization
+	/**
+	 * Initializes the application
+	 */
 	this.init = function() {
 		// bind static buttons
 		$("#refresh").click(function(){
@@ -929,5 +1158,5 @@ function IFM() {
 	};
 }
 
-var ifm = new IFM();
+var ifm = new IFM({ api: "ifm.php" });
 ifm.init();

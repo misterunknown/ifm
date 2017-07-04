@@ -186,14 +186,21 @@ ini_set( 'display_errors', 'OFF' );
 class IFM {
 	const VERSION = '2.4.0';
 
-	public function __construct() {
+	private $config = array();
+
+	public function __construct( $config ) {
 		session_start();
+		if( ! is_array( $config ) ) {
+			trigger_error( "IFM: could not load config" );
+			exit( 1 );
+		} else {
+			$this->config = $config;
+		}
 	}
 
-	/*
-	   this function contains the client-side application
+	/**
+	 * This function contains the client-side application
 	 */
-
 	public function getApplication() {
 		print '<!DOCTYPE HTML>
 		<html>
@@ -488,19 +495,49 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
 //# sourceMappingURL=ekko-lightbox.min.js.map <?php print '</script>
 				<script>';?> !function(e,t,o,s){"use strict";var n="treeview",i={};i.settings={injectStyle:!0,levels:2,expandIcon:"glyphicon glyphicon-plus",collapseIcon:"glyphicon glyphicon-minus",emptyIcon:"glyphicon",nodeIcon:"",selectedIcon:"",checkedIcon:"glyphicon glyphicon-check",uncheckedIcon:"glyphicon glyphicon-unchecked",color:s,backColor:s,borderColor:s,onhoverColor:"#F5F5F5",selectedColor:"#FFFFFF",selectedBackColor:"#428bca",searchResultColor:"#D9534F",searchResultBackColor:s,enableLinks:!1,highlightSelected:!0,highlightSearchResults:!0,showBorder:!0,showIcon:!0,showCheckbox:!1,showTags:!1,multiSelect:!1,onNodeChecked:s,onNodeCollapsed:s,onNodeDisabled:s,onNodeEnabled:s,onNodeExpanded:s,onNodeSelected:s,onNodeUnchecked:s,onNodeUnselected:s,onSearchComplete:s,onSearchCleared:s},i.options={silent:!1,ignoreChildren:!1},i.searchOptions={ignoreCase:!0,exactMatch:!1,revealResults:!0};var d=function(t,o){return this.$element=e(t),this.elementId=t.id,this.styleId=this.elementId+"-style",this.init(o),{options:this.options,init:e.proxy(this.init,this),remove:e.proxy(this.remove,this),getNode:e.proxy(this.getNode,this),getParent:e.proxy(this.getParent,this),getSiblings:e.proxy(this.getSiblings,this),getSelected:e.proxy(this.getSelected,this),getUnselected:e.proxy(this.getUnselected,this),getExpanded:e.proxy(this.getExpanded,this),getCollapsed:e.proxy(this.getCollapsed,this),getChecked:e.proxy(this.getChecked,this),getUnchecked:e.proxy(this.getUnchecked,this),getDisabled:e.proxy(this.getDisabled,this),getEnabled:e.proxy(this.getEnabled,this),selectNode:e.proxy(this.selectNode,this),unselectNode:e.proxy(this.unselectNode,this),toggleNodeSelected:e.proxy(this.toggleNodeSelected,this),collapseAll:e.proxy(this.collapseAll,this),collapseNode:e.proxy(this.collapseNode,this),expandAll:e.proxy(this.expandAll,this),expandNode:e.proxy(this.expandNode,this),toggleNodeExpanded:e.proxy(this.toggleNodeExpanded,this),revealNode:e.proxy(this.revealNode,this),checkAll:e.proxy(this.checkAll,this),checkNode:e.proxy(this.checkNode,this),uncheckAll:e.proxy(this.uncheckAll,this),uncheckNode:e.proxy(this.uncheckNode,this),toggleNodeChecked:e.proxy(this.toggleNodeChecked,this),disableAll:e.proxy(this.disableAll,this),disableNode:e.proxy(this.disableNode,this),enableAll:e.proxy(this.enableAll,this),enableNode:e.proxy(this.enableNode,this),toggleNodeDisabled:e.proxy(this.toggleNodeDisabled,this),search:e.proxy(this.search,this),clearSearch:e.proxy(this.clearSearch,this)}};d.prototype.init=function(t){this.tree=[],this.nodes=[],t.data&&("string"==typeof t.data&&(t.data=e.parseJSON(t.data)),this.tree=e.extend(!0,[],t.data),delete t.data),this.options=e.extend({},i.settings,t),this.destroy(),this.subscribeEvents(),this.setInitialStates({nodes:this.tree},0),this.render()},d.prototype.remove=function(){this.destroy(),e.removeData(this,n),e("#"+this.styleId).remove()},d.prototype.destroy=function(){this.initialized&&(this.$wrapper.remove(),this.$wrapper=null,this.unsubscribeEvents(),this.initialized=!1)},d.prototype.unsubscribeEvents=function(){this.$element.off("click"),this.$element.off("nodeChecked"),this.$element.off("nodeCollapsed"),this.$element.off("nodeDisabled"),this.$element.off("nodeEnabled"),this.$element.off("nodeExpanded"),this.$element.off("nodeSelected"),this.$element.off("nodeUnchecked"),this.$element.off("nodeUnselected"),this.$element.off("searchComplete"),this.$element.off("searchCleared")},d.prototype.subscribeEvents=function(){this.unsubscribeEvents(),this.$element.on("click",e.proxy(this.clickHandler,this)),"function"==typeof this.options.onNodeChecked&&this.$element.on("nodeChecked",this.options.onNodeChecked),"function"==typeof this.options.onNodeCollapsed&&this.$element.on("nodeCollapsed",this.options.onNodeCollapsed),"function"==typeof this.options.onNodeDisabled&&this.$element.on("nodeDisabled",this.options.onNodeDisabled),"function"==typeof this.options.onNodeEnabled&&this.$element.on("nodeEnabled",this.options.onNodeEnabled),"function"==typeof this.options.onNodeExpanded&&this.$element.on("nodeExpanded",this.options.onNodeExpanded),"function"==typeof this.options.onNodeSelected&&this.$element.on("nodeSelected",this.options.onNodeSelected),"function"==typeof this.options.onNodeUnchecked&&this.$element.on("nodeUnchecked",this.options.onNodeUnchecked),"function"==typeof this.options.onNodeUnselected&&this.$element.on("nodeUnselected",this.options.onNodeUnselected),"function"==typeof this.options.onSearchComplete&&this.$element.on("searchComplete",this.options.onSearchComplete),"function"==typeof this.options.onSearchCleared&&this.$element.on("searchCleared",this.options.onSearchCleared)},d.prototype.setInitialStates=function(t,o){if(t.nodes){o+=1;var s=t,n=this;e.each(t.nodes,function(e,t){t.nodeId=n.nodes.length,t.parentId=s.nodeId,t.hasOwnProperty("selectable")||(t.selectable=!0),t.state=t.state||{},t.state.hasOwnProperty("checked")||(t.state.checked=!1),t.state.hasOwnProperty("disabled")||(t.state.disabled=!1),t.state.hasOwnProperty("expanded")||(!t.state.disabled&&o<n.options.levels&&t.nodes&&t.nodes.length>0?t.state.expanded=!0:t.state.expanded=!1),t.state.hasOwnProperty("selected")||(t.state.selected=!1),n.nodes.push(t),t.nodes&&n.setInitialStates(t,o)})}},d.prototype.clickHandler=function(t){this.options.enableLinks||t.preventDefault();var o=e(t.target),s=this.findNode(o);if(s&&!s.state.disabled){var n=o.attr("class")?o.attr("class").split(" "):[];-1!==n.indexOf("expand-icon")?(this.toggleExpandedState(s,i.options),this.render()):-1!==n.indexOf("check-icon")?(this.toggleCheckedState(s,i.options),this.render()):(s.selectable?this.toggleSelectedState(s,i.options):this.toggleExpandedState(s,i.options),this.render())}},d.prototype.findNode=function(e){var t=e.closest("li.list-group-item").attr("data-nodeid"),o=this.nodes[t];return o||console.log("Error: node does not exist"),o},d.prototype.toggleExpandedState=function(e,t){e&&this.setExpandedState(e,!e.state.expanded,t)},d.prototype.setExpandedState=function(t,o,s){o!==t.state.expanded&&(o&&t.nodes?(t.state.expanded=!0,s.silent||this.$element.trigger("nodeExpanded",e.extend(!0,{},t))):o||(t.state.expanded=!1,s.silent||this.$element.trigger("nodeCollapsed",e.extend(!0,{},t)),t.nodes&&!s.ignoreChildren&&e.each(t.nodes,e.proxy(function(e,t){this.setExpandedState(t,!1,s)},this))))},d.prototype.toggleSelectedState=function(e,t){e&&this.setSelectedState(e,!e.state.selected,t)},d.prototype.setSelectedState=function(t,o,s){o!==t.state.selected&&(o?(this.options.multiSelect||e.each(this.findNodes("true","g","state.selected"),e.proxy(function(e,t){this.setSelectedState(t,!1,s)},this)),t.state.selected=!0,s.silent||this.$element.trigger("nodeSelected",e.extend(!0,{},t))):(t.state.selected=!1,s.silent||this.$element.trigger("nodeUnselected",e.extend(!0,{},t))))},d.prototype.toggleCheckedState=function(e,t){e&&this.setCheckedState(e,!e.state.checked,t)},d.prototype.setCheckedState=function(t,o,s){o!==t.state.checked&&(o?(t.state.checked=!0,s.silent||this.$element.trigger("nodeChecked",e.extend(!0,{},t))):(t.state.checked=!1,s.silent||this.$element.trigger("nodeUnchecked",e.extend(!0,{},t))))},d.prototype.setDisabledState=function(t,o,s){o!==t.state.disabled&&(o?(t.state.disabled=!0,this.setExpandedState(t,!1,s),this.setSelectedState(t,!1,s),this.setCheckedState(t,!1,s),s.silent||this.$element.trigger("nodeDisabled",e.extend(!0,{},t))):(t.state.disabled=!1,s.silent||this.$element.trigger("nodeEnabled",e.extend(!0,{},t))))},d.prototype.render=function(){this.initialized||(this.$element.addClass(n),this.$wrapper=e(this.template.list),this.injectStyle(),this.initialized=!0),this.$element.empty().append(this.$wrapper.empty()),this.buildTree(this.tree,0)},d.prototype.buildTree=function(t,o){if(t){o+=1;var s=this;e.each(t,function(t,n){var i=e(s.template.item).addClass("node-"+s.elementId).addClass(n.state.checked?"node-checked":"").addClass(n.state.disabled?"node-disabled":"").addClass(n.state.selected?"node-selected":"").addClass(n.searchResult?"search-result":"").attr("data-nodeid",n.nodeId).attr("style",s.buildStyleOverride(n));n.dataAttributes&&e.each(n.dataAttributes,function(e,t){i.attr("data-"+e,t)});for(var d=0;o-1>d;d++)i.append(s.template.indent);var r=[];if(n.nodes?(r.push("expand-icon"),n.state.expanded?r.push(s.options.collapseIcon):r.push(s.options.expandIcon)):r.push(s.options.emptyIcon),i.append(e(s.template.icon).addClass(r.join(" "))),s.options.showIcon){var r=["node-icon"];r.push(n.icon||s.options.nodeIcon),n.state.selected&&(r.pop(),r.push(n.selectedIcon||s.options.selectedIcon||n.icon||s.options.nodeIcon)),i.append(e(s.template.icon).addClass(r.join(" ")))}if(s.options.showCheckbox){var r=["check-icon"];n.state.checked?r.push(s.options.checkedIcon):r.push(s.options.uncheckedIcon),i.append(e(s.template.icon).addClass(r.join(" ")))}return s.options.enableLinks?i.append(e(s.template.link).attr("href",n.href).append(n.text)):i.append(n.text),s.options.showTags&&n.tags&&e.each(n.tags,function(t,o){i.append(e(s.template.badge).append(o))}),s.$wrapper.append(i),n.nodes&&n.state.expanded&&!n.state.disabled?s.buildTree(n.nodes,o):void 0})}},d.prototype.buildStyleOverride=function(e){if(e.state.disabled)return"";var t=e.color,o=e.backColor;return this.options.highlightSelected&&e.state.selected&&(this.options.selectedColor&&(t=this.options.selectedColor),this.options.selectedBackColor&&(o=this.options.selectedBackColor)),this.options.highlightSearchResults&&e.searchResult&&!e.state.disabled&&(this.options.searchResultColor&&(t=this.options.searchResultColor),this.options.searchResultBackColor&&(o=this.options.searchResultBackColor)),"color:"+t+";background-color:"+o+";"},d.prototype.injectStyle=function(){this.options.injectStyle&&!o.getElementById(this.styleId)&&e('<style type="text/css" id="'+this.styleId+'"> '+this.buildStyle()+" </style>").appendTo("head")},d.prototype.buildStyle=function(){var e=".node-"+this.elementId+"{";return this.options.color&&(e+="color:"+this.options.color+";"),this.options.backColor&&(e+="background-color:"+this.options.backColor+";"),this.options.showBorder?this.options.borderColor&&(e+="border:1px solid "+this.options.borderColor+";"):e+="border:none;",e+="}",this.options.onhoverColor&&(e+=".node-"+this.elementId+":not(.node-disabled):hover{background-color:"+this.options.onhoverColor+";}"),this.css+e},d.prototype.template={list:'<ul class="list-group"></ul>',item:'<li class="list-group-item"></li>',indent:'<span class="indent"></span>',icon:'<span class="icon"></span>',link:'<a href="#" style="color:inherit;"></a>',badge:'<span class="badge"></span>'},d.prototype.css=".treeview .list-group-item{cursor:pointer}.treeview span.indent{margin-left:10px;margin-right:10px}.treeview span.icon{width:12px;margin-right:5px}.treeview .node-disabled{color:silver;cursor:not-allowed}",d.prototype.getNode=function(e){return this.nodes[e]},d.prototype.getParent=function(e){var t=this.identifyNode(e);return this.nodes[t.parentId]},d.prototype.getSiblings=function(e){var t=this.identifyNode(e),o=this.getParent(t),s=o?o.nodes:this.tree;return s.filter(function(e){return e.nodeId!==t.nodeId})},d.prototype.getSelected=function(){return this.findNodes("true","g","state.selected")},d.prototype.getUnselected=function(){return this.findNodes("false","g","state.selected")},d.prototype.getExpanded=function(){return this.findNodes("true","g","state.expanded")},d.prototype.getCollapsed=function(){return this.findNodes("false","g","state.expanded")},d.prototype.getChecked=function(){return this.findNodes("true","g","state.checked")},d.prototype.getUnchecked=function(){return this.findNodes("false","g","state.checked")},d.prototype.getDisabled=function(){return this.findNodes("true","g","state.disabled")},d.prototype.getEnabled=function(){return this.findNodes("false","g","state.disabled")},d.prototype.selectNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setSelectedState(e,!0,t)},this)),this.render()},d.prototype.unselectNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setSelectedState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeSelected=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleSelectedState(e,t)},this)),this.render()},d.prototype.collapseAll=function(t){var o=this.findNodes("true","g","state.expanded");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setExpandedState(e,!1,t)},this)),this.render()},d.prototype.collapseNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setExpandedState(e,!1,t)},this)),this.render()},d.prototype.expandAll=function(t){if(t=e.extend({},i.options,t),t&&t.levels)this.expandLevels(this.tree,t.levels,t);else{var o=this.findNodes("false","g","state.expanded");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setExpandedState(e,!0,t)},this))}this.render()},d.prototype.expandNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setExpandedState(e,!0,t),e.nodes&&t&&t.levels&&this.expandLevels(e.nodes,t.levels-1,t)},this)),this.render()},d.prototype.expandLevels=function(t,o,s){s=e.extend({},i.options,s),e.each(t,e.proxy(function(e,t){this.setExpandedState(t,o>0?!0:!1,s),t.nodes&&this.expandLevels(t.nodes,o-1,s)},this))},d.prototype.revealNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){for(var o=this.getParent(e);o;)this.setExpandedState(o,!0,t),o=this.getParent(o)},this)),this.render()},d.prototype.toggleNodeExpanded=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleExpandedState(e,t)},this)),this.render()},d.prototype.checkAll=function(t){var o=this.findNodes("false","g","state.checked");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setCheckedState(e,!0,t)},this)),this.render()},d.prototype.checkNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setCheckedState(e,!0,t)},this)),this.render()},d.prototype.uncheckAll=function(t){var o=this.findNodes("true","g","state.checked");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setCheckedState(e,!1,t)},this)),this.render()},d.prototype.uncheckNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setCheckedState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeChecked=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.toggleCheckedState(e,t)},this)),this.render()},d.prototype.disableAll=function(t){var o=this.findNodes("false","g","state.disabled");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setDisabledState(e,!0,t)},this)),this.render()},d.prototype.disableNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!0,t)},this)),this.render()},d.prototype.enableAll=function(t){var o=this.findNodes("true","g","state.disabled");this.forEachIdentifier(o,t,e.proxy(function(e,t){this.setDisabledState(e,!1,t)},this)),this.render()},d.prototype.enableNode=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!1,t)},this)),this.render()},d.prototype.toggleNodeDisabled=function(t,o){this.forEachIdentifier(t,o,e.proxy(function(e,t){this.setDisabledState(e,!e.state.disabled,t)},this)),this.render()},d.prototype.forEachIdentifier=function(t,o,s){o=e.extend({},i.options,o),t instanceof Array||(t=[t]),e.each(t,e.proxy(function(e,t){s(this.identifyNode(t),o)},this))},d.prototype.identifyNode=function(e){return"number"==typeof e?this.nodes[e]:e},d.prototype.search=function(t,o){o=e.extend({},i.searchOptions,o),this.clearSearch({render:!1});var s=[];if(t&&t.length>0){o.exactMatch&&(t="^"+t+"$");var n="g";o.ignoreCase&&(n+="i"),s=this.findNodes(t,n),e.each(s,function(e,t){t.searchResult=!0})}return o.revealResults?this.revealNode(s):this.render(),this.$element.trigger("searchComplete",e.extend(!0,{},s)),s},d.prototype.clearSearch=function(t){t=e.extend({},{render:!0},t);var o=e.each(this.findNodes("true","g","searchResult"),function(e,t){t.searchResult=!1});t.render&&this.render(),this.$element.trigger("searchCleared",e.extend(!0,{},o))},d.prototype.findNodes=function(t,o,s){o=o||"g",s=s||"text";var n=this;return e.grep(this.nodes,function(e){var i=n.getNodeValue(e,s);return"string"==typeof i?i.match(new RegExp(t,o)):void 0})},d.prototype.getNodeValue=function(e,t){var o=t.indexOf(".");if(o>0){var n=e[t.substring(0,o)],i=t.substring(o+1,t.length);return this.getNodeValue(n,i)}return e.hasOwnProperty(t)?e[t].toString():s};var r=function(e){t.console&&t.console.error(e)};e.fn[n]=function(t,o){var s;return this.each(function(){var i=e.data(this,n);"string"==typeof t?i?e.isFunction(i[t])&&"_"!==t.charAt(0)?(o instanceof Array||(o=[o]),s=i[t].apply(i,o)):r("No such method : "+t):r("Not initialized, can not call method : "+t):"boolean"==typeof t?s=i:e.data(this,n,new d(this,e.extend(!0,{},t)))}),s||this}}(jQuery,window,document);
  <?php print '</script>
-				<script>';?> // IFM - js app
-
-function IFM() {
+				<script>';?> (function defineMustache(global,factory){if(typeof exports==="object"&&exports&&typeof exports.nodeName!=="string"){factory(exports)}else if(typeof define==="function"&&define.amd){define(["exports"],factory)}else{global.Mustache={};factory(global.Mustache)}})(this,function mustacheFactory(mustache){var objectToString=Object.prototype.toString;var isArray=Array.isArray||function isArrayPolyfill(object){return objectToString.call(object)==="[object Array]"};function isFunction(object){return typeof object==="function"}function typeStr(obj){return isArray(obj)?"array":typeof obj}function escapeRegExp(string){return string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g,"\\$&")}function hasProperty(obj,propName){return obj!=null&&typeof obj==="object"&&propName in obj}var regExpTest=RegExp.prototype.test;function testRegExp(re,string){return regExpTest.call(re,string)}var nonSpaceRe=/\S/;function isWhitespace(string){return!testRegExp(nonSpaceRe,string)}var entityMap={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","/":"&#x2F;","`":"&#x60;","=":"&#x3D;"};function escapeHtml(string){return String(string).replace(/[&<>"'`=\/]/g,function fromEntityMap(s){return entityMap[s]})}var whiteRe=/\s*/;var spaceRe=/\s+/;var equalsRe=/\s*=/;var curlyRe=/\s*\}/;var tagRe=/#|\^|\/|>|\{|&|=|!/;function parseTemplate(template,tags){if(!template)return[];var sections=[];var tokens=[];var spaces=[];var hasTag=false;var nonSpace=false;function stripSpace(){if(hasTag&&!nonSpace){while(spaces.length)delete tokens[spaces.pop()]}else{spaces=[]}hasTag=false;nonSpace=false}var openingTagRe,closingTagRe,closingCurlyRe;function compileTags(tagsToCompile){if(typeof tagsToCompile==="string")tagsToCompile=tagsToCompile.split(spaceRe,2);if(!isArray(tagsToCompile)||tagsToCompile.length!==2)throw new Error("Invalid tags: "+tagsToCompile);openingTagRe=new RegExp(escapeRegExp(tagsToCompile[0])+"\\s*");closingTagRe=new RegExp("\\s*"+escapeRegExp(tagsToCompile[1]));closingCurlyRe=new RegExp("\\s*"+escapeRegExp("}"+tagsToCompile[1]))}compileTags(tags||mustache.tags);var scanner=new Scanner(template);var start,type,value,chr,token,openSection;while(!scanner.eos()){start=scanner.pos;value=scanner.scanUntil(openingTagRe);if(value){for(var i=0,valueLength=value.length;i<valueLength;++i){chr=value.charAt(i);if(isWhitespace(chr)){spaces.push(tokens.length)}else{nonSpace=true}tokens.push(["text",chr,start,start+1]);start+=1;if(chr==="\n")stripSpace()}}if(!scanner.scan(openingTagRe))break;hasTag=true;type=scanner.scan(tagRe)||"name";scanner.scan(whiteRe);if(type==="="){value=scanner.scanUntil(equalsRe);scanner.scan(equalsRe);scanner.scanUntil(closingTagRe)}else if(type==="{"){value=scanner.scanUntil(closingCurlyRe);scanner.scan(curlyRe);scanner.scanUntil(closingTagRe);type="&"}else{value=scanner.scanUntil(closingTagRe)}if(!scanner.scan(closingTagRe))throw new Error("Unclosed tag at "+scanner.pos);token=[type,value,start,scanner.pos];tokens.push(token);if(type==="#"||type==="^"){sections.push(token)}else if(type==="/"){openSection=sections.pop();if(!openSection)throw new Error('Unopened section "'+value+'" at '+start);if(openSection[1]!==value)throw new Error('Unclosed section "'+openSection[1]+'" at '+start)}else if(type==="name"||type==="{"||type==="&"){nonSpace=true}else if(type==="="){compileTags(value)}}openSection=sections.pop();if(openSection)throw new Error('Unclosed section "'+openSection[1]+'" at '+scanner.pos);return nestTokens(squashTokens(tokens))}function squashTokens(tokens){var squashedTokens=[];var token,lastToken;for(var i=0,numTokens=tokens.length;i<numTokens;++i){token=tokens[i];if(token){if(token[0]==="text"&&lastToken&&lastToken[0]==="text"){lastToken[1]+=token[1];lastToken[3]=token[3]}else{squashedTokens.push(token);lastToken=token}}}return squashedTokens}function nestTokens(tokens){var nestedTokens=[];var collector=nestedTokens;var sections=[];var token,section;for(var i=0,numTokens=tokens.length;i<numTokens;++i){token=tokens[i];switch(token[0]){case"#":case"^":collector.push(token);sections.push(token);collector=token[4]=[];break;case"/":section=sections.pop();section[5]=token[2];collector=sections.length>0?sections[sections.length-1][4]:nestedTokens;break;default:collector.push(token)}}return nestedTokens}function Scanner(string){this.string=string;this.tail=string;this.pos=0}Scanner.prototype.eos=function eos(){return this.tail===""};Scanner.prototype.scan=function scan(re){var match=this.tail.match(re);if(!match||match.index!==0)return"";var string=match[0];this.tail=this.tail.substring(string.length);this.pos+=string.length;return string};Scanner.prototype.scanUntil=function scanUntil(re){var index=this.tail.search(re),match;switch(index){case-1:match=this.tail;this.tail="";break;case 0:match="";break;default:match=this.tail.substring(0,index);this.tail=this.tail.substring(index)}this.pos+=match.length;return match};function Context(view,parentContext){this.view=view;this.cache={".":this.view};this.parent=parentContext}Context.prototype.push=function push(view){return new Context(view,this)};Context.prototype.lookup=function lookup(name){var cache=this.cache;var value;if(cache.hasOwnProperty(name)){value=cache[name]}else{var context=this,names,index,lookupHit=false;while(context){if(name.indexOf(".")>0){value=context.view;names=name.split(".");index=0;while(value!=null&&index<names.length){if(index===names.length-1)lookupHit=hasProperty(value,names[index]);value=value[names[index++]]}}else{value=context.view[name];lookupHit=hasProperty(context.view,name)}if(lookupHit)break;context=context.parent}cache[name]=value}if(isFunction(value))value=value.call(this.view);return value};function Writer(){this.cache={}}Writer.prototype.clearCache=function clearCache(){this.cache={}};Writer.prototype.parse=function parse(template,tags){var cache=this.cache;var tokens=cache[template];if(tokens==null)tokens=cache[template]=parseTemplate(template,tags);return tokens};Writer.prototype.render=function render(template,view,partials){var tokens=this.parse(template);var context=view instanceof Context?view:new Context(view);return this.renderTokens(tokens,context,partials,template)};Writer.prototype.renderTokens=function renderTokens(tokens,context,partials,originalTemplate){var buffer="";var token,symbol,value;for(var i=0,numTokens=tokens.length;i<numTokens;++i){value=undefined;token=tokens[i];symbol=token[0];if(symbol==="#")value=this.renderSection(token,context,partials,originalTemplate);else if(symbol==="^")value=this.renderInverted(token,context,partials,originalTemplate);else if(symbol===">")value=this.renderPartial(token,context,partials,originalTemplate);else if(symbol==="&")value=this.unescapedValue(token,context);else if(symbol==="name")value=this.escapedValue(token,context);else if(symbol==="text")value=this.rawValue(token);if(value!==undefined)buffer+=value}return buffer};Writer.prototype.renderSection=function renderSection(token,context,partials,originalTemplate){var self=this;var buffer="";var value=context.lookup(token[1]);function subRender(template){return self.render(template,context,partials)}if(!value)return;if(isArray(value)){for(var j=0,valueLength=value.length;j<valueLength;++j){buffer+=this.renderTokens(token[4],context.push(value[j]),partials,originalTemplate)}}else if(typeof value==="object"||typeof value==="string"||typeof value==="number"){buffer+=this.renderTokens(token[4],context.push(value),partials,originalTemplate)}else if(isFunction(value)){if(typeof originalTemplate!=="string")throw new Error("Cannot use higher-order sections without the original template");value=value.call(context.view,originalTemplate.slice(token[3],token[5]),subRender);if(value!=null)buffer+=value}else{buffer+=this.renderTokens(token[4],context,partials,originalTemplate)}return buffer};Writer.prototype.renderInverted=function renderInverted(token,context,partials,originalTemplate){var value=context.lookup(token[1]);if(!value||isArray(value)&&value.length===0)return this.renderTokens(token[4],context,partials,originalTemplate)};Writer.prototype.renderPartial=function renderPartial(token,context,partials){if(!partials)return;var value=isFunction(partials)?partials(token[1]):partials[token[1]];if(value!=null)return this.renderTokens(this.parse(value),context,partials,value)};Writer.prototype.unescapedValue=function unescapedValue(token,context){var value=context.lookup(token[1]);if(value!=null)return value};Writer.prototype.escapedValue=function escapedValue(token,context){var value=context.lookup(token[1]);if(value!=null)return mustache.escape(value)};Writer.prototype.rawValue=function rawValue(token){return token[1]};mustache.name="mustache.js";mustache.version="2.3.0";mustache.tags=["{{","}}"];var defaultWriter=new Writer;mustache.clearCache=function clearCache(){return defaultWriter.clearCache()};mustache.parse=function parse(template,tags){return defaultWriter.parse(template,tags)};mustache.render=function render(template,view,partials){if(typeof template!=="string"){throw new TypeError('Invalid template! Template should be a "string" '+'but "'+typeStr(template)+'" was given as the first '+"argument for mustache#render(template, view, partials)")}return defaultWriter.render(template,view,partials)};mustache.to_html=function to_html(template,view,partials,send){var result=mustache.render(template,view,partials);if(isFunction(send)){send(result)}else{return result}};mustache.escape=escapeHtml;mustache.Scanner=Scanner;mustache.Context=Context;mustache.Writer=Writer;return mustache});
+ <?php print '</script>
+				<script>';?> /**
+ * IFM constructor
+ */
+function IFM( params ) {
 	var self = this; // reference to ourself, because "this" does not work within callbacks
 
-	this.IFM_SCFN = "<?=basename($_SERVER['SCRIPT_NAME'])?>";
-	this.config = jQuery.parseJSON('<?php echo json_encode(IFMConfig::getConstants()); ?>');	// serialize the PHP config array, so we can use it in JS too
+	// set the backend for the application
+	if( ! params.api ) {
+		throw new Error( "IFM: no backend configured" );
+	} else {
+		self.api = params.api;
+	}
+
+	// load the configuration from the backend
+	$.ajax({
+		url: self.api,
+		type: "POST",
+		data: {
+			api: "getConfig"
+		},
+		dataType: "json",
+		success: function(d) {
+			self.config = d;
+			self.log( "configuration loaded" );
+		},
+		error: function() {
+			throw new Error( "IFM: could not load configuration" );
+		}
+	});
+
 	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 
-	// modal functions
+	/**
+	 * Shows a bootstrap modal
+	 *
+	 * @param string content - content of the modal
+	 * @param object options - options for the modal
+	 */
 	this.showModal = function( content, options = {} ) {
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
@@ -526,24 +563,38 @@ function IFM() {
 		modal.modal('show');
 	};
 
+	/**
+	 * Hides a bootstrap modal
+	 */
 	this.hideModal = function() {
 		$('#ifmmodal').modal('hide');
 	};
 
+	/**
+	 * Reloads the file table
+	 */
 	this.refreshFileTable = function () {
-		var id=self.generateGuid();
-		self.task_add("Refresh", id);
+		var id = self.generateGuid();
+		self.task_add( "Refresh", id );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
-			data: "api=getFiles&dir=" + self.currentDir,
+			data: {
+				api: "getFiles",
+				dir: self.currentDir
+			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function(response) { ifm.showMessage("General error occured: No or broken response", "e"); },
+			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
 
+	/**
+	 * Rebuilds the file table with fetched items
+	 *
+	 * @param object data - object with items
+	 */
 	this.rebuildFileTable = function( data ) {
 		var newTBody = $(document.createElement('tbody'));
 		for( var i=0; i < data.length; i++ ) {
@@ -632,12 +683,18 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Changes the current directory
+	 *
+	 * @param string newdir - target directory
+	 * @param object options - options for changing the directory
+	 */
 	this.changeDirectory = function( newdir, options={} ) {
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "getRealpath",
@@ -654,6 +711,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Shows a file, either a new file or an existing
+	 */
 	this.showFileForm = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
@@ -701,6 +761,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Shows the create directory dialog
+	 */
 	this.createDirForm = function() {
 		self.showModal( '<form id="createDir">\
 				<div class="modal-body">\
@@ -716,114 +779,12 @@ function IFM() {
 				</form>' );
 	};
 
-	this.ajaxRequestDialog = function() {
-		self.showModal( '<form id="ajaxrequest">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
-				<label>Data</label><br>\
-				<textarea class="form-control" id="ajaxdata"></textarea><br>\
-				<label>Method</label><br>\
-				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
-				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
-				<label>Response</label><br>\
-				<textarea class="form-control" id="ajaxresponse"></textarea>\
-				</fieldset>\
-				</form>\
-				</div>');
-	};
-
-	this.ajaxRequest = function() {
-		$.ajax({
-			url		: $("#ajaxurl").val(),
-			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
-		});
-	};
-
-	this.saveFile = function() {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				api: "saveFile",
-				dir: self.currentDir,
-				filename: $("#showFile input[name^=filename]").val(),
-				content: ifm.editor.getValue()
-			}),
-			dataType: "json",
-			success: function( data ) {
-						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
-							self.refreshFileTable();
-						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
-					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
-		});
-		self.fileChanged = false;
-	};
-
-	this.editFile = function( name ) {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			dataType: "json",
-			data: ({
-				api: "getContent",
-				dir: self.currentDir,
-				filename: name
-			}),
-			success: function( data ) {
-						if( data.status == "OK" && data.data.content != null ) {
-							self.showFileForm( data.data.filename, data.data.content );
-						}
-						else if( data.status == "OK" && data.data.content == null ) {
-							self.showMessage( "The content of this file cannot be fetched.", "e" );
-						}
-						else self.showMessage( "Error: "+data.message, "e" );
-					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
-		});
-	};
-
-	this.deleteFileDialog = function( name ) {
-		self.showModal( '<form id="deleteFile">\
-				<div class="modal-body">\
-				<label>Do you really want to delete the file '+name+'?\
-				</div><div class="modal-footer">\
-				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
-				</div>\
-				</form>' );
-	};
-	this.deleteFile = function( name ) {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				api: "deleteFile",
-				dir: self.currentDir,
-				filename: name
-			}),
-			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully deleted", "s");
-							self.refreshFileTable();
-						} else self.showMessage("File could not be deleted", "e");
-					},
-			error: function() { self.showMessage("General error occured", "e"); }
-		});
-	};
-
+	/**
+	 * Create a directory
+	 */
 	this.createDir = function() {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "createDir",
@@ -844,7 +805,107 @@ function IFM() {
 		});
 	};
 
-	this.renameFileDialog = function(name) {
+
+	/**
+	 * Saves a file
+	 */
+	this.saveFile = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "saveFile",
+				dir: self.currentDir,
+				filename: $("#showFile input[name^=filename]").val(),
+				content: ifm.editor.getValue()
+			}),
+			dataType: "json",
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File successfully edited/created.", "s" );
+							self.refreshFileTable();
+						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
+					},
+			error: function() { self.showMessage( "General error occured", "e" ); }
+		});
+		self.fileChanged = false;
+	};
+
+	/**
+	 * Edit a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.editFile = function( name ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			dataType: "json",
+			data: ({
+				api: "getContent",
+				dir: self.currentDir,
+				filename: name
+			}),
+			success: function( data ) {
+						if( data.status == "OK" && data.data.content != null ) {
+							self.showFileForm( data.data.filename, data.data.content );
+						}
+						else if( data.status == "OK" && data.data.content == null ) {
+							self.showMessage( "The content of this file cannot be fetched.", "e" );
+						}
+						else self.showMessage( "Error: "+data.message, "e" );
+					},
+			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
+		});
+	};
+
+	/**
+	 * Shows the delete file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.deleteFileDialog = function( name ) {
+		self.showModal( '<form id="deleteFile">\
+				<div class="modal-body">\
+				<label>Do you really want to delete the file '+name+'?\
+				</div><div class="modal-footer">\
+				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
+				</div>\
+				</form>' );
+	};
+
+	/**
+	 * Deletes a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.deleteFile = function( name ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "deleteFile",
+				dir: self.currentDir,
+				filename: name
+			}),
+			dataType: "json",
+			success: function(data) {
+						if(data.status == "OK") {
+							self.showMessage("File successfully deleted", "s");
+							self.refreshFileTable();
+						} else self.showMessage("File could not be deleted", "e");
+					},
+			error: function() { self.showMessage("General error occured", "e"); }
+		});
+	};
+
+	/**
+	 * Show the rename file dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.renameFileDialog = function( name ) {
 		self.showModal( '<div class="modal-body">\
 			<form id="renameFile">\
 			<fieldset>\
@@ -856,9 +917,14 @@ function IFM() {
 		</div>' );
 	};
 
-	this.renameFile = function(name) {
+	/**
+	 * Renames a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.renameFile = function( name ) {
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "renameFile",
@@ -877,38 +943,12 @@ function IFM() {
 		});
 	};
 
-	this.copyMove = function( source, destination, action ) {
-		var id=self.generateGuid();
-		self.task_add(action.charAt(0).toUpperCase()+action.slice(1)+" "+source+" to "+destination, id);
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				dir: self.currentDir,
-				api: "copyMove",
-				action: action,
-				filename: source,
-				destination: destination
-			}),
-			dataType: "json",
-			success: function(data) {
-				if( data.status == "OK" ) {
-					self.showMessage( data.message, "s" );
-				} else {
-					self.showMessage( data.message, "e" );
-				}
-				self.refreshFileTable();
-			},
-			error: function() {
-				self.showMessage( "General error occured.", "e" );
-			},
-			complete: function() {
-				self.task_done(id);
-			}
-		});
-	};
-
-	this.copyMoveDialog = function(name) {
+	/**
+	 * Show the copy/move dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.copyMoveDialog = function( name ) {
 		self.showModal( '<form id="copyMoveFile"><fieldset>\
 			<div class="modal-body">\
 				<label>Select destination:</label>\
@@ -921,7 +961,7 @@ function IFM() {
 			</div>\
 		</fieldset></form>');
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "getFolderTree",
@@ -949,10 +989,51 @@ function IFM() {
 		});
 	};
 
-	this.extractFileDialog = function(name) {
-		var targetDirSuggestion="";
-		if(name.lastIndexOf(".") > 1)
-			targetDirSuggestion = name.substr(0,name.length-4);
+	/**
+	 * Copy or moves a file
+	 * 
+	 * @params string name - name of the file
+	 */
+	this.copyMove = function( source, destination, action ) {
+		var id=self.generateGuid();
+		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filename: source,
+				destination: destination
+			},
+			dataType: "json",
+			success: function(data) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
+				}
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done( id );
+			}
+		});
+	};
+
+	/**
+	 * Shows the extract file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.extractFileDialog = function( name ) {
+		var targetDirSuggestion = "";
+		if( name.lastIndexOf( "." ) > 1 )
+			targetDirSuggestion = name.substr( 0, name.length - 4 );
 		else targetDirSuggestion = name;
 		self.showModal( '<form id="extractFile"><fieldset>\
 			<div class="modal-body">\
@@ -982,27 +1063,36 @@ function IFM() {
 		});
 	};
 
-	this.extractFile = function(name, t) {
+	/**
+	 * Extracts a file
+	 *
+	 * @param string name - name of the file
+	 * @param string t - name of the target directory
+	 */
+	this.extractFile = function( name, t ) {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
-			data: ({
+			data: {
 				api: "extractFile",
 				dir: self.currentDir,
 				filename: name,
 				targetdir: t
-			}),
+			},
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully extracted", "s");
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File successfully extracted", "s" );
 							self.refreshFileTable();
-						} else self.showMessage("File could not be extracted. Error: "+data.message, "e");
+						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			error: function() { self.showMessage( "General error occured", "e" ); }
 		});
 	};
 
+	/**
+	 * Shows the upload file dialog
+	 */
 	this.uploadFileDialog = function() {
 		self.showModal( '<form id="uploadFile">\
 			<div class="modal-body">\
@@ -1016,11 +1106,14 @@ function IFM() {
 				<button class="btn btn-default" onclick="ifm.uploadFile();ifm.hideModal();return false;">Upload</button>\
 				<button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
 			</div>\
-			</form>');
+			</form>' );
 	};
 
+	/**
+	 * Uploads a file
+	 */
 	this.uploadFile = function() {
-		var ufile = document.getElementById('ufile').files[0];
+		var ufile = document.getElementById( 'ufile' ).files[0];
 		var data = new FormData();
 		var newfilename = $("#uploadFile input[name^=newfilename]").val();
 		data.append('api', 'uploadFile');
@@ -1029,7 +1122,7 @@ function IFM() {
 		data.append('newfilename', newfilename);
 		var id = self.generateGuid();
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: data,
 			processData: false,
@@ -1053,10 +1146,16 @@ function IFM() {
 		self.task_add("Upload "+ufile.name, id);
 	};
 
+	/**
+	 * Change the permissions of a file
+	 *
+	 * @params object e - event object
+	 * @params string name - name of the file
+	 */
 	this.changePermissions = function(e, name) {
 		if(e.keyCode == '13')
 			$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "changePermissions",
@@ -1078,6 +1177,9 @@ function IFM() {
 		});
 	};
 
+	/**
+	 * Show the remote upload dialog
+	 */
 	this.remoteUploadDialog = function() {
 		self.showModal( '<form id="uploadFile">\
 			<div class="modal-body">\
@@ -1102,11 +1204,14 @@ function IFM() {
 		$("#filename").on("keyup", function() { $("#url").off(); });
 	};
 
+	/**
+	 * Remote uploads a file
+	 */
 	this.remoteUpload = function() {
 		var filename = $("#filename").val();
 		var id = ifm.generateGuid();
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "remoteUpload",
@@ -1128,68 +1233,78 @@ function IFM() {
 		ifm.task_add("Remote upload: "+filename, id);
 	};
 
-	// --------------------
-	// additional functions
-	// --------------------
-	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
-		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
-		);
+	/**
+	 * Shows the ajax request dialog
+	 */
+	this.ajaxRequestDialog = function() {
+		self.showModal( '<form id="ajaxrequest">\
+				<div class="modal-body">\
+				<fieldset>\
+				<label>URL</label><br>\
+				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
+				<label>Data</label><br>\
+				<textarea class="form-control" id="ajaxdata"></textarea><br>\
+				<label>Method</label><br>\
+				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
+				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
+				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
+				<label>Response</label><br>\
+				<textarea class="form-control" id="ajaxresponse"></textarea>\
+				</fieldset>\
+				</form>\
+				</div>');
 	};
-	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
-		return a+"/"+b;
+
+	/**
+	 * Performs an ajax request
+	 */
+	this.ajaxRequest = function() {
+		$.ajax({
+			url		: $("#ajaxurl").val(),
+			cache	: false,
+			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
+			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
+			success	: function(response) { $("#ajaxresponse").text(response); },
+			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+		});
 	};
-	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
+
+
+	/**
+	 * Shows a popup to prevent that the user closes the file editor accidentally
+	 */
 	this.showSaveQuestion = function() {
 		var a = '<div id="savequestion"><label>Do you want to save this file?</label><br><button onclick="ifm.saveFile();ifm.closeFileForm(); return false;">Save</button><button onclick="ifm.closeFileForm();return false;">Dismiss</button>';
 		$(document.body).prepend(a);
 		self.bindOverlayClickEvent();
 	};
+
+	/**
+	 * Hides the save question
+	 */
 	this.hideSaveQuestion = function() {
 		$("#savequestion").remove();
 	};
-	this.handleMultiselect = function() {
-		var amount = $("#filetable tr.selectedItem").length;
-		if(amount > 0) {
-			if(document.getElementById("multiseloptions")===null) {
-				$(document.body).prepend('<div id="multiseloptions">\
-					<div style="font-size:0.8em;background-color:#00A3A3;padding:2px;">\
-						<a style="color:#FFF" onclick="$(\'input[name=multisel]\').attr(\'checked\', false);$(\'#multiseloptions\').remove();">[close]</a>\
-					</div>\
-					<ul><li><a onclick="ifm.multiDelete();"><span class="icon icon-trash"></span> delete (<span class="amount"></span>)</a></li></ul></div>\
-				');
-				$("#multiseloptions").draggable();
-				//$("#multiseloptions").resizable({ghost: true, minHeight: 50, minWidth: 100});
-			}
-			$("#multiseloptions .amount").text(amount);
-		}
-		else {
-			if(document.getElementById("multiseloptions")!==null)
-				$("#multiseloptions").remove();
-		}
-	};
+
+	/**
+	 * Shows the delete dialog for multiple files
+	 */
 	this.multiDeleteDialog = function() {
 		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.selectedItem').length+' files?</label>';
 		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
 		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
 		self.showModal( form );
 	};
+
+	/**
+	 * Deletes multiple files
+	 */
 	this.multiDelete = function() {
 		var elements = $('#filetable tr.selectedItem');
 		var filenames = [];
 		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "deleteMultipleFiles",
@@ -1211,25 +1326,107 @@ function IFM() {
 			error: function() { ifm.showMessage("General error occured", "e"); }
 		});
 	};
+
+	// --------------------
+	// helper functions
+	// --------------------
+
+	/**
+	 * Shows a notification
+	 *
+	 * @param string m - message text
+	 * @param string t - message type (e: error, s: success)
+	 */
+	this.showMessage = function(m, t) {
+		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		$.notify(
+				{ message: m },
+				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
+		);
+	};
+
+	/**
+	 * Combines two path components
+	 *
+	 * @param string a - component 1
+	 * @param string b - component 2
+	 */
+	this.pathCombine = function(a, b) {
+		if(a == "" && b == "") return "";
+		if(b[0] == "/") b = b.substring(1);
+		if(a == "") return b;
+		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
+		if(b == "") return a;
+		return a+"/"+b;
+	};
+
+	/**
+	 * Prevents a user to submit a form via clicking enter
+	 */
+	this.preventEnter = function(e) {
+		if( e.keyCode == 13 ) return false;
+		else return true;
+	}
+
+	/**
+	 * Checks if an element is part of an array
+	 *
+	 * @param obj needle - search item
+	 * @param array haystack - array to search
+	 */
 	this.inArray = function(needle, haystack) {
 		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
 	};
-	this.task_add = function(name,id) { // uFI stands for uploadFileInformation
-		if(!document.getElementById("waitqueue")) {
-			$(document.body).prepend('<div id="waitqueue"></div>');
-			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
+
+	/**
+	 * Adds a task to the taskbar.
+	 *
+	 * @param string name - description of the task
+	 * @param string id - identifier for the task
+	 */
+	this.task_add = function( name, id ) {
+		if( ! document.getElementById( "waitqueue" ) ) {
+			$( document.body ).prepend( '<div id="waitqueue"></div>' );
 		}
-		$("#waitqueue").prepend('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
+		$( "#waitqueue" ).prepend('\
+			<div id="'+id+'" class="panel panel-default">\
+				<div class="panel-body">\
+					<div class="progress">\
+						<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>\
+						<span class="progbarlabel">'+name+'</span>\
+					</div>\
+				</div>\
+			</div>\
+		');
 	};
+
+	/**
+	 * Removes a task from the taskbar
+	 *
+	 * @param string id - task identifier
+	 */
 	this.task_done = function(id) {
 		$("#"+id).remove();
 		if($("#waitqueue>div").length == 0) {
 			$("#waitqueue").remove();
 		}
 	};
+
+	/**
+	 * Updates a task
+	 *
+	 * @param integer progress - percentage of status
+	 * @param string id - task identifier
+	 */
 	this.task_update = function(progress, id) {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
+
+	/**
+	 * Highlights an item in the file table
+	 *
+	 * @param object param - either an element id or a jQuery object
+	 */
 	this.highlightItem = function( param ) {
 		var highlight = function( el ) {
 			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
@@ -1258,7 +1455,13 @@ function IFM() {
 			}
 		}
 	};
-	this.isElementInViewport = function isElementInViewport (el) {
+
+	/**
+	 * Checks if an element is within the viewport
+	 *
+	 * @param object el - element object
+	 */
+	this.isElementInViewport = function (el) {
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
 		}
@@ -1270,6 +1473,10 @@ function IFM() {
 				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
 			   );
 	}
+
+	/**
+	 * Generates a GUID
+	 */
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
@@ -1279,14 +1486,43 @@ function IFM() {
 		}
 		return result;
 	};
+
+	/**
+	 * Logs a message if debug mode is on
+	 *
+	 * @param string m - message text
+	 */
+	this.log = function( m ) {
+		if( self.debug ) {
+			console.log( "IFM (debug): " + m );
+		}
+	};
+
+	/**
+	 * Encodes a string for use within javascript
+	 *
+	 * @param string s - encoding string
+	 */
 	this.JSEncode = function(s) {
 		return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
 	};
+
+	/**
+	 * Handles the javascript pop states
+	 *
+	 * @param object event - event object
+	 */
 	this.historyPopstateHandler = function(event) {
 		var dir = "";
 		if( event.state && event.state.dir ) dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
+
+	/**
+	 * Handles keystrokes
+	 *
+	 * @param object e - event object
+	 */
 	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
 		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
@@ -1385,7 +1621,9 @@ function IFM() {
 		}
 	}
 
-	// initialization
+	/**
+	 * Initializes the application
+	 */
 	this.init = function() {
 		// bind static buttons
 		$("#refresh").click(function(){
@@ -1419,7 +1657,7 @@ function IFM() {
 	};
 }
 
-var ifm = new IFM();
+var ifm = new IFM({ api: "ifm.php" });
 ifm.init();
  <?php print '</script>
 			</body>
@@ -1443,6 +1681,9 @@ ifm.init();
 				$this->getFiles( $_REQUEST["dir"] );
 			else
 				$this->getFiles( "" );
+		}
+		elseif( $_REQUEST["api"] == "getConfig" ) {
+			echo json_encode( IFMConfig::getConstants() );
 		} else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
@@ -2262,5 +2503,5 @@ ifm.init();
    start program
  */
 
-$ifm = new IFM();
+$ifm = new IFM( IFMConfig::getConstants() );
 $ifm->run();
