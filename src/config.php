@@ -30,7 +30,6 @@ class IFMConfig {
 	const copymove = 1;			// allow to copy and move files and directories
 
 	// view controls
-	const multiselect = 1;		// implement multiselect of files and directories
 	const showlastmodified = 0;	// show the last modified date?
 	const showfilesize = 1;		// show filesize?
 	const showowner = 1;		// show file owner?

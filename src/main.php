@@ -16,6 +16,14 @@ ini_set( 'display_errors', 'OFF' );
 class IFM {
 	const VERSION = '2.4.0';
 
+	private $defaultconfig = array(
+		"upload" => 1,"remoteupload" => 1,"delete" => 1,"rename" => 1,"edit" => 1,"chmod" => 1,
+		"extract" => 1,"download" => 1,"selfdownload" => 1,"createdir" => 1,"createfile" => 1,
+		"zipnload" => 1,"copymove" => 1,"showlastmodified" => 0,"showfilesize" => 1,"showowner" => 1,
+		"showgroup" => 1,"showpermissions" => 2,"showhtdocs" => 1,"showhiddenfiles" => 1,"showpath" => 0,
+		"auth" => 0,"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
+		"root_dir" => "","defaulttimezone" => "Europe/Berlin","tmp_dir" => "","ajaxrequest" => 1
+	);
 	private $config = array();
 
 	public function __construct( $config ) {
@@ -24,7 +32,7 @@ class IFM {
 			trigger_error( "IFM: could not load config" );
 			exit( 1 );
 		} else {
-			$this->config = $config;
+			$this->config = array_merge( $this->defaultconfig, $config );
 		}
 	}
 
@@ -62,29 +70,29 @@ class IFM {
 								<div class="form-group">
 									<div class="input-group">
 										<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">';
-										print ( IFMConfig::showpath == 1 ) ? realpath( IFMConfig::root_dir ) : "/";
+										print ( $this->config['showpath'] == 1 ) ? realpath( $this->config['root_dir'] ) : "/";
 										print '</span></span><input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 									</div>
 								</div>
 							</form>
 							<ul class="nav navbar-nav navbar-right">
 								<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>';
-								if( IFMConfig::upload == 1 ) {
+								if( $this->config['upload'] == 1 ) {
 									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>';
 								}
-								if( IFMConfig::createfile == 1 ) {
+								if( $this->config['createfile'] == 1 ) {
 									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>';
 								}
-								if( IFMConfig::createdir == 1 ) {
+								if( $this->config['createdir'] == 1 ) {
 									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>';
 								}
 								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
 								$options = false;
-								if( IFMConfig::remoteupload == 1 ) {
+								if( $this->config['remoteupload'] == 1 ) {
 									print '<li><a onclick="ifm.remoteUploadDialog();return false;"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
 									$options = true;
 								}
-								if( IFMConfig::ajaxrequest == 1 ) {
+								if( $this->config['ajaxrequest'] == 1 ) {
 									print '<li><a onclick="ifm.ajaxRequestDialog();return false;"><span class="icon icon-link-ext"></span> ajax request</a></li>';
 									$options = true;
 								}
@@ -100,13 +108,13 @@ class IFM {
 					<thead>
 						<tr>
 							<th>Filename</th>';
-							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
-							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
-							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
-							if( IFMConfig::showpermissions > 0 ) print '<th class="hidden-xs">permissions</th>';
-							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
-							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
-							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
+							if( $this->config['download'] == 1 ) print '<th><!-- column for download link --></th>';
+							if( $this->config['showlastmodified'] == 1 ) print '<th>last modified</th>';
+							if( $this->config['showfilesize'] == 1 ) print '<th>size</th>';
+							if( $this->config['showpermissions'] > 0 ) print '<th class="hidden-xs">permissions</th>';
+							if( $this->config['showowner'] == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
+							if( $this->config['showgroup'] == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
+							if( in_array( 1, array( $this->config['edit'], $this->config['rename'], $this->config['delete'], $this->config['zipnload'], $this->config['extract'] ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
 						print '</tr>
 					</thead>
 					<tbody>
@@ -147,7 +155,7 @@ class IFM {
 				$this->getFiles( "" );
 		}
 		elseif( $_REQUEST["api"] == "getConfig" ) {
-			echo json_encode( IFMConfig::getConstants() );
+			echo json_encode( $this->config );
 		} else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
@@ -165,7 +173,7 @@ class IFM {
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "getFolderTree":
-						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( IFMConfig::root_dir ) ) ) ), $this->getFolderTreeRecursive( IFMConfig::root_dir ) ) );
+						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
 						break;
 					default:
 						echo json_encode( array( "status" => "ERROR", "message" => "No valid api action given" ) );
@@ -180,10 +188,10 @@ class IFM {
 	public function run() {
 		if ( $this->checkAuth() ) {
 			// go to our root_dir
-			if( ! is_dir( realpath( IFMConfig::root_dir ) ) || ! is_readable( realpath( IFMConfig::root_dir ) ) )
+			if( ! is_dir( realpath( $this->config['root_dir'] ) ) || ! is_readable( realpath( $this->config['root_dir'] ) ) )
 				die( "Cannot access root_dir.");
 			else
-				chdir( realpath( IFMConfig::root_dir ) );
+				chdir( realpath( $this->config['root_dir'] ) );
 			if ( ! isset($_REQUEST['api']) ) {
 					$this->getApplication();
 			} else {
@@ -207,9 +215,9 @@ class IFM {
 		if ($handle = opendir(".")) {
 			while (false !== ($result = readdir($handle))) { // this awesome statement is the correct way to loop over a directory :)
 				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { } // we don't want to see the script itself
-				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && IFMConfig::showhtdocs != 1 ) {} // check if we are granted to see .ht-docs
+				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {} // check if we are granted to see .ht-docs
 				elseif( $result == "." ) {} // the folder itself will also be invisible
-				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && IFMConfig::showhiddenfiles != 1 ) {} // eventually hide hidden files, if we should not see them
+				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {} // eventually hide hidden files, if we should not see them
 				elseif( ! @is_readable( $result ) ) {}
 				else { // thats are the files we should see
 					$item = array();
@@ -230,27 +238,27 @@ class IFM {
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
 					}
-					if( IFMConfig::showlastmodified == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
-					if( IFMConfig::showfilesize == 1 ) {
+					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
+					if( $this->config['showfilesize'] == 1 ) {
 						$item["filesize"] = filesize( $result );
 						if( $item["filesize"] > 1073741824 ) $item["filesize"] = round( ( $item["filesize"]/1073741824 ), 2 ) . " GB";
 						elseif($item["filesize"]>1048576)$item["filesize"] = round( ( $item["filesize"]/1048576 ), 2 ) . " MB";
 						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
 						else $item["filesize"] = $item["filesize"] . " Byte";
 					}
-					if( IFMConfig::showpermissions > 0 ) {
-						if( IFMConfig::showpermissions == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
-						elseif( IFMConfig::showpermissions == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
+					if( $this->config['showpermissions'] > 0 ) {
+						if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
+						elseif( $this->config['showpermissions'] == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
 						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
-						$item["filepermmode"] = ( IFMConfig::showpermissions == 1 ) ? "short" : "long";
+						$item["filepermmode"] = ( $this->config['showpermissions'] == 1 ) ? "short" : "long";
 					}
-					if( IFMConfig::showowner == 1  ) {
+					if( $this->config['showowner'] == 1  ) {
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
 							$ownerarr = posix_getpwuid( fileowner( $result ) );
 							$item["owner"] = $ownerarr['name'];
 						} else $item["owner"] = false;
 					}
-					if( IFMConfig::showgroup == 1 ) {
+					if( $this->config['showgroup'] == 1 ) {
 						if( function_exists( "posix_getgrgid" ) && filegroup( $result ) !== false ) {
 							$grouparr = posix_getgrgid( filegroup( $result ) );
 							$item["group"] = $grouparr['name'];
@@ -282,7 +290,7 @@ class IFM {
 	}
 
 	private function copyMove( $d ) {
-		if( IFMConfig::copymove != 1 ) {
+		if( $this->config['copymove'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
 			exit( 1 );
 		}
@@ -338,11 +346,11 @@ class IFM {
 	private function saveFile(array $d) {
 		if( isset( $d['filename'] ) && $d['filename'] != "" ) {
 			// if you are not allowed to see .ht-docs you can't save one
-			if( IFMConfig::showhtdocs != 1 && substr( $d['filename'], 0, 3 ) == ".ht" ) {
+			if( $this->config['showhtdocs'] != 1 && substr( $d['filename'], 0, 3 ) == ".ht" ) {
 				echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit or create htdocs" ) );
 			}
 			// same with hidden files
-			elseif( IFMConfig::showhiddenfiles != 1 && substr( $d['filename'], 0, 1 ) == "." ) {
+			elseif( $this->config['showhiddenfiles'] != 1 && substr( $d['filename'], 0, 1 ) == "." ) {
 				echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit or create hidden files" ) );
 			}
 			elseif(strpos($d['filename'],'/')!==false) {
@@ -369,7 +377,7 @@ class IFM {
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
-		if( IFMConfig::edit != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to edit files" ) );
+		if( $this->config['edit'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to edit files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( file_exists( $d['filename'] ) ) {
@@ -382,7 +390,7 @@ class IFM {
 
 	// deletes a file or a directory (recursive!)
 	private function deleteFile( array $d ) {
-		if( IFMConfig::delete != 1 ) {
+		if( $this->config['delete'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		}
 		else {
@@ -407,7 +415,7 @@ class IFM {
 
 	// deletes a bunch of files or directories
 	private function deleteMultipleFiles( array $d ) {
-		if( IFMConfig::delete != 1 || IFMConfig::multiselect != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete multiple files" ) );
+		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete multiple files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
@@ -440,15 +448,15 @@ class IFM {
 
 	// renames a file
 	private function renameFile( array $d ) {
-		if( IFMConfig::rename != 1 ) {
+		if( $this->config['rename'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
 				echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
-			elseif( IFMConfig::showhtdocs != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
+			elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
-			elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
+			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
 			else {
 				if( @rename( $d['filename'], $d['newname'] ) )
@@ -461,11 +469,11 @@ class IFM {
 
 	// provides a file for downloading
 	private function downloadFile( array $d ) {
-		if( IFMConfig::download != 1 )
+		if( $this->config['download'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
-		elseif( IFMConfig::showhtdocs != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
+		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			echo json_encode( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
-		elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
+		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
@@ -475,7 +483,7 @@ class IFM {
 
 	// extracts a zip-archive
 	private function extractFile( array $d ) {
-		if( IFMConfig::extract != 1 )
+		if( $this->config['extract'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
@@ -503,16 +511,16 @@ class IFM {
 
 	// uploads a file
 	private function uploadFile( array $d ) {
-		if( IFMConfig::upload != 1 )
+		if( $this->config['upload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
 		elseif( !isset( $_FILES['file'] ) )
 			echo json_encode( array( "file" => $_FILE,"files" => $_FILES ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
-			if( IFMConfig::showhtdocs != 1 && ( substr( $newfilename, 0, 3 ) == ".ht" || substr( $newfilename,0,3 ) == ".ht" ) )
+			if( $this->config['showhtdocs'] != 1 && ( substr( $newfilename, 0, 3 ) == ".ht" || substr( $newfilename,0,3 ) == ".ht" ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to upload htdoc file" ) );
-			elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $newfilename, 0, 1 ) == "." || substr( $newfilename,0,1 ) == "." ) )
+			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $newfilename, 0, 1 ) == "." || substr( $newfilename,0,1 ) == "." ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to upload hidden file" ) );
 			else {
 				if( $_FILES['file']['tmp_name'] ) {
@@ -534,7 +542,7 @@ class IFM {
 
 	// change permissions of a file
 	private function changePermissions( array $d ) {
-		if( IFMConfig::chmod != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
+		if( $this->config['chmod'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
 		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo json_encode( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
 		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
 		else {
@@ -573,7 +581,7 @@ class IFM {
 	// zips a directory and provides it for downloading
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload( array $d ) {
-		if( IFMConfig::zipnload != 1 )
+		if( $this->config['zipnload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
@@ -583,7 +591,7 @@ class IFM {
 				echo json_encode( array( "status" => "ERROR", "message" => "Filename not allowed" ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( IFMConfig::tmp_dir, uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
 					IFMZip::create( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
@@ -604,7 +612,7 @@ class IFM {
 
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload( array $d ) {
-		if( IFMConfig::remoteupload != 1 )
+		if( $this->config['remoteupload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
 		elseif( !isset( $d['method'] ) || !in_array( $d['method'], array( "curl", "file" ) ) )
 			echo json_encode( array( "status" => "error", "message" => "No valid method given. Valid methods: ['curl', 'file']" ) );
@@ -657,7 +665,7 @@ class IFM {
 	 */
 
 	public function checkAuth() {
-		if( IFMConfig::auth == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
+		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
 			$login_failed = false;
 			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
 				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
@@ -688,7 +696,7 @@ class IFM {
 	}
 
 	private function checkCredentials( $user, $pass ) {
-		list( $src, $srcopt ) = explode( ";", IFMConfig::auth_source, 2 );
+		list( $src, $srcopt ) = explode( ";", $this->config['auth_source'], 2 );
 		switch( $src ) {
 			case "inline":
 				list( $uname, $hash ) = explode( ":", $srcopt );
@@ -773,7 +781,7 @@ class IFM {
 			return "";
 		} else {
 			$rpDir = realpath( $dir );
-			$rpConfig = realpath( IFMConfig::root_dir );
+			$rpConfig = realpath( $this->config['root_dir'] );
 			if( $rpConfig == "/" )
 				return $rpDir;
 			elseif( $rpDir == $rpConfig )
@@ -796,7 +804,7 @@ class IFM {
 			$tmp_d = dirname( $tmp_d );
 		}
 		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
-		$rpConfig = ( IFMConfig::root_dir == "" ) ? realpath( dirname( __FILE__ ) ) : realpath( IFMConfig::root_dir );
+		$rpConfig = ( $this->config['root_dir'] == "" ) ? realpath( dirname( __FILE__ ) ) : realpath( $this->config['root_dir'] );
 		if( ! is_string( $rpDir ) || ! is_string( $rpConfig ) ) // can happen if open_basedir is in effect
 			return false;
 		elseif( $rpDir == $rpConfig )
@@ -918,9 +926,9 @@ class IFM {
 
 	// check if filename is allowed
 	private function allowedFileName( $f ) {
-		if( IFMConfig::showhtdocs != 1 && substr( $f, 0, 3 ) == ".ht" )
+		if( $this->config['showhtdocs'] != 1 && substr( $f, 0, 3 ) == ".ht" )
 			return false;
-		elseif( IFMConfig::showhiddenfiles != 1 && substr( $f, 0, 1 ) == "." )
+		elseif( $this->config['showhiddenfiles'] != 1 && substr( $f, 0, 1 ) == "." )
 			return false;
 		elseif( ! $this->isPathValid( $f ) )
 			return false;

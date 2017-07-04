@@ -33,6 +33,8 @@ function IFM( params ) {
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 
+	this.template.filetabletow = "
+
 	/**
 	 * Shows a bootstrap modal
 	 *
@@ -170,13 +172,11 @@ function IFM( params ) {
 		}
 		$("#filetable tbody").remove();
 		$("#filetable").append( newTBody );
-		if( self.config.multiselect == 1 ) {
-			$('.clickable-row').click(function(event) {
-				if( event.ctrlKey ) {
-					$(this).toggleClass( 'selectedItem' );
-				}
-			});
-		}
+		$('.clickable-row').click(function(event) {
+			if( event.ctrlKey ) {
+				$(this).toggleClass( 'selectedItem' );
+			}
+		});
 		$('a[data-toggle="tooltip"]').tooltip({
 			animated: 'fade',
 			placement: 'right',
@@ -1032,26 +1032,30 @@ function IFM( params ) {
 
 		switch( e.key ) {
 			case 'Delete':
-				if( $('#filetable tr.selectedItem').length > 0 ) {
-					e.preventDefault();
-					self.multiDeleteDialog();
-				} else {
-					var item = $('.highlightedItem');
-					if( item.length )
-						self.deleteFileDialog( item.data( 'filename' ) );
+				if( self.config.delete ) {
+					if( && $('#filetable tr.selectedItem').length > 0 ) {
+						e.preventDefault();
+						self.multiDeleteDialog();
+					} else {
+						var item = $('.highlightedItem');
+						if( item.length )
+							self.deleteFileDialog( item.data( 'filename' ) );
+					}
 				}
 				break;
 			case 'e':
-				var item = $('.highlightedItem');
-				if( item.length && ! item.hasClass( 'isDir' ) ) {
-					e.preventDefault();
-					var action = item.data( 'eaction' );
-					switch( action ) {
-						case 'extract':
-							self.extractFileDialog( item.data( 'filename' ) );
-							break;
-						case 'edit':
-							self.editFile( item.data( 'filename' ) );
+				if( self.config.edit ) {
+					var item = $('.highlightedItem');
+					if( item.length && ! item.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						var action = item.data( 'eaction' );
+						switch( action ) {
+							case 'extract':
+								self.extractFileDialog( item.data( 'filename' ) );
+								break;
+							case 'edit':
+								self.editFile( item.data( 'filename' ) );
+						}
 					}
 				}
 				break;
@@ -1064,24 +1068,34 @@ function IFM( params ) {
 				self.refreshFileTable();
 				break;
 			case 'u':
-				e.preventDefault();
-				self.uploadFileDialog();
+				if( self.config.upload ) {
+					e.preventDefault();
+					self.uploadFileDialog();
+				}
 				break;
 			case 'o':
-				e.preventDefault();
-				self.remoteUploadDialog();
+				if( self.config.remoteupload ) {
+					e.preventDefault();
+					self.remoteUploadDialog();
+				}
 				break;
 			case 'a':
-				e.preventDefault();
-				self.ajaxRequestDialog();
+				if( self.config.ajaxrequest ) {
+					e.preventDefault();
+					self.ajaxRequestDialog();
+				}
 				break;
 			case 'F':
-				e.preventDefault();
-				self.showFileForm();
+				if( self.config.createfile ) {
+					e.preventDefault();
+					self.showFileForm();
+				}
 				break;
 			case 'D':
-				e.preventDefault();
-				self.createDirForm();
+				if( self.config.createdir ) {
+					e.preventDefault();
+					self.createDirForm();
+				}
 				break;
 			case 'h':
 			case 'ArrowLeft':
