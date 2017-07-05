@@ -33,8 +33,6 @@ function IFM( params ) {
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 
-	this.template.filetabletow = "
-
 	/**
 	 * Shows a bootstrap modal
 	 *
@@ -1033,7 +1031,7 @@ function IFM( params ) {
 		switch( e.key ) {
 			case 'Delete':
 				if( self.config.delete ) {
-					if( && $('#filetable tr.selectedItem').length > 0 ) {
+					if( $('#filetable tr.selectedItem').length > 0 ) {
 						e.preventDefault();
 						self.multiDeleteDialog();
 					} else {
