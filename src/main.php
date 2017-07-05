@@ -24,16 +24,13 @@ class IFM {
 		"auth" => 0,"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 		"root_dir" => "","defaulttimezone" => "Europe/Berlin","tmp_dir" => "","ajaxrequest" => 1
 	);
-	private $config = array();
 
-	public function __construct( $config ) {
+	private $config = array();
+	public $mode = "";
+
+	public function __construct( $config=array() ) {
 		session_start();
-		if( ! is_array( $config ) ) {
-			trigger_error( "IFM: could not load config" );
-			exit( 1 );
-		} else {
-			$this->config = array_merge( $this->defaultconfig, $config );
-		}
+		$this->config = array_merge( $this->defaultconfig, $config );
 	}
 
 	/**
@@ -46,14 +43,36 @@ class IFM {
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1">
-				<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
+				<meta name="viewport" content="width=device-width, initial-scale=1">';
+		$this->getCSS();
+		print '
 			</head>
 			<body>
-				<div id="ifm"></div>
+				<div id="ifm"></div>';
+		$this->getJS();
+		print '
+			</body>
+			</html>
+		';
+	}
+
+	public function getInlineApplication() {
+		$this->getCSS();
+		print '<div id="ifm"></div>';
+		$this->getJS();
+	}
+
+	private function getCSS() {
+		print '
+			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
+		';
+	}
+
+	private function getJS() {
+		print '
 				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
@@ -62,8 +81,6 @@ class IFM {
 				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
-			</body>
-			</html>
 		';
 	}
 
@@ -85,7 +102,7 @@ class IFM {
 				$this->getFiles( "" );
 		}
 		elseif( $_REQUEST["api"] == "getConfig" ) {
-			echo json_encode( $this->config );
+			$this->getConfig();
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->getTemplates() );
 		}	else {
@@ -117,17 +134,20 @@ class IFM {
 		}
 	}
 
-	public function run() {
+	public function run( $mode="standalone" ) {
 		if ( $this->checkAuth() ) {
 			// go to our root_dir
 			if( ! is_dir( realpath( $this->config['root_dir'] ) ) || ! is_readable( realpath( $this->config['root_dir'] ) ) )
 				die( "Cannot access root_dir.");
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
-			if ( ! isset($_REQUEST['api']) ) {
-					$this->getApplication();
-			} else {
+			$this->mode = $mode;
+			if ( isset($_REQUEST['api']) ) {
 				$this->handleRequest();
+			} elseif( $mode == "standalone" ) {
+				$this->getApplication();
+			} else {
+				$this->getInlineApplication();
 			}
 		}
 	}
@@ -205,6 +225,13 @@ class IFM {
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
 		echo json_encode( array_merge( $dirs, $files ) );
+	}
+
+	private function getConfig() {
+		$ret = $this->config;
+		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
+		$ret['isDocroot'] = ( realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ) ? "true" : "false";
+		echo json_encode( $ret );
 	}
 
 	private function getFolderTreeRecursive( $start_dir ) {
