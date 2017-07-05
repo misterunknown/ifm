@@ -50,80 +50,10 @@ class IFM {
 				<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
 				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 			</head>
 			<body>
-				<nav class="navbar navbar-inverse navbar-fixed-top">
-					<div class="container">
-						<div class="navbar-header">
-							<a class="navbar-brand">IFM</a>
-							<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-						</div>
-						<div class="navbar-collapse collapse" id="navbar">
-							<form class="navbar-form navbar-left">
-								<div class="form-group">
-									<div class="input-group">
-										<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">';
-										print ( $this->config['showpath'] == 1 ) ? realpath( $this->config['root_dir'] ) : "/";
-										print '</span></span><input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
-									</div>
-								</div>
-							</form>
-							<ul class="nav navbar-nav navbar-right">
-								<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>';
-								if( $this->config['upload'] == 1 ) {
-									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>';
-								}
-								if( $this->config['createfile'] == 1 ) {
-									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>';
-								}
-								if( $this->config['createdir'] == 1 ) {
-									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>';
-								}
-								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
-								$options = false;
-								if( $this->config['remoteupload'] == 1 ) {
-									print '<li><a onclick="ifm.remoteUploadDialog();return false;"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
-									$options = true;
-								}
-								if( $this->config['ajaxrequest'] == 1 ) {
-									print '<li><a onclick="ifm.ajaxRequestDialog();return false;"><span class="icon icon-link-ext"></span> ajax request</a></li>';
-									$options = true;
-								}
-								if( !$options ) print '<li>No options available</li>';
-								print '</ul>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</nav>
-				<div class="container">
-				<table id="filetable" class="table">
-					<thead>
-						<tr>
-							<th>Filename</th>';
-							if( $this->config['download'] == 1 ) print '<th><!-- column for download link --></th>';
-							if( $this->config['showlastmodified'] == 1 ) print '<th>last modified</th>';
-							if( $this->config['showfilesize'] == 1 ) print '<th>size</th>';
-							if( $this->config['showpermissions'] > 0 ) print '<th class="hidden-xs">permissions</th>';
-							if( $this->config['showowner'] == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
-							if( $this->config['showgroup'] == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
-							if( in_array( 1, array( $this->config['edit'], $this->config['rename'], $this->config['delete'], $this->config['zipnload'], $this->config['extract'] ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
-						print '</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-				</div>
-				<div class="container">
-				<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
-				</div>
+				<div id="ifm"></div>
 				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
@@ -156,7 +86,9 @@ class IFM {
 		}
 		elseif( $_REQUEST["api"] == "getConfig" ) {
 			echo json_encode( $this->config );
-		} else {
+		} elseif( $_REQUEST["api"] == "getTemplates" ) {
+			echo json_encode( $this->getTemplates() );
+		}	else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
@@ -477,7 +409,7 @@ class IFM {
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
-			$this->file_download( $d['filename'] );
+			$this->fileDownload( $d['filename'] );
 		}
 	}
 
@@ -600,7 +532,7 @@ class IFM {
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->file_download( $dfile, $d['filename'] . ".zip" );
+					$this->fileDownload( $dfile, $d['filename'] . ".zip" );
 				} catch ( Exception $e ) {
 					echo "An error occured: " . $e->getMessage();
 				} finally {
@@ -950,7 +882,7 @@ class IFM {
 		else return true;
 	}
 
-	private function file_download( $file, $name="" ) {
+	private function fileDownload( $file, $name="" ) {
 		header( 'Content-Description: File Transfer' );
 		header( 'Content-Type: application/octet-stream' );
 		header( 'Content-Disposition: attachment; filename="' . ( trim( $name ) == "" ? basename( $file ) : $name ) . '"' );
@@ -968,12 +900,54 @@ class IFM {
 		fclose($stdout_stream);
 	}
 
-	///helper
+	private function getTemplates() {
+		$templates = array();
+		$templates['app'] = <<<'f00bar'
+@@@src/templates/app.html@@@
+f00bar;
+		$templates['file'] = <<<'f00bar'
+@@@src/templates/modal.file.html@@@
+f00bar;
+		$templates['createdir'] = <<<'f00bar'
+@@@src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['ajaxrequest'] = <<<'f00bar'
+@@@src/templates/modal.ajaxrequest.html@@@
+f00bar;
+		$templates['copymove'] = <<<'f00bar'
+@@@src/templates/modal.copymove.html@@@
+f00bar;
+		$templates['createdir'] = <<<'f00bar'
+@@@src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['deletefile'] = <<<'f00bar'
+@@@src/templates/modal.deletefile.html@@@
+f00bar;
+		$templates['extractfile'] = <<<'f00bar'
+@@@src/templates/modal.extractfile.html@@@
+f00bar;
+		$templates['file'] = <<<'f00bar'
+@@@src/templates/modal.file.html@@@
+f00bar;
+		$templates['multidelete'] = <<<'f00bar'
+@@@src/templates/modal.multidelete.html@@@
+f00bar;
+		$templates['remoteupload'] = <<<'f00bar'
+@@@src/templates/modal.remoteupload.html@@@
+f00bar;
+		$templates['renamefile'] = <<<'f00bar'
+@@@src/templates/modal.renamefile.html@@@
+f00bar;
+		$templates['uploadfile'] = <<<'f00bar'
+@@@src/templates/modal.uploadfile.html@@@
+f00bar;
+
+		return $templates;
+	}
 }
 
-/*
-   start program
+/**
+ * start IFM
  */
-
 $ifm = new IFM( IFMConfig::getConstants() );
 $ifm->run();

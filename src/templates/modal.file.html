@@ -1,8 +1,8 @@
-<form id="fileForm">
+<form id="formFile">
 <div class="modal-body">
 	<fieldset>
 		<label>Filename:</label>
-		<input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="{{filename}}"><br>
+		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
 		<div id="content" name="content"></div><br>
 		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
 		<div class="hide" id="editoroptions-head">options</div>
@@ -14,8 +14,8 @@
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save</button>
-	<button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>
-	<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button>
+	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
+	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
+	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
 </div>
 </form>

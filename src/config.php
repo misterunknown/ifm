@@ -87,6 +87,7 @@ class IFMConfig {
 
 	// development tools
 	const ajaxrequest = 1;		// formular to perform an ajax request
+	const debug = true;
 
 	static function getConstants() {
 		$oClass = new ReflectionClass(__CLASS__);

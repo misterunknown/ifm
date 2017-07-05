@@ -11,27 +11,13 @@ function IFM( params ) {
 		self.api = params.api;
 	}
 
-	// load the configuration from the backend
-	$.ajax({
-		url: self.api,
-		type: "POST",
-		data: {
-			api: "getConfig"
-		},
-		dataType: "json",
-		success: function(d) {
-			self.config = d;
-			self.log( "configuration loaded" );
-		},
-		error: function() {
-			throw new Error( "IFM: could not load configuration" );
-		}
-	});
+
 
 	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
+	this.rootElement = undefined;
 
 	/**
 	 * Shows a bootstrap modal
@@ -149,18 +135,18 @@ function IFM( params ) {
 			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract, self.config.copymove] ) ) {
 				newRow += '<td>';
 				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
-					newRow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
+					newRow += '<a tabindex="0" onclick="ifm.showExtractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
 				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
 					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
 				}
 				if( data[i].name != ".." && data[i].name != "." ) {
 					if( self.config.copymove == 1 ) {
-						newRow += '<a tabindex="0" onclick="ifm.copyMoveDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-folder-open-empty" title="copy/move"></span></a>';
+						newRow += '<a tabindex="0" onclick="ifm.showCopyMoveDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-folder-open-empty" title="copy/move"></span></a>';
 					}
 					if( self.config.rename == 1 )
 						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
 					if( self.config.delete == 1 )
-						newRow += '<a tabindex="0" onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
+						newRow += '<a tabindex="0" onclick="ifm.showDeleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
 				}
 				newRow += '</td></tr>';
 			} else {
@@ -213,22 +199,26 @@ function IFM( params ) {
 	/**
 	 * Shows a file, either a new file or an existing
 	 */
-	this.showFileForm = function () {
+	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		var overlay = '<form id="showFile">' +
-			'<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>' +
-			'<div id="content" name="content"></div><br>' +
-			'<button type="button" class="btn btn-default" id="editoroptions">editor options</button><div class="hide" id="editoroptions-head">options</div><div class="hide" id="editoroptions-content">' +
-			'<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>' +
-			'<input type="checkbox" id="editor-softtabs"> use soft tabs</input>' +
-			'<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>' +
-			'</div></fieldset></div>' +
-			'<div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save' +
-			'</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>' +
-			'<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
-		self.showModal( overlay, { large: true } );
-		$('#editoroptions').popover({
+		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
+		var form = $('#formFile');
+		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
+		form.find('#buttonSave').on( 'click', function() {
+			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
+			self.hideModal();
+			return false;
+		});
+		form.find('#buttonSaveNotClose').on( 'click', function() {
+			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
+			return false;
+		});
+		form.find('#buttonClose').on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+		form.find('#editoroptions').popover({
 			html: true,
 			title: function() { return $('#editoroptions-head').html(); },
 			content: function() {
@@ -247,7 +237,7 @@ function IFM( params ) {
 				return content;
 			}
 		});
-		$('#ifmmodal').on( 'remove', function () { self.editor = null; self.fileChanged = false; });
+		form.on( 'remove', function () { self.editor = null; self.fileChanged = false; });
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
@@ -261,62 +251,17 @@ function IFM( params ) {
 	};
 
 	/**
-	 * Shows the create directory dialog
-	 */
-	this.createDirForm = function() {
-		self.showModal( '<form id="createDir">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>Directoy name:</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="dirname" value="" />\
-				</fieldset>\
-				</div>\
-				<div class="modal-footer">\
-				<button class="btn btn-default" type="button" onclick="ifm.createDir();ifm.hideModal();return false;">Save</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-				</div>\
-				</form>' );
-	};
-
-	/**
-	 * Create a directory
-	 */
-	this.createDir = function() {
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: ({
-				api: "createDir",
-				dir: self.currentDir,
-				dirname: $("#createDir input[name^=dirname]").val()
-			}),
-			dataType: "json",
-			success: function(data){
-					if(data.status == "OK") {
-						self.showMessage("Directory sucessfully created.", "s");
-						self.refreshFileTable();
-					}
-					else {
-						self.showMessage("Directory could not be created: "+data.message, "e");
-					}
-				},
-			error: function() { self.showMessage("General error occured.", "e"); }
-		});
-	};
-
-
-	/**
 	 * Saves a file
 	 */
-	this.saveFile = function() {
+	this.saveFile = function( filename, content ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "saveFile",
 				dir: self.currentDir,
-				filename: $("#showFile input[name^=filename]").val(),
-				content: ifm.editor.getValue()
+				filename: filename,
+				content: content
 			}),
 			dataType: "json",
 			success: function( data ) {
@@ -347,7 +292,7 @@ function IFM( params ) {
 			}),
 			success: function( data ) {
 						if( data.status == "OK" && data.data.content != null ) {
-							self.showFileForm( data.data.filename, data.data.content );
+							self.showFileDialog( data.data.filename, data.data.content );
 						}
 						else if( data.status == "OK" && data.data.content == null ) {
 							self.showMessage( "The content of this file cannot be fetched.", "e" );
@@ -359,19 +304,67 @@ function IFM( params ) {
 	};
 
 	/**
+	 * Shows the create directory dialog
+	 */
+	this.showCreateDirDialog = function() {
+		self.showModal( self.templates.createdir );
+		var form = $( '#formCreateDir' );
+		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonSave' ).on( 'click', function() {
+			self.createDir( form.find( 'input[name=dirname] ').val() );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+	};
+
+	/**
+	 * Create a directory
+	 */
+	this.createDir = function( dirname ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "createDir",
+				dir: self.currentDir,
+				dirname: dirname
+			}),
+			dataType: "json",
+			success: function( data ){
+					if( data.status == "OK" ) {
+						self.showMessage( "Directory sucessfully created.", "s" );
+						self.refreshFileTable();
+					}
+					else {
+						self.showMessage( "Directory could not be created: "+data.message, "e" );
+					}
+				},
+			error: function() { self.showMessage( "General error occured.", "e" ); }
+		});
+	};
+
+
+	/**
 	 * Shows the delete file dialog
 	 *
 	 * @param string name - name of the file
 	 */
-	this.deleteFileDialog = function( name ) {
-		self.showModal( '<form id="deleteFile">\
-				<div class="modal-body">\
-				<label>Do you really want to delete the file '+name+'?\
-				</div><div class="modal-footer">\
-				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
-				</div>\
-				</form>' );
+	this.showDeleteFileDialog = function( filename ) {
+		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
+		var form = $( '#formDeleteFile' );
+		form.find( '#buttonYes' ).on( 'click', function() {
+			self.deleteFile( self.JSEncode( filename ) );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonNo' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
@@ -379,14 +372,14 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.deleteFile = function( name ) {
+	this.deleteFile = function( filename ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "deleteFile",
 				dir: self.currentDir,
-				filename: name
+				filename: filename
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -404,16 +397,19 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.renameFileDialog = function( name ) {
-		self.showModal( '<div class="modal-body">\
-			<form id="renameFile">\
-			<fieldset>\
-				<label>Rename '+name+' to:</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newname" /><br>\
-				<button class="btn btn-default" onclick="ifm.renameFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Rename</button><button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</fieldset>\
-			</form>\
-		</div>' );
+	this.showRenameFileDialog = function( filename ) {
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
+		var form = $( '#formRenameFile' );
+		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonRename' ).on( 'click', function() {
+			self.renameFile( filename, form.find( 'input[name=newname]' ).val() );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
@@ -421,15 +417,15 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.renameFile = function( name ) {
+	this.renameFile = function( filename, newname ) {
 		$.ajax({
 			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "renameFile",
 				dir: ifm.currentDir,
-				filename: name,
-				newname: $("#renameFile input[name^=newname]").val()
+				filename: filename,
+				newname: newname
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -447,42 +443,32 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.copyMoveDialog = function( name ) {
-		self.showModal( '<form id="copyMoveFile"><fieldset>\
-			<div class="modal-body">\
-				<label>Select destination:</label>\
-				<div id="copyMoveTree"><span class="icon icon-spin5"></span></div>\
-			</div>\
-			<div class="modal-footer">\
-				<button type="button" class="btn btn-default" id="copyButton">copy</button>\
-				<button type="button" class="btn btn-default" id="moveButton">move</button>\
-				<button type="button" class="btn btn-default" id="cancelButton">cancel</button>\
-			</div>\
-		</fieldset></form>');
+	this.showCopyMoveDialog = function( filename ) {
+		self.showModal( self.templates.copymove );
 		$.ajax({
-			url: ifm.api,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "getFolderTree",
-				dir: ifm.currentDir
+				dir: self.currentDir
 			}),
 			dataType: "json",
-			success: function(data) {
-				$('#copyMoveTree').treeview({data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty"});
+			success: function( data ) {
+				$( '#copyMoveTree' ).treeview( { data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty" } );
 			},
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
-		$('#copyButton').on( 'click', function(e) {
+		$( '#copyButton' ).on( 'click', function() {
 			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
 			self.hideModal();
 			return false;
 		});
-		$('#moveButton').on( 'click', function(e) {
+		$( '#moveButton' ).on( 'click', function() {
 			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
 			self.hideModal();
 			return false;
 		});
-		$('#cancelButton').on( 'click', function(e) {
+		$( '#cancelButton' ).on( 'click', function() {
 			self.hideModal();
 			return false;
 		});
@@ -494,7 +480,7 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.copyMove = function( source, destination, action ) {
-		var id=self.generateGuid();
+		var id = self.generateGuid();
 		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
 		$.ajax({
 			url: self.api,
@@ -529,35 +515,25 @@ function IFM( params ) {
 	 *
 	 * @param string name - name of the file
 	 */
-	this.extractFileDialog = function( name ) {
+	this.showExtractFileDialog = function( filename ) {
 		var targetDirSuggestion = "";
-		if( name.lastIndexOf( "." ) > 1 )
-			targetDirSuggestion = name.substr( 0, name.length - 4 );
-		else targetDirSuggestion = name;
-		self.showModal( '<form id="extractFile"><fieldset>\
-			<div class="modal-body">\
-				<label>Extract '+name+' to:</label>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span><span class="form-control">./</span></div>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./'+targetDirSuggestion+'"></span><span class="form-control">./'+targetDirSuggestion+'</span></div>\
-				<div class="input-group"><span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span><input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value=""></div>\
-			</div>\
-			<div class="modal-footer">\
-				<button type="button" class="btn btn-default" id="extractFileButton">extract</button>\
-				<button type="button" class="btn btn-default" id="extractCancelButton">cancel</button>\
-			</div>\
-		</fieldset></form>');
-		$('#extractFileButton').on( 'click', function() {
-			var t = $('input[name=extractTargetLocation]:checked').val();
-			if( t == "custom" ) t = $('#extractCustomLocation').val();
-			self.extractFile( self.JSEncode( name ), t );
+		if( filename.lastIndexOf( "." ) > 1 )
+			targetDirSuggestion = filename.substr( 0, name.length - 4 );
+		else targetDirSuggestion = filename;
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, targetDirSuggestion: targetDirSuggestion } ) );
+		var form = $('#formExtractFile');
+		form.find('#buttonExtract').on( 'click', function() {
+			var t = form.find('input[name=extractTargetLocation]:checked').val();
+			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
+			self.extractFile( self.JSEncode( filename ), t );
 			self.hideModal();
 			return false;
 		});
-		$('#extractCancelButton').on( 'click', function() {
+		form.find('#buttonCancel').on( 'click', function() {
 			self.hideModal();
 			return false;
 		});
-		$('#extractCustomLocation').on( 'click', function(e) {
+		form.find('#extractCustomLocation').on( 'click', function(e) {
 			$(e.target).prev().children().first().prop( 'checked', true );
 		});
 	};
@@ -565,18 +541,18 @@ function IFM( params ) {
 	/**
 	 * Extracts a file
 	 *
-	 * @param string name - name of the file
-	 * @param string t - name of the target directory
+	 * @param string filename - name of the file
+	 * @param string destination - name of the target directory
 	 */
-	this.extractFile = function( name, t ) {
+	this.extractFile = function( filename, destination ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: {
 				api: "extractFile",
 				dir: self.currentDir,
-				filename: name,
-				targetdir: t
+				filename: filename,
+				targetdir: destination
 			},
 			dataType: "json",
 			success: function( data ) {
@@ -592,20 +568,19 @@ function IFM( params ) {
 	/**
 	 * Shows the upload file dialog
 	 */
-	this.uploadFileDialog = function() {
-		self.showModal( '<form id="uploadFile">\
-			<div class="modal-body">\
-				<fieldset>\
-				<label>Upload file</label><br>\
-				<input class="file" type="file" name="ufile" id="ufile"><br>\
-				<label>new filename</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newfilename"><br>\
-				</fieldset>\
-			</div><div class="modal-footer">\
-				<button class="btn btn-default" onclick="ifm.uploadFile();ifm.hideModal();return false;">Upload</button>\
-				<button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</div>\
-			</form>' );
+	this.showUploadFileDialog = function() {
+		self.showModal( self.templates.uploadfile );
+		var form = $('#formUploadFile');
+		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonUpload' ).on( 'click', function() {
+			self.uploadFile();
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
@@ -614,7 +589,7 @@ function IFM( params ) {
 	this.uploadFile = function() {
 		var ufile = document.getElementById( 'ufile' ).files[0];
 		var data = new FormData();
-		var newfilename = $("#uploadFile input[name^=newfilename]").val();
+		var newfilename = $("#formUploadFile input[name^=newfilename]").val();
 		data.append('api', 'uploadFile');
 		data.append('dir', self.currentDir);
 		data.append('file', ufile);
@@ -634,11 +609,11 @@ function IFM( params ) {
 				return xhr ;
 			},
 			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully uploaded", "s");
-							if(data.cd == self.currentDir) self.refreshFileTable();
-						} else self.showMessage("File could not be uploaded: "+data.message, "e");
-					},
+				if(data.status == "OK") {
+					self.showMessage("File successfully uploaded", "s");
+					if(data.cd == self.currentDir) self.refreshFileTable();
+				} else self.showMessage("File could not be uploaded: "+data.message, "e");
+			},
 			error: function() { self.showMessage("General error occured", "e"); },
 			complete: function() { self.task_done(id); }
 		});
@@ -659,7 +634,7 @@ function IFM( params ) {
 			data: ({
 				api: "changePermissions",
 				dir: self.currentDir,
-				filename: name,
+				filename: filename,
 				chmod: e.target.value
 			}),
 			dataType: "json",
@@ -679,35 +654,33 @@ function IFM( params ) {
 	/**
 	 * Show the remote upload dialog
 	 */
-	this.remoteUploadDialog = function() {
-		self.showModal( '<form id="uploadFile">\
-			<div class="modal-body">\
-			<fieldset>\
-				<label>Remote upload URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="url" name="url" required><br>\
-				<label>Filename (required)</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="filename" name="filename" required><br>\
-				<label>Method</label>\
-				<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>\
-			</fieldset><div class="modal-footer">\
-				<button type="button" class="btn btn-default" onclick="ifm.remoteUpload();ifm.hideModal();return false;">Upload</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</div>\
-			</form>' );
-		// guess the wanted filename, because it is required
-		// e.g http:/example.com/example.txt  => filename: example.txt
-		$("#url").on("change keyup", function(){
-			$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
+	this.showRemoteUploadDialog = function() {
+		self.showModal( self.templates.remoteupload );
+		var form = $('#formRemoteUpload');
+		form.find( '#url' )
+			.on( 'keypress', self.preventEnter )
+			.on( 'change keyup', function() {
+				$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
+			});
+		form.find( '#filename' )
+			.on( 'keypress', self.preventEnter )
+			.on( 'keyup', function() { $("#url").off( 'change keyup' ); });
+		form.find( '#buttonUpload' ).on( 'click', function() {
+			self.remoteUpload();
+			self.hideModal();
+			return false;
 		});
-		// if the filename input field was edited manually remove the event handler above
-		$("#filename").on("keyup", function() { $("#url").off(); });
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
 	 * Remote uploads a file
 	 */
 	this.remoteUpload = function() {
-		var filename = $("#filename").val();
+		var filename = $("#formRemoteUpload #filename").val();
 		var id = ifm.generateGuid();
 		$.ajax({
 			url: ifm.api,
@@ -716,7 +689,7 @@ function IFM( params ) {
 				api: "remoteUpload",
 				dir: ifm.currentDir,
 				filename: filename,
-				method: $("input[name=method]:checked").val(),
+				method: $("#formRemoteUpload input[name=method]:checked").val(),
 				url: encodeURI($("#url").val())
 			}),
 			dataType: "json",
@@ -735,23 +708,18 @@ function IFM( params ) {
 	/**
 	 * Shows the ajax request dialog
 	 */
-	this.ajaxRequestDialog = function() {
-		self.showModal( '<form id="ajaxrequest">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
-				<label>Data</label><br>\
-				<textarea class="form-control" id="ajaxdata"></textarea><br>\
-				<label>Method</label><br>\
-				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
-				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
-				<label>Response</label><br>\
-				<textarea class="form-control" id="ajaxresponse"></textarea>\
-				</fieldset>\
-				</form>\
-				</div>');
+	this.showAjaxRequestDialog = function() {
+		self.showModal( self.templates.ajaxrequest );
+		var form = $('#formAjaxRequest');
+		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonRequest' ).on( 'click', function() {
+			self.ajaxRequest();
+			return false;
+		});
+		form.find( '#buttonClose' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
@@ -768,31 +736,21 @@ function IFM( params ) {
 		});
 	};
 
-
-	/**
-	 * Shows a popup to prevent that the user closes the file editor accidentally
-	 */
-	this.showSaveQuestion = function() {
-		var a = '<div id="savequestion"><label>Do you want to save this file?</label><br><button onclick="ifm.saveFile();ifm.closeFileForm(); return false;">Save</button><button onclick="ifm.closeFileForm();return false;">Dismiss</button>';
-		$(document.body).prepend(a);
-		self.bindOverlayClickEvent();
-	};
-
-	/**
-	 * Hides the save question
-	 */
-	this.hideSaveQuestion = function() {
-		$("#savequestion").remove();
-	};
-
 	/**
 	 * Shows the delete dialog for multiple files
 	 */
-	this.multiDeleteDialog = function() {
-		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.selectedItem').length+' files?</label>';
-		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
-		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
-		self.showModal( form );
+	this.showMultiDeleteDialog = function() {
+		self.showModal( Mustache.render( self.templates.multidelete, { count: $('#filetable tr.selectedItem').length } ) );
+		var form = $('#formDeleteFiles');
+		form.find( '#buttonYes' ).on( 'click', function() {
+			self.multiDelete();
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonNo' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
 	/**
@@ -992,7 +950,7 @@ function IFM( params ) {
 	 * @param string m - message text
 	 */
 	this.log = function( m ) {
-		if( self.debug ) {
+		if( self.config.debug ) {
 			console.log( "IFM (debug): " + m );
 		}
 	};
@@ -1033,11 +991,11 @@ function IFM( params ) {
 				if( self.config.delete ) {
 					if( $('#filetable tr.selectedItem').length > 0 ) {
 						e.preventDefault();
-						self.multiDeleteDialog();
+						self.showMultiDeleteDialog();
 					} else {
 						var item = $('.highlightedItem');
 						if( item.length )
-							self.deleteFileDialog( item.data( 'filename' ) );
+							self.showDeleteFileDialog( item.data( 'filename' ) );
 					}
 				}
 				break;
@@ -1049,7 +1007,7 @@ function IFM( params ) {
 						var action = item.data( 'eaction' );
 						switch( action ) {
 							case 'extract':
-								self.extractFileDialog( item.data( 'filename' ) );
+								self.showExtractFileDialog( item.data( 'filename' ) );
 								break;
 							case 'edit':
 								self.editFile( item.data( 'filename' ) );
@@ -1068,31 +1026,31 @@ function IFM( params ) {
 			case 'u':
 				if( self.config.upload ) {
 					e.preventDefault();
-					self.uploadFileDialog();
+					self.showUploadFileDialog();
 				}
 				break;
 			case 'o':
 				if( self.config.remoteupload ) {
 					e.preventDefault();
-					self.remoteUploadDialog();
+					self.showRemoteUploadDialog();
 				}
 				break;
 			case 'a':
 				if( self.config.ajaxrequest ) {
 					e.preventDefault();
-					self.ajaxRequestDialog();
+					self.showAjaxRequestDialog();
 				}
 				break;
 			case 'F':
 				if( self.config.createfile ) {
 					e.preventDefault();
-					self.showFileForm();
+					self.showFileDialog();
 				}
 				break;
 			case 'D':
 				if( self.config.createdir ) {
 					e.preventDefault();
-					self.createDirForm();
+					self.showCreateDirDialog();
 				}
 				break;
 			case 'h':
@@ -1137,25 +1095,84 @@ function IFM( params ) {
 	/**
 	 * Initializes the application
 	 */
-	this.init = function() {
+	this.initLoadConfig = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getConfig"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.config = d;
+				self.log( "configuration loaded" );
+				self.initLoadTemplates();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load configuration" );
+			}
+		});
+	};
+	
+	this.initLoadTemplates = function() {
+		// load the templates from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getTemplates"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.templates = d;
+				self.log( "templates loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+	
+	this.initApplication = function() {
+		self.rootElement.html(
+			Mustache.render(
+				self.templates.app,
+				{
+					showpath: "/",
+					config: self.config,
+					ftbuttons: function(){
+						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
+					}
+				}
+			)
+		);
 		// bind static buttons
 		$("#refresh").click(function(){
 			self.refreshFileTable();
 		});
 		$("#createFile").click(function(){
-			self.showFileForm();
+			self.showFileDialog();
 		});
 		$("#createDir").click(function(){
-			self.createDirForm();
+			self.showCreateDirDialog();
 		});
 		$("#upload").click(function(){
-			self.uploadFileDialog();
+			self.showUploadFileDialog();
 		});
 		$('#currentDir').on( 'keypress', function (event) {
 			if( event.keyCode == 13 ) {
 				event.preventDefault();
 				self.changeDirectory( $(this).val(), { absolute: true } );
 			}
+		});
+		$('#buttonRemoteUpload').on( 'click', function() {
+			self.showRemoteUploadDialog();
+			return false;
+		});
+		$('#buttonAjaxRequest').on( 'click', function() {
+			self.showAjaxRequestDialog();
+			return false;
 		});
 		// handle keystrokes
 		$(document).on( 'keydown', self.handleKeystrokes );
@@ -1168,7 +1185,12 @@ function IFM( params ) {
 			this.refreshFileTable();
 		}
 	};
+
+	this.init = function( id ) {
+		self.rootElement = $('#'+id);
+		this.initLoadConfig();
+	};
 }
 
 var ifm = new IFM({ api: "ifm.php" });
-ifm.init();
+ifm.init( "ifm" );
