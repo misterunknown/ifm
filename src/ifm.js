@@ -5,15 +5,8 @@ function IFM( params ) {
 	var self = this; // reference to ourself, because "this" does not work within callbacks
 
 	// set the backend for the application
-	if( ! params.api ) {
-		throw new Error( "IFM: no backend configured" );
-	} else {
-		self.api = params.api;
-	}
+	self.api = params.api || window.location.pathname;
 
-
-
-	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
@@ -93,7 +86,7 @@ function IFM( params ) {
 			newRow += '><td><a tabindex="0"';
 			var guid = self.generateGuid();
 			if(data[i].type=="file") {
-				if( self.isDocroot ) {
+				if( self.config.isDocroot ) {
 					newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
 					if( data[i].icon.indexOf( 'file-image' ) !== -1 )
 						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
@@ -796,9 +789,10 @@ function IFM( params ) {
 	 */
 	this.showMessage = function(m, t) {
 		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		var element = ( self.config.inline ) ? self.rootElement : "body";
 		$.notify(
 				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
+				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
 		);
 	};
 
@@ -1192,5 +1186,5 @@ function IFM( params ) {
 	};
 }
 
-var ifm = new IFM({ api: "ifm.php" });
+var ifm = new IFM({});
 ifm.init( "ifm" );
