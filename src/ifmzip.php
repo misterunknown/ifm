@@ -62,7 +62,7 @@ class IFMZip {
 	/**
 	 * Unzip a zip file
 	 */
-	public function extract( $file, $destination="./" ) {
+	public static function extract( $file, $destination="./" ) {
 		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {

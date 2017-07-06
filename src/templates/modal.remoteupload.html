@@ -1,0 +1,16 @@
+<form id="formRemoteUpload">
+<div class="modal-body">
+	<fieldset>
+		<label>Remote upload URL</label><br>
+		<input class="form-control" type="text" id="url" name="url" required><br>
+		<label>Filename (required)</label>
+		<input class="form-control" type="text" id="filename" name="filename" required><br>
+		<label>Method</label>
+		<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>
+	</fieldset>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonUpload">Upload</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+</div>
+</form>
