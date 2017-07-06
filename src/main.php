@@ -1,7 +1,5 @@
 <?php
 
-namespace IFM;
-
 /* =======================================================================
  * Improved File Manager
  * ---------------------
@@ -93,7 +91,6 @@ class IFM {
 	private function getCSS() {
 		print '
 			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 		';
@@ -105,7 +102,6 @@ class IFM {
 				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/ekko-lightbox.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
