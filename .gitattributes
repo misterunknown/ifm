@@ -1,1 +1,2 @@
 ifm.php -diff
+build/* -diff
