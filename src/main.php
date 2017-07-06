@@ -77,6 +77,7 @@ class IFM {
 				<div id="ifm"></div>';
 		$this->getJS();
 		print '
+			<script>var ifm = new IFM(); ifm.init( "ifm" );</script>
 			</body>
 			</html>
 		';
@@ -88,7 +89,7 @@ class IFM {
 		$this->getJS();
 	}
 
-	private function getCSS() {
+	public function getCSS() {
 		print '
 			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
@@ -96,7 +97,7 @@ class IFM {
 		';
 	}
 
-	private function getJS() {
+	public function getJS() {
 		print '
 				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
@@ -156,6 +157,7 @@ class IFM {
 				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
 			}
 		}
+		exit( 0 );
 	}
 
 	public function run( $mode="standalone" ) {
@@ -166,7 +168,7 @@ class IFM {
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
 			$this->mode = $mode;
-			if ( isset($_REQUEST['api']) || $mode == "api" ) {
+			if ( isset( $_REQUEST['api'] ) || $mode == "api" ) {
 				$this->handleRequest();
 			} elseif( $mode == "standalone" ) {
 				$this->getApplication();

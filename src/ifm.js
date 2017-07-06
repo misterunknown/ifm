@@ -1238,6 +1238,3 @@ function IFM( params ) {
 		this.initLoadConfig();
 	};
 }
-
-var ifm = new IFM();
-ifm.init( "ifm" );

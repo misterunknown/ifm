@@ -14,7 +14,6 @@ $IFM_SRC_JS = "src/ifm.js";
 
 $IFM_BUILD_STANDALONE = "ifm.php";
 $IFM_BUILD_LIB_PHP = "build/ifmlib.php";
-$IFM_BUILD_LIB_JS = "build/ifm.js";
 
 /**
  * Prepare main script
@@ -55,4 +54,3 @@ file_put_contents( $IFM_BUILD_STANDALONE, array(
  */
 file_put_contents( $IFM_BUILD_LIB_PHP, $main );
 file_put_contents( $IFM_BUILD_LIB_PHP, $phpincludes, FILE_APPEND );
-file_put_contents( $IFM_BUILD_LIB_JS, file_get_contents( $IFM_SRC_JS ) );
