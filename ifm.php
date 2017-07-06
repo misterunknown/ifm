@@ -1480,7 +1480,6 @@ function IFM( params ) {
 			return;
 		}
 
-		console.log( "pressed "+e.key );
 		switch( e.key ) {
 			case 'Delete':
 				if( self.config.delete ) {
