@@ -99,7 +99,7 @@ function IFM( params ) {
 			} else {
 				item.download.action = "download";
 				item.download.icon = "icon icon-download";
-				if( item.icon.indexOf( 'file-image' ) !== -1 )
+				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
 					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
 				if( item.name.toLowerCase().substr(-4) == ".zip" )
 					item.eaction = "extract";
@@ -855,6 +855,8 @@ function IFM( params ) {
 
 	/**
 	 * Prevents a user to submit a form via clicking enter
+	 *
+	 * @param object e - click event
 	 */
 	this.preventEnter = function(e) {
 		if( e.keyCode == 13 ) return false;
@@ -1118,11 +1120,20 @@ function IFM( params ) {
 				}
 				break;
 			case ' ': // todo: make it work only when noting other is focused
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) {
-					e.preventDefault();
-					var item = $('.highlightedItem');
-					if( item.is( 'tr' ) )
-						item.toggleClass( 'selectedItem' );
+			case 'Enter':
+				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) { 
+					var trParent = $(':focus').parent().parent();
+					if( e.key == 'Enter' && trParent.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						e.stopPropagation();
+						self.changeDirectory( trParent.data( 'filename' ) );
+					} else if( e.key == ' ' && ! trParent.is( ':first-child' ) ) {
+						e.preventDefault();
+						e.stopPropagation();
+						var item = $('.highlightedItem');
+						if( item.is( 'tr' ) )
+							item.toggleClass( 'selectedItem' );
+					}
 				}
 				break;
 		}
