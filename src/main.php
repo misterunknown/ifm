@@ -1,5 +1,7 @@
 <?php
 
+namespace IFM;
+
 /* =======================================================================
  * Improved File Manager
  * ---------------------
@@ -13,16 +15,42 @@
 error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
+
 class IFM {
 	const VERSION = '2.4.0';
 
 	private $defaultconfig = array(
-		"upload" => 1,"remoteupload" => 1,"delete" => 1,"rename" => 1,"edit" => 1,"chmod" => 1,
-		"extract" => 1,"download" => 1,"selfdownload" => 1,"createdir" => 1,"createfile" => 1,
-		"zipnload" => 1,"copymove" => 1,"showlastmodified" => 0,"showfilesize" => 1,"showowner" => 1,
-		"showgroup" => 1,"showpermissions" => 2,"showhtdocs" => 1,"showhiddenfiles" => 1,"showpath" => 0,
-		"auth" => 0,"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
-		"root_dir" => "","defaulttimezone" => "Europe/Berlin","tmp_dir" => "","ajaxrequest" => 1
+		// general config
+		"auth" => 0,
+		"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
+		"root_dir" => "",
+		"tmp_dir" => "",
+		"defaulttimezone" => "Europe/Berlin",
+
+		// api controls
+		"ajaxrequest" => 1,
+		"chmod" => 1,
+		"copymove" => 1,
+		"createdir" => 1,
+		"createfile" => 1,
+		"edit" => 1,
+		"delete" => 1,
+		"download" => 1,
+		"extract" => 1,
+		"upload" => 1,
+		"remoteupload" => 1,
+		"rename" => 1,
+		"zipnload" => 1,
+
+		// gui controls
+		"showlastmodified" => 0,
+		"showfilesize" => 1,
+		"showowner" => 1,
+		"showgroup" => 1,
+		"showpermissions" => 2,
+		"showhtdocs" => 1,
+		"showhiddenfiles" => 1,
+		"showpath" => 0,
 	);
 
 	private $config = array();
@@ -142,7 +170,7 @@ class IFM {
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
 			$this->mode = $mode;
-			if ( isset($_REQUEST['api']) ) {
+			if ( isset($_REQUEST['api']) || $mode == "api" ) {
 				$this->handleRequest();
 			} elseif( $mode == "standalone" ) {
 				$this->getApplication();
@@ -222,7 +250,7 @@ class IFM {
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ) ? "true" : "false";
+		$ret['isDocroot'] = ( realpath( $this->config['root_dir'] ) == dirname( __FILE__ ) ) ? "true" : "false";
 		echo json_encode( $ret );
 	}
 
@@ -967,9 +995,3 @@ f00bar;
 		return $templates;
 	}
 }
-
-/**
- * start IFM
- */
-$ifm = new IFM( IFMConfig::getConstants() );
-$ifm->run();
