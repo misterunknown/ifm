@@ -55,4 +55,4 @@ file_put_contents( $IFM_BUILD_STANDALONE, array(
  */
 file_put_contents( $IFM_BUILD_LIB_PHP, $main );
 file_put_contents( $IFM_BUILD_LIB_PHP, $phpincludes, FILE_APPEND );
-file_put_contents( $IFM_BUILD_LIB_JS, $IFM_SRC_JS );
+file_put_contents( $IFM_BUILD_LIB_JS, file_get_contents( $IFM_SRC_JS ) );
