@@ -7,14 +7,17 @@ body {
 	font-size: 14pt;
 }
 
-#filetable tr td:nth-child(5) {
+#filetable td:nth-child(5), #filetable th:nth-child(5) {
 	text-align: center;
 }
-#filetable tr td:nth-child(6) {
+#filetable td:nth-child(6), #filetable th:nth-child(6) {
 	text-align: center;
 }
 #filetable tr td:last-child {
 	text-align: right;
+}
+#filetable td:last-child a:hover {
+	text-decoration: none;
 }
 
 a { cursor: pointer !important; }

@@ -62,17 +62,15 @@
 						<th>size</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th>permissions</th>
+						<th class="hidden-xs">permissions</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th>owner</th>
+						<th class="hidden-xs hidden-sm">owner</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th>group</th>
+						<th class="hidden-xs hidden-sm hidden-md">group</th>
 						{{/config.showgroup}}
-						{{#ftbuttons}}
 						<th class="buttons"><!-- column for buttons --></th>
-						{{/ftbuttons}}
 					</tr>
 				</thead>
 				<tbody>

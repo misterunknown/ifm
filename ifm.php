@@ -357,14 +357,17 @@ class IFM {
 	font-size: 14pt;
 }
 
-#filetable tr td:nth-child(5) {
+#filetable td:nth-child(5), #filetable th:nth-child(5) {
 	text-align: center;
 }
-#filetable tr td:nth-child(6) {
+#filetable td:nth-child(6), #filetable th:nth-child(6) {
 	text-align: center;
 }
 #filetable tr td:last-child {
 	text-align: right;
+}
+#filetable td:last-child a:hover {
+	text-decoration: none;
 }
 
 a { cursor: pointer !important; }
@@ -455,17 +458,20 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
  <?php print '</script>
 				<script>';?> /**
  * IFM constructor
+ *
+ * @param object params - object with some configuration values, currently you only can set the api url
  */
 function IFM( params ) {
 	var self = this; // reference to ourself, because "this" does not work within callbacks
 
 	// set the backend for the application
+	params = params || {};
 	self.api = params.api || window.location.pathname;
 
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
-	this.rootElement = undefined;
+	this.rootElement = "";
 
 	/**
 	 * Shows a bootstrap modal
@@ -531,89 +537,129 @@ function IFM( params ) {
 	 * @param object data - object with items
 	 */
 	this.rebuildFileTable = function( data ) {
-		var newTBody = $(document.createElement('tbody'));
-		for( var i=0; i < data.length; i++ ) {
-			var newRow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="' + data[i].name + '"';
-			if( self.config.extract == 1 && data[i].name.toLowerCase().substr(-4) == ".zip" )
-				newRow += ' data-eaction="extract"';
-			else if( self.config.edit == 1 && data[i].name.toLowerCase().substr(-4) != ".zip" )
-				newRow += ' data-eaction="edit"';
-			newRow += '><td><a tabindex="0"';
-			var guid = self.generateGuid();
-			if(data[i].type=="file") {
-				if( self.config.isDocroot ) {
-					newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
-					if( data[i].icon.indexOf( 'file-image' ) !== -1 )
-						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
-				} else {
-					newRow += ' onclick="$(\'#d_'+guid+'\').submit();"';
-				}
-			} else {
-				newRow += ' onclick="ifm.changeDirectory(\''+data[i].name+'\')"';
+		data.forEach( function( item ) {
+			item.guid = self.generateGuid();
+			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
+			item.download = {};
+			item.download.name = ( item.name == ".." ) ? "." : item.name;
+			item.download.allowed = self.config.download;
+			item.download.currentDir = self.currentDir;
+			if( ! self.config.chmod )
+				item.readonly = "readonly";
+			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
+				item.ftbuttons = true;
+				item.button = [];
 			}
-			newRow += '><span class="'+data[i].icon+'"></span> ' + ( data[i].name == '..' ? '[ up ]' : data[i].name ) + '</a></td>';
-			if( ( data[i].type != "dir" && self.config.download == 1 ) || ( data[i].type == "dir" && self.config.zipnload == 1 ) ) {
-				newRow += '<td><form id="d_' + guid + '">';
-				newRow += '<input type="hidden" name="dir" value="' + self.currentDir + '">';
-				newRow += '<input type="hidden" name="filename" value="' + ( data[i].name == '..' ? '.' : data[i].name ) + '">';
-				newRow += '<input type="hidden" name="api" value="' + ( data[i].type == 'file'?'downloadFile':'zipnload' ) + '">';
-				newRow += '</form><a tabindex="0" onclick="$(\'#d_'+guid+'\').submit();"><span class="icon icon-download' + ( data[i].type == 'dir'?'-cloud':'' ) + '" title="download"></span></a></td>';
+			if( item.type == "dir" ) {
+				item.download.action = "zipnload";
+				item.download.icon = "icon icon-download-cloud";
+				item.rowclasses = "isDir";
 			} else {
-				newRow += '<td></td>';
+				item.download.action = "download";
+				item.download.icon = "icon icon-download";
+				if( item.icon.indexOf( 'file-image' ) !== -1 )
+					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
+				if( item.name.toLowerCase().substr(-4) == ".zip" )
+					item.eaction = "extract";
+				else
+					item.eaction = "edit";
+				if( self.config.edit && item.name.toLowerCase().substr(-4) != ".zip" )
+					item.button.push({
+						action: "edit",
+						icon: "icon icon-pencil",
+						title: "edit"
+					});
+				else
+					item.button.push({
+						action: "extract",
+						icon: "icon icon-archive",
+						title: "extract"
+					});
 			}
-			// last-modified
-			if( self.config.showlastmodified > 0 )
-				newRow += '<td>' + data[i].lastmodified + '</td>';
-			// size
-			if( self.config.showfilesize > 0 )
-				newRow += '<td>' + data[i].filesize + '</td>';
-			// permissions
-			if( self.config.showpermissions > 0 )
-				newRow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"' +
-						(self.config.chmod==1?' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"' : 'readonly' ) +
-						( data[i].filepermmode.trim() != "" ? ' class="' + data[i].filepermmode + '"' : '' ) +
-						'></td>';
-			// owner
-			if( self.config.showowner > 0 )
-			   	newRow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
-			// group
-			if( self.config.showgroup > 0 )
-				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
-			// actions
-			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract, self.config.copymove] ) ) {
-				newRow += '<td>';
-				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
-					newRow += '<a tabindex="0" onclick="ifm.showExtractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
-				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
-					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
-				}
-				if( data[i].name != ".." && data[i].name != "." ) {
-					if( self.config.copymove == 1 ) {
-						newRow += '<a tabindex="0" onclick="ifm.showCopyMoveDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-folder-open-empty" title="copy/move"></span></a>';
-					}
-					if( self.config.rename == 1 )
-						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
-					if( self.config.delete == 1 )
-						newRow += '<a tabindex="0" onclick="ifm.showDeleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
-				}
-				newRow += '</td></tr>';
-			} else {
-				newRow += '<td></td>';
-			}
-			newTBody.append( newRow );
-		}
-		$("#filetable tbody").remove();
-		$("#filetable").append( newTBody );
-		$('.clickable-row').click(function(event) {
-			if( event.ctrlKey ) {
-				$(this).toggleClass( 'selectedItem' );
+			if( ! self.inArray( item.name, [".", ".."] ) ) {
+				if( self.config.copymove )
+					item.button.push({
+						action: "copymove",
+						icon: "icon icon-folder-open-empty",
+						title: "copy/move"
+					});
+				if( self.config.rename )
+					item.button.push({
+						action: "rename",
+						icon: "icon icon-terminal",
+						title: "rename"
+					});
+				if( self.config.delete )
+					item.button.push({
+						action: "delete",
+						icon: "icon icon-trash",
+						title: "delete"
+					});
 			}
 		});
-		$('a[data-toggle="tooltip"]').tooltip({
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
+		$( "#filetable tbody" ).remove();
+		$( "#filetable" ).append( $(newTBody) );
+		$( '.clickable-row' ).click( function( event ) {
+			if( event.ctrlKey ) {
+				$( this ).toggleClass( 'selectedItem' );
+			}
+		});
+		$( 'a[data-toggle="tooltip"]' ).tooltip({
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
+		$( 'a.ifmitem' ).each( function() {
+			if( $(this).data( "type" ) == "dir" ) {
+				$(this).on( 'click', function( e ) {
+					e.stopPropagation();
+					self.changeDirectory( $(this).parent().parent().data( 'filename' ) );
+					return false;
+				});
+			} else {
+				if( self.config.isDocroot )
+					$(this).attr( "href", self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) );
+				else
+					$(this).on( 'click', function() {
+						$( '#d_' + this.id ).submit();
+						return false;
+					});
+			}
+		});
+		$( 'a[name="start_download"]' ).on( 'click', function(e) {
+			e.stopPropagation();
+			$( '#d_' + $(this).data( 'guid' ) ).submit();
+			return false;
+		});
+		$( 'input[name="newpermissions"]' ).on( 'keypress', function( e ) {
+			if( e.key == "Enter" ) {
+				e.stopPropagation();
+				self.changePermissions( $( this ).data( 'filename' ), $( this ).val() );
+				return false;
+			}
+		});
+		$( 'a[name^="do-"]' ).on( 'click', function() {
+			var action = this.name.substr( this.name.indexOf( '-' ) + 1 );
+			switch( action ) {
+				case "rename":
+					self.showRenameFileDialog( $(this).data( 'name' ) );
+					break;
+				case "extract":
+					self.showExtractFileDialog( $(this).data( 'name' ) );
+					break;
+				case "edit":
+					self.editFile( $(this).data( 'name' ) );
+					break;
+				case "delete":
+					self.showDeleteFileDialog( $(this).data( 'name' ) );
+					break;
+				case "copymove":
+					self.showCopyMoveDialog( $(this).data( 'name' ) );
+					break;
+			}
+		});
+
 	};
 
 	/**
@@ -825,7 +871,7 @@ function IFM( params ) {
 			url: self.api,
 			type: "POST",
 			data: ({
-				api: "deleteFile",
+				api: "delete",
 				dir: self.currentDir,
 				filename: filename
 			}),
@@ -870,7 +916,7 @@ function IFM( params ) {
 			url: ifm.api,
 			type: "POST",
 			data: ({
-				api: "renameFile",
+				api: "rename",
 				dir: ifm.currentDir,
 				filename: filename,
 				newname: newname
@@ -891,7 +937,7 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.showCopyMoveDialog = function( filename ) {
+	this.showCopyMoveDialog = function( name ) {
 		self.showModal( self.templates.copymove );
 		$.ajax({
 			url: self.api,
@@ -964,11 +1010,11 @@ function IFM( params ) {
 	 * @param string name - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
-		var targetDirSuggestion = "";
-		if( filename.lastIndexOf( "." ) > 1 )
-			targetDirSuggestion = filename.substr( 0, name.length - 4 );
+		var targetDirSuggestion = '';
+		if( filename.lastIndexOf( '.' ) > 1 )
+			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
 		else targetDirSuggestion = filename;
-		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, targetDirSuggestion: targetDirSuggestion } ) );
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
 		var form = $('#formExtractFile');
 		form.find('#buttonExtract').on( 'click', function() {
 			var t = form.find('input[name=extractTargetLocation]:checked').val();
@@ -997,7 +1043,7 @@ function IFM( params ) {
 			url: self.api,
 			type: "POST",
 			data: {
-				api: "extractFile",
+				api: "extract",
 				dir: self.currentDir,
 				filename: filename,
 				targetdir: destination
@@ -1038,7 +1084,7 @@ function IFM( params ) {
 		var ufile = document.getElementById( 'ufile' ).files[0];
 		var data = new FormData();
 		var newfilename = $("#formUploadFile input[name^=newfilename]").val();
-		data.append('api', 'uploadFile');
+		data.append('api', 'upload');
 		data.append('dir', self.currentDir);
 		data.append('file', ufile);
 		data.append('newfilename', newfilename);
@@ -1074,27 +1120,26 @@ function IFM( params ) {
 	 * @params object e - event object
 	 * @params string name - name of the file
 	 */
-	this.changePermissions = function(e, name) {
-		if(e.keyCode == '13')
-			$.ajax({
+	this.changePermissions = function( filename, newperms) {
+		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "changePermissions",
 				dir: self.currentDir,
 				filename: filename,
-				chmod: e.target.value
+				chmod: newperms
 			}),
 			dataType: "json",
-			success: function(data){
-					if(data.status == "OK") {
-						self.showMessage("Permissions successfully changed.", "s");
-						self.refreshFileTable();
-					}
-					else {
-						self.showMessage("Permissions could not be changed: "+data.message, "e");
-					}
-				},
+			success: function( data ){
+				if( data.status == "OK" ) {
+					self.showMessage( "Permissions successfully changed.", "s" );
+					self.refreshFileTable();
+				}
+				else {
+					self.showMessage( "Permissions could not be changed: "+data.message, "e");
+				}
+			},
 			error: function() { self.showMessage("General error occured.", "e"); }
 		});
 	};
@@ -1212,7 +1257,7 @@ function IFM( params ) {
 			url: self.api,
 			type: "POST",
 			data: ({
-				api: "deleteMultipleFiles",
+				api: "multidelete",
 				dir: self.currentDir,
 				filenames: filenames
 			}),
@@ -1343,7 +1388,7 @@ function IFM( params ) {
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
 					scrollOffset = el.offset().top - 55;
-				$('html, body').animate( { scrollTop: scrollOffset }, 500 );
+				$('html, body').animate( { scrollTop: scrollOffset }, 200 );
 			}
 		};
 		if( param.jquery ) {
@@ -1435,6 +1480,7 @@ function IFM( params ) {
 			return;
 		}
 
+		console.log( "pressed "+e.key );
 		switch( e.key ) {
 			case 'Delete':
 				if( self.config.delete ) {
@@ -1641,7 +1687,7 @@ function IFM( params ) {
 	};
 }
 
-var ifm = new IFM({});
+var ifm = new IFM();
 ifm.init( "ifm" );
  <?php print '</script>
 		';
@@ -1674,16 +1720,16 @@ ifm.init( "ifm" );
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
 					case "saveFile": $this->saveFile( $_REQUEST ); break;
 					case "getContent": $this->getContent( $_REQUEST ); break;
-					case "deleteFile": $this->deleteFile( $_REQUEST ); break;
-					case "renameFile": $this->renameFile( $_REQUEST ); break;
-					case "downloadFile": $this->downloadFile( $_REQUEST ); break;
-					case "extractFile": $this->extractFile( $_REQUEST ); break;
-					case "uploadFile": $this->uploadFile( $_REQUEST ); break;
+					case "delete": $this->deleteFile( $_REQUEST ); break;
+					case "rename": $this->renameFile( $_REQUEST ); break;
+					case "download": $this->downloadFile( $_REQUEST ); break;
+					case "extract": $this->extractFile( $_REQUEST ); break;
+					case "upload": $this->uploadFile( $_REQUEST ); break;
 					case "copyMove": $this->copyMove( $_REQUEST ); break;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
-					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
+					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "getFolderTree":
 						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
 						break;
@@ -1719,47 +1765,39 @@ ifm.init( "ifm" );
 	   api functions
 	 */
 
-	private function getFiles($dir) {
-		// SECURITY FUNCTION (check that we don't operate on a higher level that the script itself)
-		$dir=$this->getValidDir($dir);
-		// now we change in our target directory
-		$this->chDirIfNecessary($dir);
-		// unset our file and directory arrays
-		unset($files); unset($dirs); $files = array(); $dirs = array();
-		// so lets loop over our directory
-		if ($handle = opendir(".")) {
-			while (false !== ($result = readdir($handle))) { // this awesome statement is the correct way to loop over a directory :)
-				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { } // we don't want to see the script itself
-				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {} // check if we are granted to see .ht-docs
-				elseif( $result == "." ) {} // the folder itself will also be invisible
-				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {} // eventually hide hidden files, if we should not see them
-				elseif( ! @is_readable( $result ) ) {}
-				else { // thats are the files we should see
+	private function getFiles( $dir ) {
+		$dir = $this->getValidDir( $dir );
+		$this->chDirIfNecessary( $dir );
+
+		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
+
+		if( $handle = opendir( "." ) ) {
+			while( false !== ( $result = readdir( $handle ) ) ) {
+				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { }
+				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {}
+				elseif( $result == "." ) {}
+				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {}
+				else {
 					$item = array();
-					$i = 0;
 					$item["name"] = $result;
-					$i++;
 					if( is_dir($result) ) {
 						$item["type"] = "dir";
-					} else {
-						$item["type"] = "file";
-					}
-					if( is_dir( $result ) ) {
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
 						else 
 							$item["icon"] = "icon icon-folder-empty";
 					} else {
+						$item["type"] = "file";
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
 					}
 					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
 					if( $this->config['showfilesize'] == 1 ) {
-						$item["filesize"] = filesize( $result );
-						if( $item["filesize"] > 1073741824 ) $item["filesize"] = round( ( $item["filesize"]/1073741824 ), 2 ) . " GB";
-						elseif($item["filesize"]>1048576)$item["filesize"] = round( ( $item["filesize"]/1048576 ), 2 ) . " MB";
-						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
-						else $item["filesize"] = $item["filesize"] . " Byte";
+						$item["size"] = filesize( $result );
+						if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
+						elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
+						elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
+						else $item["size"] = $item["size"] . " Byte";
 					}
 					if( $this->config['showpermissions'] > 0 ) {
 						if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
@@ -2557,17 +2595,15 @@ ifm.init( "ifm" );
 						<th>size</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th>permissions</th>
+						<th class="hidden-xs">permissions</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th>owner</th>
+						<th class="hidden-xs hidden-sm">owner</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th>group</th>
+						<th class="hidden-xs hidden-sm hidden-md">group</th>
 						{{/config.showgroup}}
-						{{#ftbuttons}}
 						<th class="buttons"><!-- column for buttons --></th>
-						{{/ftbuttons}}
 					</tr>
 				</thead>
 				<tbody>
@@ -2577,6 +2613,61 @@ ifm.init( "ifm" );
 		<div class="container">
 			<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
 		</div>
+
+f00bar;
+		$templates['filetable'] = <<<'f00bar'
+<tbody>
+{{#items}}
+<tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
+	<td>
+		<a tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+			<span class="{{icon}}"></span>
+			{{linkname}}
+		</a>
+	</td>
+	<td>
+		{{#download.allowed}}
+		<form id="d_{{guid}}">
+			<input type="hidden" name="dir" value="{{download.currentDir}}">
+			<input type="hidden" name="filename" value="{{download.name}}">
+			<input type="hidden" name="api" value="{{download.action}}">
+		</form>
+		<a tabindex="0" name="start_download" data-guid="{{guid}}">
+			<span class="{{download.icon}}"></span>
+		</a>
+		{{/download.allowed}}
+	</td>
+	{{#config.showlastmodified}}
+	<td>{{lastmodified}}</td>
+	{{/config.showlastmodified}}
+	{{#config.showfilesize}}
+	<td>{{size}}</td>
+	{{/config.showfilesize}}
+	{{#config.showpermissions}}
+	<td class="hidden-xs">
+		<input type="text" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
+	</td>
+	{{/config.showpermissions}}
+	{{#config.showowner}}
+	<td class="hidden-xs hidden-sm">
+		{{owner}}
+	</td>
+	{{/config.showowner}}
+	{{#config.showgroup}}
+	<td class="hidden-xs hidden-sm hidden-md">
+		{{group}}
+	</td>
+	{{/config.showgroup}}
+	<td>
+		{{#button}}
+		<a tabindex="0" name="do-{{action}}" data-name="{{name}}">
+			<span class="{{icon}}" title="{{title}}"</span>
+		</a>
+		{{/button}}
+	</td>
+</tr>
+{{/items}}
+</tbody>
 
 f00bar;
 		$templates['file'] = <<<'f00bar'
@@ -2690,8 +2781,8 @@ f00bar;
 			<span class="form-control">./</span>
 		</div>
 		<div class="input-group">
-			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./{{targetDirSuggestion}}"></span>
-			<span class="form-control">./{{targetDirSuggestion}}</span>
+			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./{{destination}}"></span>
+			<span class="form-control">./{{destination}}</span>
 		</div>
 		<div class="input-group">
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>

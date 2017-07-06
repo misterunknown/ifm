@@ -111,16 +111,16 @@ class IFM {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
 					case "saveFile": $this->saveFile( $_REQUEST ); break;
 					case "getContent": $this->getContent( $_REQUEST ); break;
-					case "deleteFile": $this->deleteFile( $_REQUEST ); break;
-					case "renameFile": $this->renameFile( $_REQUEST ); break;
-					case "downloadFile": $this->downloadFile( $_REQUEST ); break;
-					case "extractFile": $this->extractFile( $_REQUEST ); break;
-					case "uploadFile": $this->uploadFile( $_REQUEST ); break;
+					case "delete": $this->deleteFile( $_REQUEST ); break;
+					case "rename": $this->renameFile( $_REQUEST ); break;
+					case "download": $this->downloadFile( $_REQUEST ); break;
+					case "extract": $this->extractFile( $_REQUEST ); break;
+					case "upload": $this->uploadFile( $_REQUEST ); break;
 					case "copyMove": $this->copyMove( $_REQUEST ); break;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
-					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
+					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "getFolderTree":
 						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
 						break;
@@ -156,47 +156,39 @@ class IFM {
 	   api functions
 	 */
 
-	private function getFiles($dir) {
-		// SECURITY FUNCTION (check that we don't operate on a higher level that the script itself)
-		$dir=$this->getValidDir($dir);
-		// now we change in our target directory
-		$this->chDirIfNecessary($dir);
-		// unset our file and directory arrays
-		unset($files); unset($dirs); $files = array(); $dirs = array();
-		// so lets loop over our directory
-		if ($handle = opendir(".")) {
-			while (false !== ($result = readdir($handle))) { // this awesome statement is the correct way to loop over a directory :)
-				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { } // we don't want to see the script itself
-				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {} // check if we are granted to see .ht-docs
-				elseif( $result == "." ) {} // the folder itself will also be invisible
-				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {} // eventually hide hidden files, if we should not see them
-				elseif( ! @is_readable( $result ) ) {}
-				else { // thats are the files we should see
+	private function getFiles( $dir ) {
+		$dir = $this->getValidDir( $dir );
+		$this->chDirIfNecessary( $dir );
+
+		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
+
+		if( $handle = opendir( "." ) ) {
+			while( false !== ( $result = readdir( $handle ) ) ) {
+				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { }
+				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {}
+				elseif( $result == "." ) {}
+				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {}
+				else {
 					$item = array();
-					$i = 0;
 					$item["name"] = $result;
-					$i++;
 					if( is_dir($result) ) {
 						$item["type"] = "dir";
-					} else {
-						$item["type"] = "file";
-					}
-					if( is_dir( $result ) ) {
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
 						else 
 							$item["icon"] = "icon icon-folder-empty";
 					} else {
+						$item["type"] = "file";
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
 					}
 					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
 					if( $this->config['showfilesize'] == 1 ) {
-						$item["filesize"] = filesize( $result );
-						if( $item["filesize"] > 1073741824 ) $item["filesize"] = round( ( $item["filesize"]/1073741824 ), 2 ) . " GB";
-						elseif($item["filesize"]>1048576)$item["filesize"] = round( ( $item["filesize"]/1048576 ), 2 ) . " MB";
-						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
-						else $item["filesize"] = $item["filesize"] . " Byte";
+						$item["size"] = filesize( $result );
+						if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
+						elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
+						elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
+						else $item["size"] = $item["size"] . " Byte";
 					}
 					if( $this->config['showpermissions'] > 0 ) {
 						if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
@@ -931,6 +923,9 @@ class IFM {
 		$templates = array();
 		$templates['app'] = <<<'f00bar'
 @@@src/templates/app.html@@@
+f00bar;
+		$templates['filetable'] = <<<'f00bar'
+@@@src/templates/filetable.html@@@
 f00bar;
 		$templates['file'] = <<<'f00bar'
 @@@src/templates/modal.file.html@@@
