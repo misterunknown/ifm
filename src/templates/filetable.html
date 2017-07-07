@@ -7,8 +7,8 @@
 			{{linkname}}
 		</a>
 	</td>
+	{{#config.download}}
 	<td>
-		{{#download.allowed}}
 		<form id="d_{{guid}}">
 			<input type="hidden" name="dir" value="{{download.currentDir}}">
 			<input type="hidden" name="filename" value="{{download.name}}">
@@ -17,8 +17,8 @@
 		<a tabindex="0" name="start_download" data-guid="{{guid}}">
 			<span class="{{download.icon}}"></span>
 		</a>
-		{{/download.allowed}}
 	</td>
+	{{/config.download}}
 	{{#config.showlastmodified}}
 	<td>{{lastmodified}}</td>
 	{{/config.showlastmodified}}

@@ -55,7 +55,8 @@ class IFM {
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
-		session_start();
+		if( session_status() !== PHP_SESSION_ACTIVE )
+			session_start();
 		$this->config = array_merge( $this->defaultconfig, $config );
 	}
 
@@ -422,7 +423,7 @@ function IFM( params ) {
 						icon: "icon icon-pencil",
 						title: "edit"
 					});
-				else
+				if( self.config.extract && item.name.toLowerCase().substr(-4) == ".zip" )
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
@@ -1750,6 +1751,10 @@ function IFM( params ) {
 
 	// creates a directory
 	private function createDir($w, $dn) {
+		if( $this->config['createDir'] != 1 ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
+			exit( 1 );
+		}
 		if( $dn == "" ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid directory name") );
 		} elseif( strpos( $dn, '/' ) !== false ) echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in directory names" ) );
@@ -1764,7 +1769,11 @@ function IFM( params ) {
 	}
 
 	// save a file
-	private function saveFile(array $d) {
+	private function saveFile( $d ) {
+		if( ( file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['edit'] != 1 ) || ( ! file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['createfile'] != 1 ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
+			exit( 1 );
+		}
 		if( isset( $d['filename'] ) && $d['filename'] != "" ) {
 			// if you are not allowed to see .ht-docs you can't save one
 			if( $this->config['showhtdocs'] != 1 && substr( $d['filename'], 0, 3 ) == ".ht" ) {
@@ -1798,7 +1807,7 @@ function IFM( params ) {
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
-		if( $this->config['edit'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to edit files" ) );
+		if( $this->config['edit'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( file_exists( $d['filename'] ) ) {
@@ -1836,7 +1845,7 @@ function IFM( params ) {
 
 	// deletes a bunch of files or directories
 	private function deleteMultipleFiles( array $d ) {
-		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete multiple files" ) );
+		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
@@ -2486,8 +2495,8 @@ f00bar;
 			{{linkname}}
 		</a>
 	</td>
+	{{#config.download}}
 	<td>
-		{{#download.allowed}}
 		<form id="d_{{guid}}">
 			<input type="hidden" name="dir" value="{{download.currentDir}}">
 			<input type="hidden" name="filename" value="{{download.name}}">
@@ -2496,8 +2505,8 @@ f00bar;
 		<a tabindex="0" name="start_download" data-guid="{{guid}}">
 			<span class="{{download.icon}}"></span>
 		</a>
-		{{/download.allowed}}
 	</td>
+	{{/config.download}}
 	{{#config.showlastmodified}}
 	<td>{{lastmodified}}</td>
 	{{/config.showlastmodified}}

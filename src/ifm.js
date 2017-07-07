@@ -111,7 +111,7 @@ function IFM( params ) {
 						icon: "icon icon-pencil",
 						title: "edit"
 					});
-				else
+				if( self.config.extract && item.name.toLowerCase().substr(-4) == ".zip" )
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
