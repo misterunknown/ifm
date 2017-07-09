@@ -9,6 +9,14 @@ The IFM uses the following resources:
 * [jQuery](https://jquery.com)
 * [Mustache](https://mustache.github.io/)
 
+## features
+* create/edit files and directories
+* copy/move files and directories
+* download files and directories
+* upload files directly or via URL
+* extract zip archives
+* change permissions
+* image preview
 
 ## requirements
 | Client                            | Server                                                       |
@@ -21,7 +29,7 @@ Just copy the ifm.php to your webspace - thats all :)
 
 ## key bindings
 * <kbd>e</kbd> - edit / extract current file
-* <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> - vim-style navigation
+* <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> - vim-style navigation (alternative to arrow keys)
 * <kbd>g</kbd> - focus the path input field (i.e. "goto")
 * <kbd>r</kbd> - refresh file table
 * <kbd>u</kbd> - upload a file
