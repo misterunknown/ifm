@@ -1,0 +1,52 @@
+<tbody>
+{{#items}}
+<tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
+	<td>
+		<a tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+			<span class="{{icon}}"></span>
+			{{linkname}}
+		</a>
+	</td>
+	{{#config.download}}
+	<td>
+		<form id="d_{{guid}}">
+			<input type="hidden" name="dir" value="{{download.currentDir}}">
+			<input type="hidden" name="filename" value="{{download.name}}">
+			<input type="hidden" name="api" value="{{download.action}}">
+		</form>
+		<a tabindex="0" name="start_download" data-guid="{{guid}}">
+			<span class="{{download.icon}}"></span>
+		</a>
+	</td>
+	{{/config.download}}
+	{{#config.showlastmodified}}
+	<td>{{lastmodified}}</td>
+	{{/config.showlastmodified}}
+	{{#config.showfilesize}}
+	<td>{{size}}</td>
+	{{/config.showfilesize}}
+	{{#config.showpermissions}}
+	<td class="hidden-xs">
+		<input type="text" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
+	</td>
+	{{/config.showpermissions}}
+	{{#config.showowner}}
+	<td class="hidden-xs hidden-sm">
+		{{owner}}
+	</td>
+	{{/config.showowner}}
+	{{#config.showgroup}}
+	<td class="hidden-xs hidden-sm hidden-md">
+		{{group}}
+	</td>
+	{{/config.showgroup}}
+	<td>
+		{{#button}}
+		<a tabindex="0" name="do-{{action}}" data-name="{{name}}">
+			<span class="{{icon}}" title="{{title}}"</span>
+		</a>
+		{{/button}}
+	</td>
+</tr>
+{{/items}}
+</tbody>

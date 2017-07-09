@@ -1,32 +1,56 @@
 #!/usr/bin/env php
 <?php
+/**
+ * IFM compiler
+ *
+ * This script compiles all sources into one single file.
+ */
 
-// This compiles the source files into one file
+chdir( realpath( dirname( __FILE__ ) ) );
 
-$IFM_CONFIG = "src/config.php";
-$IFM_MAIN = "src/main.php";
-$IFM_OTHER_PHPFILES = array("src/ifmzip.php");
+$IFM_SRC_MAIN = "src/main.php";
+$IFM_SRC_PHPFILES = array( "src/ifmzip.php" );
+$IFM_SRC_JS = "src/ifm.js";
 
-$filename = "ifm.php";
+$IFM_BUILD_STANDALONE = "ifm.php";
+$IFM_BUILD_LIB_PHP = "build/ifmlib.php";
 
-// config
-file_put_contents($filename, file_get_contents($IFM_CONFIG));
-
-// other php classes
-foreach ( $IFM_OTHER_PHPFILES as $file) {
-	$content_file = file($file);
-	unset($content_file[0]); // remove <?php line
-	file_put_contents($filename, $content_file, FILE_APPEND);
+/**
+ * Prepare main script
+ */
+$main = file_get_contents( $IFM_SRC_MAIN );
+$includes = NULL;
+preg_match_all( "/\@\@\@([^\@]+)\@\@\@/", $main, $includes, PREG_SET_ORDER );
+foreach( $includes as $file ) {
+	$main = str_replace( $file[0], file_get_contents( $file[1] ), $main );
 }
 
-// main
-$content_main = file($IFM_MAIN);
-unset($content_main[0]);
-$content_main = implode($content_main);
-$include_files = NULL;
-preg_match_all( "/\@\@\@([^\@]+)\@\@\@/", $content_main, $include_files, PREG_SET_ORDER );
-foreach( $include_files as $file ) {
-	//echo $file[0]. " " .$file[1]."\n";
-	$content_main = str_replace( $file[0], file_get_contents( $file[1] ), $content_main );
+/**
+ * Add PHP files
+ */
+$phpincludes = array();
+foreach( $IFM_SRC_PHPFILES as $file ) {
+	$content = file( $file );
+	unset( $content[0] ); // remove <?php line
+	$phpincludes = array_merge( $phpincludes, $content );
 }
-file_put_contents($filename, $content_main, FILE_APPEND);
+
+/**
+ * Build standalone script
+ */
+file_put_contents( $IFM_BUILD_STANDALONE, $main );
+file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
+file_put_contents( $IFM_BUILD_STANDALONE, array(
+	'',
+	'/**',
+	' * start IFM',
+	' */',
+	'$ifm = new IFM();',
+	'$ifm->run();'
+), FILE_APPEND );
+
+/**
+ * Build library
+ */
+file_put_contents( $IFM_BUILD_LIB_PHP, $main );
+file_put_contents( $IFM_BUILD_LIB_PHP, $phpincludes, FILE_APPEND );

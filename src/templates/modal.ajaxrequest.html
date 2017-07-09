@@ -1,0 +1,16 @@
+<form id="formAjaxRequest">
+<div class="modal-body">
+	<fieldset>
+		<label>URL</label><br>
+		<input class="form-control" type="text" id="ajaxurl" required><br>
+		<label>Data</label><br>
+		<textarea class="form-control" id="ajaxdata"></textarea><br>
+		<label>Method</label><br>
+		<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>
+		<button type="button" class="btn btn-success" id="buttonRequest">Request</button>
+		<button type="button" class="btn btn-default" id="buttonClose">Close</button><br>
+		<label>Response</label><br>
+		<textarea class="form-control" id="ajaxresponse"></textarea>
+	</fieldset>
+</form>
+</div>

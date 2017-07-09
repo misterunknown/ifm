@@ -1,0 +1,23 @@
+<form id="formExtractFile">
+<fieldset>
+	<div class="modal-body">
+		<label>Extract {{filename}} to:</label>
+		<div class="input-group">
+			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
+			<span class="form-control">./</span>
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./{{destination}}"></span>
+			<span class="form-control">./{{destination}}</span>
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>
+			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-default" id="buttonExtract">extract</button>
+		<button type="button" class="btn btn-default" id="buttonCancel">cancel</button>
+	</div>
+</fieldset>
+</form>

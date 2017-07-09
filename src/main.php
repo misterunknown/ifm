@@ -13,17 +13,56 @@
 error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
-class IFM {
-	const VERSION = '2.3.1';
 
-	public function __construct() {
-		session_start();
+class IFM {
+	const VERSION = '2.4.0';
+
+	private $defaultconfig = array(
+		// general config
+		"auth" => 0,
+		"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
+		"root_dir" => "",
+		"tmp_dir" => "",
+		"defaulttimezone" => "Europe/Berlin",
+
+		// api controls
+		"ajaxrequest" => 1,
+		"chmod" => 1,
+		"copymove" => 1,
+		"createdir" => 1,
+		"createfile" => 1,
+		"edit" => 1,
+		"delete" => 1,
+		"download" => 1,
+		"extract" => 1,
+		"upload" => 1,
+		"remoteupload" => 1,
+		"rename" => 1,
+		"zipnload" => 1,
+
+		// gui controls
+		"showlastmodified" => 0,
+		"showfilesize" => 1,
+		"showowner" => 1,
+		"showgroup" => 1,
+		"showpermissions" => 2,
+		"showhtdocs" => 1,
+		"showhiddenfiles" => 1,
+		"showpath" => 0,
+	);
+
+	private $config = array();
+	public $mode = "";
+
+	public function __construct( $config=array() ) {
+		if( session_status() !== PHP_SESSION_ACTIVE )
+			session_start();
+		$this->config = array_merge( $this->defaultconfig, $config );
 	}
 
-	/*
-	   this function contains the client-side application
+	/**
+	 * This function contains the client-side application
 	 */
-
 	public function getApplication() {
 		print '<!DOCTYPE HTML>
 		<html>
@@ -31,91 +70,43 @@ class IFM {
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1">
-				<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/includes/ekko-lightbox.min.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
-				<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
+				<meta name="viewport" content="width=device-width, initial-scale=1">';
+		$this->getCSS();
+		print '
 			</head>
 			<body>
-				<nav class="navbar navbar-inverse navbar-fixed-top">
-					<div class="container">
-						<div class="navbar-header">
-							<a class="navbar-brand">IFM</a>
-							<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-						</div>
-						<div class="navbar-collapse collapse" id="navbar">
-							<form class="navbar-form navbar-left">
-								<div class="form-group">
-									<div class="input-group">
-										<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">';
-										print ( IFMConfig::showpath == 1 ) ? realpath( IFMConfig::root_dir ) : "/";
-										print '</span></span><input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
-									</div>
-								</div>
-							</form>
-							<ul class="nav navbar-nav navbar-right">
-								<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>';
-								if( IFMConfig::upload == 1 ) {
-									print '<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>';
-								}
-								if( IFMConfig::createfile == 1 ) {
-									print '<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>';
-								}
-								if( IFMConfig::createdir == 1 ) {
-									print '<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>';
-								}
-								print '<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a><ul class="dropdown-menu" role="menu">';
-								$options = false;
-								if( IFMConfig::remoteupload == 1 ) {
-									print '<li><a onclick="ifm.remoteUploadDialog();return false;"><span class="icon icon-upload-cloud"></span> remote upload</a></li>';
-									$options = true;
-								}
-								if( IFMConfig::ajaxrequest == 1 ) {
-									print '<li><a onclick="ifm.ajaxRequestDialog();return false;"><span class="icon icon-link-ext"></span> ajax request</a></li>';
-									$options = true;
-								}
-								if( !$options ) print '<li>No options available</li>';
-								print '</ul>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</nav>
-				<div class="container">
-				<table id="filetable" class="table">
-					<thead>
-						<tr>
-							<th>Filename</th>';
-							if( IFMConfig::download == 1 ) print '<th><!-- column for download link --></th>';
-							if( IFMConfig::showlastmodified == 1 ) print '<th>last modified</th>';
-							if( IFMConfig::showfilesize == 1 ) print '<th>size</th>';
-							if( IFMConfig::showpermissions > 0 ) print '<th class="hidden-xs">permissions</th>';
-							if( IFMConfig::showowner == 1 && function_exists( "posix_getpwuid" ) ) print '<th class="hidden-xs hidden-sm">owner</th>';
-							if( IFMConfig::showgroup == 1 && function_exists( "posix_getgrgid" ) ) print '<th class="hidden-xs hidden-sm hidden-md">group</th>';
-							if( in_array( 1, array( IFMConfig::edit, IFMConfig::rename, IFMConfig::delete, IFMConfig::zipnload, IFMConfig::extract ) ) ) print '<th class="buttons"><!-- column for buttons --></th>';
-						print '</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-				</div>
-				<div class="container">
-				<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
-				</div>
+				<div id="ifm"></div>';
+		$this->getJS();
+		print '
+			<script>var ifm = new IFM(); ifm.init( "ifm" );</script>
+			</body>
+			</html>
+		';
+	}
+
+	public function getInlineApplication() {
+		$this->getCSS();
+		print '<div id="ifm"></div>';
+		$this->getJS();
+	}
+
+	public function getCSS() {
+		print '
+			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
+		';
+	}
+
+	public function getJS() {
+		print '
 				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/ekko-lightbox.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
-			</body>
-			</html>
 		';
 	}
 
@@ -135,40 +126,55 @@ class IFM {
 				$this->getFiles( $_REQUEST["dir"] );
 			else
 				$this->getFiles( "" );
-		} else {
+		}
+		elseif( $_REQUEST["api"] == "getConfig" ) {
+			$this->getConfig();
+		} elseif( $_REQUEST["api"] == "getTemplates" ) {
+			echo json_encode( $this->getTemplates() );
+		}	else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
 					case "saveFile": $this->saveFile( $_REQUEST ); break;
 					case "getContent": $this->getContent( $_REQUEST ); break;
-					case "deleteFile": $this->deleteFile( $_REQUEST ); break;
-					case "renameFile": $this->renameFile( $_REQUEST ); break;
-					case "downloadFile": $this->downloadFile( $_REQUEST ); break;
-					case "extractFile": $this->extractFile( $_REQUEST ); break;
-					case "uploadFile": $this->uploadFile( $_REQUEST ); break;
+					case "delete": $this->deleteFile( $_REQUEST ); break;
+					case "rename": $this->renameFile( $_REQUEST ); break;
+					case "download": $this->downloadFile( $_REQUEST ); break;
+					case "extract": $this->extractFile( $_REQUEST ); break;
+					case "upload": $this->uploadFile( $_REQUEST ); break;
+					case "copyMove": $this->copyMove( $_REQUEST ); break;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
-					case "deleteMultipleFiles": $this->deleteMultipleFiles( $_REQUEST ); break;
-					default: echo json_encode(array("status"=>"ERROR", "message"=>"No valid api action given")); break;
+					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
+					case "getFolderTree":
+						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
+						break;
+					default:
+						echo json_encode( array( "status" => "ERROR", "message" => "No valid api action given" ) );
+						break;
 				}
 			} else {
 				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
 			}
 		}
+		exit( 0 );
 	}
 
-	public function run() {
+	public function run( $mode="standalone" ) {
 		if ( $this->checkAuth() ) {
 			// go to our root_dir
-			if( ! is_dir( realpath( IFMConfig::root_dir ) ) || ! is_readable( realpath( IFMConfig::root_dir ) ) )
+			if( ! is_dir( realpath( $this->config['root_dir'] ) ) || ! is_readable( realpath( $this->config['root_dir'] ) ) )
 				die( "Cannot access root_dir.");
 			else
-				chdir( realpath( IFMConfig::root_dir ) );
-			if ( ! isset($_REQUEST['api']) ) {
-					$this->getApplication();
-			} else {
+				chdir( realpath( $this->config['root_dir'] ) );
+			$this->mode = $mode;
+			if ( isset( $_REQUEST['api'] ) || $mode == "api" ) {
 				$this->handleRequest();
+			} elseif( $mode == "standalone" ) {
+				$this->getApplication();
+			} else {
+				$this->getInlineApplication();
 			}
 		}
 	}
@@ -177,61 +183,53 @@ class IFM {
 	   api functions
 	 */
 
-	private function getFiles($dir) {
-		// SECURITY FUNCTION (check that we don't operate on a higher level that the script itself)
-		$dir=$this->getValidDir($dir);
-		// now we change in our target directory
-		$this->chDirIfNecessary($dir);
-		// unset our file and directory arrays
-		unset($files); unset($dirs); $files = array(); $dirs = array();
-		// so lets loop over our directory
-		if ($handle = opendir(".")) {
-			while (false !== ($result = readdir($handle))) { // this awesome statement is the correct way to loop over a directory :)
-				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { } // we don't want to see the script itself
-				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && IFMConfig::showhtdocs != 1 ) {} // check if we are granted to see .ht-docs
-				elseif( $result == "." ) {} // the folder itself will also be invisible
-				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && IFMConfig::showhiddenfiles != 1 ) {} // eventually hide hidden files, if we should not see them
-				elseif( ! @is_readable( $result ) ) {}
-				else { // thats are the files we should see
+	private function getFiles( $dir ) {
+		$dir = $this->getValidDir( $dir );
+		$this->chDirIfNecessary( $dir );
+
+		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
+
+		if( $handle = opendir( "." ) ) {
+			while( false !== ( $result = readdir( $handle ) ) ) {
+				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { }
+				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {}
+				elseif( $result == "." ) {}
+				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {}
+				else {
 					$item = array();
-					$i = 0;
 					$item["name"] = $result;
-					$i++;
 					if( is_dir($result) ) {
 						$item["type"] = "dir";
-					} else {
-						$item["type"] = "file";
-					}
-					if( is_dir( $result ) ) {
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
 						else 
 							$item["icon"] = "icon icon-folder-empty";
 					} else {
+						$item["type"] = "file";
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
 					}
-					if( IFMConfig::showlastmodified == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
-					if( IFMConfig::showfilesize == 1 ) {
-						$item["filesize"] = filesize( $result );
-						if( $item["filesize"] > 1073741824 ) $item["filesize"] = round( ( $item["filesize"]/1073741824 ), 2 ) . " GB";
-						elseif($item["filesize"]>1048576)$item["filesize"] = round( ( $item["filesize"]/1048576 ), 2 ) . " MB";
-						elseif($item["filesize"]>1024)$item["filesize"] = round( ( $item["filesize"]/1024 ), 2 ) . " KB";
-						else $item["filesize"] = $item["filesize"] . " Byte";
+					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
+					if( $this->config['showfilesize'] == 1 ) {
+						$item["size"] = filesize( $result );
+						if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
+						elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
+						elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
+						else $item["size"] = $item["size"] . " Byte";
 					}
-					if( IFMConfig::showpermissions > 0 ) {
-						if( IFMConfig::showpermissions == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
-						elseif( IFMConfig::showpermissions == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
+					if( $this->config['showpermissions'] > 0 ) {
+						if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
+						elseif( $this->config['showpermissions'] == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
 						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
-						$item["filepermmode"] = ( IFMConfig::showpermissions == 1 ) ? "short" : "long";
+						$item["filepermmode"] = ( $this->config['showpermissions'] == 1 ) ? "short" : "long";
 					}
-					if( IFMConfig::showowner == 1  ) {
+					if( $this->config['showowner'] == 1  ) {
 						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
 							$ownerarr = posix_getpwuid( fileowner( $result ) );
 							$item["owner"] = $ownerarr['name'];
 						} else $item["owner"] = false;
 					}
-					if( IFMConfig::showgroup == 1 ) {
+					if( $this->config['showgroup'] == 1 ) {
 						if( function_exists( "posix_getgrgid" ) && filegroup( $result ) !== false ) {
 							$grouparr = posix_getgrgid( filegroup( $result ) );
 							$item["group"] = $grouparr['name'];
@@ -248,8 +246,71 @@ class IFM {
 		echo json_encode( array_merge( $dirs, $files ) );
 	}
 
+	private function getConfig() {
+		$ret = $this->config;
+		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
+		$ret['isDocroot'] = ( realpath( $this->config['root_dir'] ) == dirname( __FILE__ ) ) ? "true" : "false";
+		echo json_encode( $ret );
+	}
+
+	private function getFolderTreeRecursive( $start_dir ) {
+		$ret = array();
+		$start_dir = realpath( $start_dir );
+		if( $handle = opendir( $start_dir ) ) {
+			while (false !== ( $result = readdir( $handle ) ) ) {
+				if( is_dir( $this->pathCombine( $start_dir, $result ) ) && $result != "." && $result != ".." ) {
+					array_push( $ret, array( "text" => $result, "dataAttributes" => array( "path" => $this->pathCombine( $start_dir, $result ) ), "nodes" => $this->getFolderTreeRecursive( $this->pathCombine( $start_dir, $result ) ) ) );
+				}
+			}
+		}
+		sort( $ret );
+		return $ret;
+	}
+
+	private function copyMove( $d ) {
+		if( $this->config['copymove'] != 1 ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			exit( 1 );
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid destination directory given." ) );
+			exit( 1 );
+		}
+		if( ! file_exists( $d['filename'] ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid filename given." ) );
+			exit( 1 );
+		}
+		if( $d['action'] == "copy" ) {
+			if( $this->copyr( $d['filename'], $d['destination'] ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} elseif( $d['action'] == "move" ) {
+			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
+				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
+				exit( 0 );
+			} else {
+				$err = error_get_last();
+				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				exit( 1 );
+			}
+		} else {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid action given." ) );
+			exit( 1 );
+		}
+	}
+
 	// creates a directory
 	private function createDir($w, $dn) {
+		if( $this->config['createDir'] != 1 ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
+			exit( 1 );
+		}
 		if( $dn == "" ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid directory name") );
 		} elseif( strpos( $dn, '/' ) !== false ) echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in directory names" ) );
@@ -264,14 +325,18 @@ class IFM {
 	}
 
 	// save a file
-	private function saveFile(array $d) {
+	private function saveFile( $d ) {
+		if( ( file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['edit'] != 1 ) || ( ! file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['createfile'] != 1 ) ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
+			exit( 1 );
+		}
 		if( isset( $d['filename'] ) && $d['filename'] != "" ) {
 			// if you are not allowed to see .ht-docs you can't save one
-			if( IFMConfig::showhtdocs != 1 && substr( $d['filename'], 0, 3 ) == ".ht" ) {
+			if( $this->config['showhtdocs'] != 1 && substr( $d['filename'], 0, 3 ) == ".ht" ) {
 				echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit or create htdocs" ) );
 			}
 			// same with hidden files
-			elseif( IFMConfig::showhiddenfiles != 1 && substr( $d['filename'], 0, 1 ) == "." ) {
+			elseif( $this->config['showhiddenfiles'] != 1 && substr( $d['filename'], 0, 1 ) == "." ) {
 				echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit or create hidden files" ) );
 			}
 			elseif(strpos($d['filename'],'/')!==false) {
@@ -298,7 +363,7 @@ class IFM {
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
-		if( IFMConfig::edit != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to edit files" ) );
+		if( $this->config['edit'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( file_exists( $d['filename'] ) ) {
@@ -311,7 +376,7 @@ class IFM {
 
 	// deletes a file or a directory (recursive!)
 	private function deleteFile( array $d ) {
-		if( IFMConfig::delete != 1 ) {
+		if( $this->config['delete'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		}
 		else {
@@ -336,7 +401,7 @@ class IFM {
 
 	// deletes a bunch of files or directories
 	private function deleteMultipleFiles( array $d ) {
-		if( IFMConfig::delete != 1 || IFMConfig::multiselect != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete multiple files" ) );
+		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
@@ -369,15 +434,15 @@ class IFM {
 
 	// renames a file
 	private function renameFile( array $d ) {
-		if( IFMConfig::rename != 1 ) {
+		if( $this->config['rename'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
 				echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
-			elseif( IFMConfig::showhtdocs != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
+			elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
-			elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
+			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
 			else {
 				if( @rename( $d['filename'], $d['newname'] ) )
@@ -390,73 +455,58 @@ class IFM {
 
 	// provides a file for downloading
 	private function downloadFile( array $d ) {
-		if( IFMConfig::download != 1 )
+		if( $this->config['download'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
-		elseif( IFMConfig::showhtdocs != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
+		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			echo json_encode( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
-		elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
+		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
 			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
-			$this->file_download( $d['filename'] );
+			$this->fileDownload( $d['filename'] );
 		}
 	}
 
 	// extracts a zip-archive
 	private function extractFile( array $d ) {
-		if( IFMConfig::extract != 1 )
+		if( $this->config['extract'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( ! file_exists( $d['filename'] ) || substr( $d['filename'],-4 ) != ".zip" )
+			if( ! file_exists( $d['filename'] ) || substr( $d['filename'],-4 ) != ".zip" ) {
 				echo json_encode( array( "status" => "ERROR","message" => "No valid zip file found" ) );
-			else {
-				if( ! isset( $d['targetdir'] ) )
-					$d['targetdir'] = "";
-				if( strpos( $d['targetdir'], "/" ) !== false )
-					echo json_encode( array( "status" => "ERROR","message" => "Target directory must not contain slashes" ) );
-				else {
-					switch( $d['targetdir'] ){
-						case "":
-							if( $this->unzip( $_POST["filename"] ) )
-								echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
-							else
-								echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
-							break;
-						default:
-							if( ! mkdir( $d['targetdir'] ) )
-								echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory" ) );
-							else {
-								chdir( $d['targetdir'] );
-								if( ! $this->unzip( "../" . $d["filename"] ) ) {
-									chdir( ".." );
-									rmdir( $d['targetdir'] );
-									echo json_encode( array( "status" => "ERROR","message" => "Could not extract file" ) );
-								}
-								else {
-									chdir( ".." );
-									echo json_encode( array( "status" => "OK","message" => "File successfully extracted" ) );
-								}
-							}
-						break;
-					}
-				}
+				exit( 1 );
+			}
+			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
+				$d['targetdir'] = "./";
+			if( ! $this->isPathValid( $d['targetdir'] ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
+				exit( 1 );
+			}
+			if( ! is_dir( $d['targetdir'] ) && ! mkdir( $d['targetdir'], 0777, true ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
+				exit( 1 );
+			}
+			if( ! IFMZip::extract( $d['filename'], $d['targetdir'] ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+			} else {
+				echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
 			}
 		}
 	}
 
 	// uploads a file
 	private function uploadFile( array $d ) {
-		if( IFMConfig::upload != 1 )
+		if( $this->config['upload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
 		elseif( !isset( $_FILES['file'] ) )
 			echo json_encode( array( "file" => $_FILE,"files" => $_FILES ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
-			if( IFMConfig::showhtdocs != 1 && ( substr( $newfilename, 0, 3 ) == ".ht" || substr( $newfilename,0,3 ) == ".ht" ) )
+			if( $this->config['showhtdocs'] != 1 && ( substr( $newfilename, 0, 3 ) == ".ht" || substr( $newfilename,0,3 ) == ".ht" ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to upload htdoc file" ) );
-			elseif( IFMConfig::showhiddenfiles != 1 && ( substr( $newfilename, 0, 1 ) == "." || substr( $newfilename,0,1 ) == "." ) )
+			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $newfilename, 0, 1 ) == "." || substr( $newfilename,0,1 ) == "." ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to upload hidden file" ) );
 			else {
 				if( $_FILES['file']['tmp_name'] ) {
@@ -478,7 +528,7 @@ class IFM {
 
 	// change permissions of a file
 	private function changePermissions( array $d ) {
-		if( IFMConfig::chmod != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
+		if( $this->config['chmod'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
 		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo json_encode( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
 		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
 		else {
@@ -517,7 +567,7 @@ class IFM {
 	// zips a directory and provides it for downloading
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload( array $d ) {
-		if( IFMConfig::zipnload != 1 )
+		if( $this->config['zipnload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
@@ -527,16 +577,16 @@ class IFM {
 				echo json_encode( array( "status" => "ERROR", "message" => "Filename not allowed" ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( IFMConfig::tmp_dir, uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMZip::create_zip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMZip::create( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->file_download( $dfile, $d['filename'] . ".zip" );
+					$this->fileDownload( $dfile, $d['filename'] . ".zip" );
 				} catch ( Exception $e ) {
 					echo "An error occured: " . $e->getMessage();
 				} finally {
@@ -548,7 +598,7 @@ class IFM {
 
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload( array $d ) {
-		if( IFMConfig::remoteupload != 1 )
+		if( $this->config['remoteupload'] != 1 )
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
 		elseif( !isset( $d['method'] ) || !in_array( $d['method'], array( "curl", "file" ) ) )
 			echo json_encode( array( "status" => "error", "message" => "No valid method given. Valid methods: ['curl', 'file']" ) );
@@ -601,7 +651,7 @@ class IFM {
 	 */
 
 	public function checkAuth() {
-		if( IFMConfig::auth == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
+		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
 			$login_failed = false;
 			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
 				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
@@ -631,21 +681,46 @@ class IFM {
 		}
 	}
 
-	private function checkCredentials($user, $pass) {
-		list($src, $srcopt) = explode(";", IFMConfig::auth_source, 2);
-		switch($src) {
+	private function checkCredentials( $user, $pass ) {
+		list( $src, $srcopt ) = explode( ";", $this->config['auth_source'], 2 );
+		switch( $src ) {
 			case "inline":
-				list($uname, $hash) = explode(":", $srcopt);
+				list( $uname, $hash ) = explode( ":", $srcopt );
+				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
-				if(@file_exists($srcopt) && @is_readable($srcopt)) {
-					list($uname, $hash) = explode(":", fgets(fopen($srcopt, 'r')));
+				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
+					list( $uname, $hash ) = explode( ":", fgets( fopen( $srcopt, 'r' ) ) );
+					return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				} else {
 					return false;
 				}
 				break;
+			case "ldap":
+				$authenticated = false;
+				list( $ldap_server, $rootdn ) = explode( ";", $srcopt );
+				$u = "uid=" . $user . "," . $rootdn;
+				if( ! $ds = ldap_connect( $ldap_server ) ) {
+					trigger_error( "Could not reach the ldap server.", E_USER_ERROR );
+					return false;
+				}
+				ldap_set_option( $ds, LDAP_OPT_PROTOCOL_VERSION, 3 );
+				if( $ds ) {
+					$ldbind = @ldap_bind( $ds, $u, $pass );
+					if( $ldbind ) {
+						$authenticated = true;
+					} else {
+						trigger_error( ldap_error( $ds ), E_USER_ERROR );
+						$authenticated = false;
+					}
+					ldap_unbind( $ds );
+				} else {
+					$authenticated = false;
+				}
+				return $authenticated;
+				break;
 		}
-		return password_verify($pass, trim($hash))?($uname == $user):false;
+		return false;
 	}
 
 	private function loginForm($loginFailed=false) {
@@ -692,7 +767,7 @@ class IFM {
 			return "";
 		} else {
 			$rpDir = realpath( $dir );
-			$rpConfig = realpath( IFMConfig::root_dir );
+			$rpConfig = realpath( $this->config['root_dir'] );
 			if( $rpConfig == "/" )
 				return $rpDir;
 			elseif( $rpDir == $rpConfig )
@@ -703,15 +778,25 @@ class IFM {
 	}
 
 	private function isPathValid( $dir ) {
-		$rpDir = realpath( $dir );
-		$rpConfig = realpath( IFMConfig::root_dir );
+		/**
+		 * This function is also used to check non-existent paths, but the PHP realpath function returns false for
+		 * nonexistent paths. Hence we need to check the path manually in the following lines.
+		 */
+		$tmp_d = $dir;
+		$tmp_missing_parts = array();
+		while( realpath( $tmp_d ) === false ) {
+			$tmp_i = pathinfo( $tmp_d );
+			array_push( $tmp_missing_parts, $tmp_i['filename'] );
+			$tmp_d = dirname( $tmp_d );
+		}
+		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
+		$rpConfig = ( $this->config['root_dir'] == "" ) ? realpath( dirname( __FILE__ ) ) : realpath( $this->config['root_dir'] );
 		if( ! is_string( $rpDir ) || ! is_string( $rpConfig ) ) // can happen if open_basedir is in effect
 			return false;
 		elseif( $rpDir == $rpConfig )
 			return true;
-		elseif( 0 === strpos( $rpDir, $rpConfig ) ) {
+		elseif( 0 === strpos( $rpDir, $rpConfig ) )
 			return true;
-		}
 		else
 			return false;
 	}
@@ -768,6 +853,53 @@ class IFM {
 		return 0;
 	}
 
+	/**
+	 * Copy a file, or recursively copy a folder and its contents
+	 *
+	 * @author      Aidan Lister <aidan@php.net>
+	 * @version     1.0.1
+	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
+	 * @param       string   $source    Source path
+	 * @param       string   $dest      Destination path
+	 * @return      bool     Returns TRUE on success, FALSE on failure
+	 */
+	private function copyr( $source, $dest )
+	{
+		// Check for symlinks
+		if (is_link($source)) {
+			return symlink(readlink($source), $dest);
+		}
+
+		// Simple copy for a file
+		if (is_file($source)) {
+			$dest = ( is_dir( $dest ) ) ? $this->pathCombine( $dest, basename( $source ) ) : $dest;
+			return copy($source, $dest);
+		} else {
+			$dest = $this->pathCombine( $dest, basename( $source ) );
+		}
+
+		// Make destination directory
+		if (!is_dir($dest)) {
+			mkdir($dest);
+		}
+
+		// Loop through the folder
+		$dir = dir($source);
+		while (false !== $entry = $dir->read()) {
+			// Skip pointers
+			if ($entry == '.' || $entry == '..') {
+				continue;
+			}
+
+			// Deep copy directories
+			$this->copyr("$source/$entry", "$dest/$entry");
+		}
+
+		// Clean up
+		$dir->close();
+		return true;
+	}
+
 	// combines two parts to a valid path
 	private function pathCombine( $a, $b ) {
 		if( trim( $a ) == "" && trim( $b ) == "" )
@@ -780,9 +912,9 @@ class IFM {
 
 	// check if filename is allowed
 	private function allowedFileName( $f ) {
-		if( IFMConfig::showhtdocs != 1 && substr( $f, 0, 3 ) == ".ht" )
+		if( $this->config['showhtdocs'] != 1 && substr( $f, 0, 3 ) == ".ht" )
 			return false;
-		elseif( IFMConfig::showhiddenfiles != 1 && substr( $f, 0, 1 ) == "." )
+		elseif( $this->config['showhiddenfiles'] != 1 && substr( $f, 0, 1 ) == "." )
 			return false;
 		elseif( ! $this->isPathValid( $f ) )
 			return false;
@@ -795,19 +927,6 @@ class IFM {
 		return ( strtolower( $a['name'] ) < strtolower( $b['name'] ) ) ? -1 : 1;
 	}
 
-	// unzip an archive
-	private function unzip( $file ) {
-		$zip = new ZipArchive;
-		$res = $zip->open( $file );
-		if( $res === true ) {
-			$zip->extractTo( './' );
-			$zip->close();
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	// is cURL extention avaliable?
 	private function checkCurl() {
 		if( !function_exists( "curl_init" ) ||
@@ -817,7 +936,7 @@ class IFM {
 		else return true;
 	}
 
-	private function file_download( $file, $name="" ) {
+	private function fileDownload( $file, $name="" ) {
 		header( 'Content-Description: File Transfer' );
 		header( 'Content-Type: application/octet-stream' );
 		header( 'Content-Disposition: attachment; filename="' . ( trim( $name ) == "" ? basename( $file ) : $name ) . '"' );
@@ -835,12 +954,51 @@ class IFM {
 		fclose($stdout_stream);
 	}
 
-	///helper
+	private function getTemplates() {
+		$templates = array();
+		$templates['app'] = <<<'f00bar'
+@@@src/templates/app.html@@@
+f00bar;
+		$templates['filetable'] = <<<'f00bar'
+@@@src/templates/filetable.html@@@
+f00bar;
+		$templates['file'] = <<<'f00bar'
+@@@src/templates/modal.file.html@@@
+f00bar;
+		$templates['createdir'] = <<<'f00bar'
+@@@src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['ajaxrequest'] = <<<'f00bar'
+@@@src/templates/modal.ajaxrequest.html@@@
+f00bar;
+		$templates['copymove'] = <<<'f00bar'
+@@@src/templates/modal.copymove.html@@@
+f00bar;
+		$templates['createdir'] = <<<'f00bar'
+@@@src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['deletefile'] = <<<'f00bar'
+@@@src/templates/modal.deletefile.html@@@
+f00bar;
+		$templates['extractfile'] = <<<'f00bar'
+@@@src/templates/modal.extractfile.html@@@
+f00bar;
+		$templates['file'] = <<<'f00bar'
+@@@src/templates/modal.file.html@@@
+f00bar;
+		$templates['multidelete'] = <<<'f00bar'
+@@@src/templates/modal.multidelete.html@@@
+f00bar;
+		$templates['remoteupload'] = <<<'f00bar'
+@@@src/templates/modal.remoteupload.html@@@
+f00bar;
+		$templates['renamefile'] = <<<'f00bar'
+@@@src/templates/modal.renamefile.html@@@
+f00bar;
+		$templates['uploadfile'] = <<<'f00bar'
+@@@src/templates/modal.uploadfile.html@@@
+f00bar;
+
+		return $templates;
+	}
 }
-
-/*
-   start program
- */
-
-$ifm = new IFM();
-$ifm->run();

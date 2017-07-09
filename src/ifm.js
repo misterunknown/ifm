@@ -1,16 +1,26 @@
-// IFM - js app
-
-function IFM() {
+/**
+ * IFM constructor
+ *
+ * @param object params - object with some configuration values, currently you only can set the api url
+ */
+function IFM( params ) {
 	var self = this; // reference to ourself, because "this" does not work within callbacks
 
-	this.IFM_SCFN = "<?=basename($_SERVER['SCRIPT_NAME'])?>";
-	this.config = jQuery.parseJSON('<?php echo json_encode(IFMConfig::getConstants()); ?>');	// serialize the PHP config array, so we can use it in JS too
-	this.isDocroot = <?php echo realpath( IFMConfig::root_dir ) == dirname( __FILE__ ) ? "true" : "false"; ?>;
+	// set the backend for the application
+	params = params || {};
+	self.api = params.api || window.location.pathname;
+
 	this.editor = null; // global ace editor
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
+	this.rootElement = "";
 
-	// modal functions
+	/**
+	 * Shows a bootstrap modal
+	 *
+	 * @param string content - content of the modal
+	 * @param object options - options for the modal
+	 */
 	this.showModal = function( content, options = {} ) {
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
@@ -36,116 +46,176 @@ function IFM() {
 		modal.modal('show');
 	};
 
+	/**
+	 * Hides a bootstrap modal
+	 */
 	this.hideModal = function() {
 		$('#ifmmodal').modal('hide');
 	};
 
+	/**
+	 * Reloads the file table
+	 */
 	this.refreshFileTable = function () {
-		var id=self.generateGuid();
-		self.task_add("Refresh", id);
+		var id = self.generateGuid();
+		self.task_add( "Refresh", id );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
-			data: "api=getFiles&dir=" + self.currentDir,
+			data: {
+				api: "getFiles",
+				dir: self.currentDir
+			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function(response) { ifm.showMessage("General error occured: No or broken response", "e"); },
+			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
 
+	/**
+	 * Rebuilds the file table with fetched items
+	 *
+	 * @param object data - object with items
+	 */
 	this.rebuildFileTable = function( data ) {
-		var newTBody = $(document.createElement('tbody'));
-		for( var i=0; i < data.length; i++ ) {
-			var newRow = '<tr class="clickable-row ' + ( ( data[i].type=='dir' ) ? "isDir" : "" ) + '" data-filename="' + data[i].name + '"';
-			if( self.config.extract == 1 && data[i].name.toLowerCase().substr(-4) == ".zip" )
-				newRow += ' data-eaction="extract"';
-			else if( self.config.edit == 1 && data[i].name.toLowerCase().substr(-4) != ".zip" )
-				newRow += ' data-eaction="edit"';
-			newRow += '><td><a tabindex="0"';
-			var guid = self.generateGuid();
-			if(data[i].type=="file") {
-				if( self.isDocroot ) {
-					newRow += ' href="'+self.pathCombine(ifm.currentDir,data[i].name)+'"';
-					if( data[i].icon.indexOf( 'file-image' ) !== -1 )
-						newRow += ' data-toggle="tooltip" title="<img src=\''+self.pathCombine(self.currentDir,data[i].name)+'\' class=\'imgpreview\'>"';
-				} else {
-					newRow += ' onclick="$(\'#d_'+guid+'\').submit();"';
-				}
-			} else {
-				newRow += ' onclick="ifm.changeDirectory(\''+data[i].name+'\')"';
+		data.forEach( function( item ) {
+			item.guid = self.generateGuid();
+			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
+			item.download = {};
+			item.download.name = ( item.name == ".." ) ? "." : item.name;
+			item.download.allowed = self.config.download;
+			item.download.currentDir = self.currentDir;
+			if( ! self.config.chmod )
+				item.readonly = "readonly";
+			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
+				item.ftbuttons = true;
+				item.button = [];
 			}
-			newRow += '><span class="'+data[i].icon+'"></span> ' + ( data[i].name == '..' ? '[ up ]' : data[i].name ) + '</a></td>';
-			if( ( data[i].type != "dir" && self.config.download == 1 ) || ( data[i].type == "dir" && self.config.zipnload == 1 ) ) {
-				newRow += '<td><form id="d_' + guid + '">';
-				newRow += '<input type="hidden" name="dir" value="' + self.currentDir + '">';
-				newRow += '<input type="hidden" name="filename" value="' + ( data[i].name == '..' ? '.' : data[i].name ) + '">';
-				newRow += '<input type="hidden" name="api" value="' + ( data[i].type == 'file'?'downloadFile':'zipnload' ) + '">';
-				newRow += '</form><a tabindex="0" onclick="$(\'#d_'+guid+'\').submit();"><span class="icon icon-download' + ( data[i].type == 'dir'?'-cloud':'' ) + '" title="download"></span></a></td>';
+			if( item.type == "dir" ) {
+				item.download.action = "zipnload";
+				item.download.icon = "icon icon-download-cloud";
+				item.rowclasses = "isDir";
 			} else {
-				newRow += '<td></td>';
+				item.download.action = "download";
+				item.download.icon = "icon icon-download";
+				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
+					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
+				if( item.name.toLowerCase().substr(-4) == ".zip" )
+					item.eaction = "extract";
+				else
+					item.eaction = "edit";
+				if( self.config.edit && item.name.toLowerCase().substr(-4) != ".zip" )
+					item.button.push({
+						action: "edit",
+						icon: "icon icon-pencil",
+						title: "edit"
+					});
+				if( self.config.extract && item.name.toLowerCase().substr(-4) == ".zip" )
+					item.button.push({
+						action: "extract",
+						icon: "icon icon-archive",
+						title: "extract"
+					});
 			}
-			// last-modified
-			if( self.config.showlastmodified > 0 )
-				newRow += '<td>' + data[i].lastmodified + '</td>';
-			// size
-			if( self.config.showfilesize > 0 )
-				newRow += '<td>' + data[i].filesize + '</td>';
-			// permissions
-			if( self.config.showpermissions > 0 )
-				newRow += '<td class="hidden-xs"><input type="text" name="newperms" class="form-control" value="'+data[i].fileperms+'"' +
-						(self.config.chmod==1?' onkeypress="ifm.changePermissions(event, \''+data[i].name+'\');"' : 'readonly' ) +
-						( data[i].filepermmode.trim() != "" ? ' class="' + data[i].filepermmode + '"' : '' ) +
-						'></td>';
-			// owner
-			if( self.config.showowner > 0 )
-			   	newRow += '<td class="hidden-xs hidden-sm">'+data[i].owner+'</td>';
-			// group
-			if( self.config.showgroup > 0 )
-				newRow += '<td class="hidden-xs hidden-sm hidden-md">' + data[i].group + '</td>';
-			// actions
-			if( self.inArray( 1, [self.config.edit, self.config.rename, self.config.delete, self.config.extract] ) ) {
-				newRow += '<td>';
-				if( data[i].name.toLowerCase().substr(-4) == ".zip" && self.config.extract == 1 ) {
-					newRow += '<a tabindex="0" onclick="ifm.extractFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-archive" title="extract"></span></a>';
-				} else if( self.config.edit == 1 && data[i].type != "dir" ) {
-					newRow += '<a tabindex="0" onclick="ifm.editFile(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-pencil" title="edit"></span></a>';
-				}
-				if( data[i].name != ".." && data[i].name != "." ) {
-					if( self.config.rename == 1 )
-						newRow += '<a tabindex="0" onclick="ifm.renameFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-terminal" title="rename"></span></a>';
-					if( self.config.delete == 1 )
-						newRow += '<a tabindex="0" onclick="ifm.deleteFileDialog(\''+ifm.JSEncode(data[i].name)+'\');return false;"><span class="icon icon-trash" title="delete"></span></a>';
-				}
-				newRow += '</td></tr>';
-			} else {
-				newRow += '<td></td>';
+			if( ! self.inArray( item.name, [".", ".."] ) ) {
+				if( self.config.copymove )
+					item.button.push({
+						action: "copymove",
+						icon: "icon icon-folder-open-empty",
+						title: "copy/move"
+					});
+				if( self.config.rename )
+					item.button.push({
+						action: "rename",
+						icon: "icon icon-terminal",
+						title: "rename"
+					});
+				if( self.config.delete )
+					item.button.push({
+						action: "delete",
+						icon: "icon icon-trash",
+						title: "delete"
+					});
 			}
-			newTBody.append( newRow );
-		}
-		$("#filetable tbody").remove();
-		$("#filetable").append( newTBody );
-		if( self.config.multiselect == 1 ) {
-			$('.clickable-row').click(function(event) {
-				if( event.ctrlKey ) {
-					$(this).toggleClass( 'selectedItem' );
-				}
-			});
-		}
-		$('a[data-toggle="tooltip"]').tooltip({
+		});
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
+		$( "#filetable tbody" ).remove();
+		$( "#filetable" ).append( $(newTBody) );
+		$( '.clickable-row' ).click( function( event ) {
+			if( event.ctrlKey ) {
+				$( this ).toggleClass( 'selectedItem' );
+			}
+		});
+		$( 'a[data-toggle="tooltip"]' ).tooltip({
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
+		$( 'a.ifmitem' ).each( function() {
+			if( $(this).data( "type" ) == "dir" ) {
+				$(this).on( 'click', function( e ) {
+					e.stopPropagation();
+					self.changeDirectory( $(this).parent().parent().data( 'filename' ) );
+					return false;
+				});
+			} else {
+				if( self.config.isDocroot )
+					$(this).attr( "href", self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) );
+				else
+					$(this).on( 'click', function() {
+						$( '#d_' + this.id ).submit();
+						return false;
+					});
+			}
+		});
+		$( 'a[name="start_download"]' ).on( 'click', function(e) {
+			e.stopPropagation();
+			$( '#d_' + $(this).data( 'guid' ) ).submit();
+			return false;
+		});
+		$( 'input[name="newpermissions"]' ).on( 'keypress', function( e ) {
+			if( e.key == "Enter" ) {
+				e.stopPropagation();
+				self.changePermissions( $( this ).data( 'filename' ), $( this ).val() );
+				return false;
+			}
+		});
+		$( 'a[name^="do-"]' ).on( 'click', function() {
+			var action = this.name.substr( this.name.indexOf( '-' ) + 1 );
+			switch( action ) {
+				case "rename":
+					self.showRenameFileDialog( $(this).data( 'name' ) );
+					break;
+				case "extract":
+					self.showExtractFileDialog( $(this).data( 'name' ) );
+					break;
+				case "edit":
+					self.editFile( $(this).data( 'name' ) );
+					break;
+				case "delete":
+					self.showDeleteFileDialog( $(this).data( 'name' ) );
+					break;
+				case "copymove":
+					self.showCopyMoveDialog( $(this).data( 'name' ) );
+					break;
+			}
+		});
+
 	};
 
+	/**
+	 * Changes the current directory
+	 *
+	 * @param string newdir - target directory
+	 * @param object options - options for changing the directory
+	 */
 	this.changeDirectory = function( newdir, options={} ) {
-		console.log( "changeDirectory, newdir="+newdir );
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "getRealpath",
@@ -162,22 +232,29 @@ function IFM() {
 		});
 	};
 
-	this.showFileForm = function () {
+	/**
+	 * Shows a file, either a new file or an existing
+	 */
+	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		var overlay = '<form id="showFile">' +
-			'<div class="modal-body"><fieldset><label>Filename:</label><input onkeypress="return ifm.preventEnter(event);" type="text" class="form-control" name="filename" value="'+filename+'" /><br>' +
-			'<div id="content" name="content"></div><br>' +
-			'<button type="button" class="btn btn-default" id="editoroptions">editor options</button><div class="hide" id="editoroptions-head">options</div><div class="hide" id="editoroptions-content">' +
-			'<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>' +
-			'<input type="checkbox" id="editor-softtabs"> use soft tabs</input>' +
-			'<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>' +
-			'</div></fieldset></div>' +
-			'<div class="modal-footer"><button type="button" class="btn btn-default" onclick="ifm.saveFile();ifm.hideModal();return false;">Save' +
-			'</button><button type="button" onclick="ifm.saveFile();return false;" class="btn btn-default">Save without closing</button>' +
-			'<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button></div></form>';
-		self.showModal( overlay, { large: true } );
-		$('#editoroptions').popover({
+		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
+		var form = $('#formFile');
+		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
+		form.find('#buttonSave').on( 'click', function() {
+			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
+			self.hideModal();
+			return false;
+		});
+		form.find('#buttonSaveNotClose').on( 'click', function() {
+			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
+			return false;
+		});
+		form.find('#buttonClose').on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+		form.find('#editoroptions').popover({
 			html: true,
 			title: function() { return $('#editoroptions-head').html(); },
 			content: function() {
@@ -196,7 +273,7 @@ function IFM() {
 				return content;
 			}
 		});
-		$('#ifmmodal').on( 'remove', function () { self.editor = null; self.fileChanged = false; });
+		form.on( 'remove', function () { self.editor = null; self.fileChanged = false; });
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
@@ -209,60 +286,18 @@ function IFM() {
 		});
 	};
 
-	this.createDirForm = function() {
-		self.showModal( '<form id="createDir">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>Directoy name:</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="dirname" value="" />\
-				</fieldset>\
-				</div>\
-				<div class="modal-footer">\
-				<button class="btn btn-default" type="button" onclick="ifm.createDir();ifm.hideModal();return false;">Save</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-				</div>\
-				</form>' );
-	};
-
-	this.ajaxRequestDialog = function() {
-		self.showModal( '<form id="ajaxrequest">\
-				<div class="modal-body">\
-				<fieldset>\
-				<label>URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="ajaxurl" required><br>\
-				<label>Data</label><br>\
-				<textarea class="form-control" id="ajaxdata"></textarea><br>\
-				<label>Method</label><br>\
-				<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>\
-				<button type="button" class="btn btn-success" onclick="ifm.ajaxRequest();return false;">Request</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Close</button><br>\
-				<label>Response</label><br>\
-				<textarea class="form-control" id="ajaxresponse"></textarea>\
-				</fieldset>\
-				</form>\
-				</div>');
-	};
-
-	this.ajaxRequest = function() {
+	/**
+	 * Saves a file
+	 */
+	this.saveFile = function( filename, content ) {
 		$.ajax({
-			url		: $("#ajaxurl").val(),
-			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
-		});
-	};
-
-	this.saveFile = function() {
-		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "saveFile",
 				dir: self.currentDir,
-				filename: $("#showFile input[name^=filename]").val(),
-				content: ifm.editor.getValue()
+				filename: filename,
+				content: content
 			}),
 			dataType: "json",
 			success: function( data ) {
@@ -276,9 +311,14 @@ function IFM() {
 		self.fileChanged = false;
 	};
 
+	/**
+	 * Edit a file
+	 *
+	 * @params string name - name of the file
+	 */
 	this.editFile = function( name ) {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			dataType: "json",
 			data: ({
@@ -288,7 +328,7 @@ function IFM() {
 			}),
 			success: function( data ) {
 						if( data.status == "OK" && data.data.content != null ) {
-							self.showFileForm( data.data.filename, data.data.content );
+							self.showFileDialog( data.data.filename, data.data.content );
 						}
 						else if( data.status == "OK" && data.data.content == null ) {
 							self.showMessage( "The content of this file cannot be fetched.", "e" );
@@ -299,24 +339,83 @@ function IFM() {
 		});
 	};
 
-	this.deleteFileDialog = function( name ) {
-		self.showModal( '<form id="deleteFile">\
-				<div class="modal-body">\
-				<label>Do you really want to delete the file '+name+'?\
-				</div><div class="modal-footer">\
-				<button type="button" class="btn btn-danger" onclick="ifm.deleteFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Yes</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button>\
-				</div>\
-				</form>' );
+	/**
+	 * Shows the create directory dialog
+	 */
+	this.showCreateDirDialog = function() {
+		self.showModal( self.templates.createdir );
+		var form = $( '#formCreateDir' );
+		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonSave' ).on( 'click', function() {
+			self.createDir( form.find( 'input[name=dirname] ').val() );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
-	this.deleteFile = function( name ) {
+
+	/**
+	 * Create a directory
+	 */
+	this.createDir = function( dirname ) {
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
-				api: "deleteFile",
+				api: "createDir",
 				dir: self.currentDir,
-				filename: name
+				dirname: dirname
+			}),
+			dataType: "json",
+			success: function( data ){
+					if( data.status == "OK" ) {
+						self.showMessage( "Directory sucessfully created.", "s" );
+						self.refreshFileTable();
+					}
+					else {
+						self.showMessage( "Directory could not be created: "+data.message, "e" );
+					}
+				},
+			error: function() { self.showMessage( "General error occured.", "e" ); }
+		});
+	};
+
+
+	/**
+	 * Shows the delete file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.showDeleteFileDialog = function( filename ) {
+		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
+		var form = $( '#formDeleteFile' );
+		form.find( '#buttonYes' ).on( 'click', function() {
+			self.deleteFile( self.JSEncode( filename ) );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonNo' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+	};
+
+	/**
+	 * Deletes a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.deleteFile = function( filename ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: ({
+				api: "delete",
+				dir: self.currentDir,
+				filename: filename
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -329,50 +428,40 @@ function IFM() {
 		});
 	};
 
-	this.createDir = function() {
-		$.ajax({
-			url: self.IFM_SCFN,
-			type: "POST",
-			data: ({
-				api: "createDir",
-				dir: self.currentDir,
-				dirname: $("#createDir input[name^=dirname]").val()
-			}),
-			dataType: "json",
-			success: function(data){
-					if(data.status == "OK") {
-						self.showMessage("Directory sucessfully created.", "s");
-						self.refreshFileTable();
-					}
-					else {
-						self.showMessage("Directory could not be created: "+data.message, "e");
-					}
-				},
-			error: function() { self.showMessage("General error occured.", "e"); }
+	/**
+	 * Show the rename file dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.showRenameFileDialog = function( filename ) {
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
+		var form = $( '#formRenameFile' );
+		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonRename' ).on( 'click', function() {
+			self.renameFile( filename, form.find( 'input[name=newname]' ).val() );
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
 		});
 	};
 
-	this.renameFileDialog = function(name) {
-		self.showModal( '<div class="modal-body">\
-			<form id="renameFile">\
-			<fieldset>\
-				<label>Rename '+name+' to:</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newname" /><br>\
-				<button class="btn btn-default" onclick="ifm.renameFile(\''+ifm.JSEncode(name)+'\');ifm.hideModal();return false;">Rename</button><button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</fieldset>\
-			</form>\
-		</div>' );
-	};
-
-	this.renameFile = function(name) {
+	/**
+	 * Renames a file
+	 *
+	 * @params string name - name of the file
+	 */
+	this.renameFile = function( filename, newname ) {
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
-				api: "renameFile",
+				api: "rename",
 				dir: ifm.currentDir,
-				filename: name,
-				newname: $("#renameFile input[name^=newname]").val()
+				filename: filename,
+				newname: newname
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -385,72 +474,165 @@ function IFM() {
 		});
 	};
 
-	this.extractFileDialog = function(name) {
-		var fuckWorkarounds="";
-		if(name.lastIndexOf(".") > 1)
-			fuckWorkarounds = name.substr(0,name.length-4);
-		else fuckWorkarounds = name;
-		self.showModal( '<div class="modal-body">\
-			<form id="extractFile">\
-			<fieldset>\
-				<label>Extract '+name+' to:</label>\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 0);ifm.hideModal();return false;">here</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.extractFile(\''+ifm.JSEncode(name)+'\', 1);ifm.hideModal();return false;">'+fuckWorkarounds+'/</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</fieldset>\
-			</form>\
-		</div>');
-	};
-
-	this.extractFile = function(name, t) {
-		var td = (t == 1)? name.substr(0,name.length-4) : "";
+	/**
+	 * Show the copy/move dialog
+	 *
+	 * @params string name - name of the file
+	 */
+	this.showCopyMoveDialog = function( name ) {
+		self.showModal( self.templates.copymove );
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
-				api: "extractFile",
-				dir: self.currentDir,
-				filename: name,
-				targetdir: td
+				api: "getFolderTree",
+				dir: self.currentDir
 			}),
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully extracted", "s");
-							self.refreshFileTable();
-						} else self.showMessage("File could not be extracted. Error: "+data.message, "e");
-					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			success: function( data ) {
+				$( '#copyMoveTree' ).treeview( { data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty" } );
+			},
+			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+		});
+		$( '#copyButton' ).on( 'click', function() {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
+			self.hideModal();
+			return false;
+		});
+		$( '#moveButton' ).on( 'click', function() {
+			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
+			self.hideModal();
+			return false;
+		});
+		$( '#cancelButton' ).on( 'click', function() {
+			self.hideModal();
+			return false;
 		});
 	};
 
-	this.uploadFileDialog = function() {
-		self.showModal( '<form id="uploadFile">\
-			<div class="modal-body">\
-				<fieldset>\
-				<label>Upload file</label><br>\
-				<input class="file" type="file" name="ufile" id="ufile"><br>\
-				<label>new filename</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" name="newfilename"><br>\
-				</fieldset>\
-			</div><div class="modal-footer">\
-				<button class="btn btn-default" onclick="ifm.uploadFile();ifm.hideModal();return false;">Upload</button>\
-				<button class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</div>\
-			</form>');
+	/**
+	 * Copy or moves a file
+	 * 
+	 * @params string name - name of the file
+	 */
+	this.copyMove = function( source, destination, action ) {
+		var id = self.generateGuid();
+		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filename: source,
+				destination: destination
+			},
+			dataType: "json",
+			success: function(data) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
+				}
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done( id );
+			}
+		});
 	};
 
+	/**
+	 * Shows the extract file dialog
+	 *
+	 * @param string name - name of the file
+	 */
+	this.showExtractFileDialog = function( filename ) {
+		var targetDirSuggestion = '';
+		if( filename.lastIndexOf( '.' ) > 1 )
+			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
+		else targetDirSuggestion = filename;
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
+		var form = $('#formExtractFile');
+		form.find('#buttonExtract').on( 'click', function() {
+			var t = form.find('input[name=extractTargetLocation]:checked').val();
+			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
+			self.extractFile( self.JSEncode( filename ), t );
+			self.hideModal();
+			return false;
+		});
+		form.find('#buttonCancel').on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+		form.find('#extractCustomLocation').on( 'click', function(e) {
+			$(e.target).prev().children().first().prop( 'checked', true );
+		});
+	};
+
+	/**
+	 * Extracts a file
+	 *
+	 * @param string filename - name of the file
+	 * @param string destination - name of the target directory
+	 */
+	this.extractFile = function( filename, destination ) {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "extract",
+				dir: self.currentDir,
+				filename: filename,
+				targetdir: destination
+			},
+			dataType: "json",
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File successfully extracted", "s" );
+							self.refreshFileTable();
+						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
+					},
+			error: function() { self.showMessage( "General error occured", "e" ); }
+		});
+	};
+
+	/**
+	 * Shows the upload file dialog
+	 */
+	this.showUploadFileDialog = function() {
+		self.showModal( self.templates.uploadfile );
+		var form = $('#formUploadFile');
+		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonUpload' ).on( 'click', function() {
+			self.uploadFile();
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
+	};
+
+	/**
+	 * Uploads a file
+	 */
 	this.uploadFile = function() {
-		var ufile = document.getElementById('ufile').files[0];
+		var ufile = document.getElementById( 'ufile' ).files[0];
 		var data = new FormData();
-		var newfilename = $("#uploadFile input[name^=newfilename]").val();
-		data.append('api', 'uploadFile');
+		var newfilename = $("#formUploadFile input[name^=newfilename]").val();
+		data.append('api', 'upload');
 		data.append('dir', self.currentDir);
 		data.append('file', ufile);
 		data.append('newfilename', newfilename);
 		var id = self.generateGuid();
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: data,
 			processData: false,
@@ -463,77 +645,86 @@ function IFM() {
 				return xhr ;
 			},
 			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully uploaded", "s");
-							if(data.cd == self.currentDir) self.refreshFileTable();
-						} else self.showMessage("File could not be uploaded: "+data.message, "e");
-					},
+				if(data.status == "OK") {
+					self.showMessage("File successfully uploaded", "s");
+					if(data.cd == self.currentDir) self.refreshFileTable();
+				} else self.showMessage("File could not be uploaded: "+data.message, "e");
+			},
 			error: function() { self.showMessage("General error occured", "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add("Upload "+ufile.name, id);
 	};
 
-	this.changePermissions = function(e, name) {
-		if(e.keyCode == '13')
-			$.ajax({
-			url: self.IFM_SCFN,
+	/**
+	 * Change the permissions of a file
+	 *
+	 * @params object e - event object
+	 * @params string name - name of the file
+	 */
+	this.changePermissions = function( filename, newperms) {
+		$.ajax({
+			url: self.api,
 			type: "POST",
 			data: ({
 				api: "changePermissions",
 				dir: self.currentDir,
-				filename: name,
-				chmod: e.target.value
+				filename: filename,
+				chmod: newperms
 			}),
 			dataType: "json",
-			success: function(data){
-					if(data.status == "OK") {
-						self.showMessage("Permissions successfully changed.", "s");
-						self.refreshFileTable();
-					}
-					else {
-						self.showMessage("Permissions could not be changed: "+data.message, "e");
-					}
-				},
+			success: function( data ){
+				if( data.status == "OK" ) {
+					self.showMessage( "Permissions successfully changed.", "s" );
+					self.refreshFileTable();
+				}
+				else {
+					self.showMessage( "Permissions could not be changed: "+data.message, "e");
+				}
+			},
 			error: function() { self.showMessage("General error occured.", "e"); }
 		});
 	};
 
-	this.remoteUploadDialog = function() {
-		self.showModal( '<form id="uploadFile">\
-			<div class="modal-body">\
-			<fieldset>\
-				<label>Remote upload URL</label><br>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="url" name="url" required><br>\
-				<label>Filename (required)</label>\
-				<input onkeypress="return ifm.preventEnter(event);" class="form-control" type="text" id="filename" name="filename" required><br>\
-				<label>Method</label>\
-				<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>\
-			</fieldset><div class="modal-footer">\
-				<button type="button" class="btn btn-default" onclick="ifm.remoteUpload();ifm.hideModal();return false;">Upload</button>\
-				<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">Cancel</button>\
-			</div>\
-			</form>' );
-		// guess the wanted filename, because it is required
-		// e.g http:/example.com/example.txt  => filename: example.txt
-		$("#url").on("change keyup", function(){
-			$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
+	/**
+	 * Show the remote upload dialog
+	 */
+	this.showRemoteUploadDialog = function() {
+		self.showModal( self.templates.remoteupload );
+		var form = $('#formRemoteUpload');
+		form.find( '#url' )
+			.on( 'keypress', self.preventEnter )
+			.on( 'change keyup', function() {
+				$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
+			});
+		form.find( '#filename' )
+			.on( 'keypress', self.preventEnter )
+			.on( 'keyup', function() { $("#url").off( 'change keyup' ); });
+		form.find( '#buttonUpload' ).on( 'click', function() {
+			self.remoteUpload();
+			self.hideModal();
+			return false;
 		});
-		// if the filename input field was edited manually remove the event handler above
-		$("#filename").on("keyup", function() { $("#url").off(); });
+		form.find( '#buttonCancel' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
 
+	/**
+	 * Remote uploads a file
+	 */
 	this.remoteUpload = function() {
-		var filename = $("#filename").val();
+		var filename = $("#formRemoteUpload #filename").val();
 		var id = ifm.generateGuid();
 		$.ajax({
-			url: ifm.IFM_SCFN,
+			url: ifm.api,
 			type: "POST",
 			data: ({
 				api: "remoteUpload",
 				dir: ifm.currentDir,
 				filename: filename,
-				method: $("input[name=method]:checked").val(),
+				method: $("#formRemoteUpload input[name=method]:checked").val(),
 				url: encodeURI($("#url").val())
 			}),
 			dataType: "json",
@@ -549,71 +740,66 @@ function IFM() {
 		ifm.task_add("Remote upload: "+filename, id);
 	};
 
-	// --------------------
-	// additional functions
-	// --------------------
-	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
-		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 } }
-		);
+	/**
+	 * Shows the ajax request dialog
+	 */
+	this.showAjaxRequestDialog = function() {
+		self.showModal( self.templates.ajaxrequest );
+		var form = $('#formAjaxRequest');
+		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
+		form.find( '#buttonRequest' ).on( 'click', function() {
+			self.ajaxRequest();
+			return false;
+		});
+		form.find( '#buttonClose' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
-	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
-		return a+"/"+b;
+
+	/**
+	 * Performs an ajax request
+	 */
+	this.ajaxRequest = function() {
+		$.ajax({
+			url		: $("#ajaxurl").val(),
+			cache	: false,
+			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
+			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
+			success	: function(response) { $("#ajaxresponse").text(response); },
+			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+		});
 	};
-	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
-	this.showSaveQuestion = function() {
-		var a = '<div id="savequestion"><label>Do you want to save this file?</label><br><button onclick="ifm.saveFile();ifm.closeFileForm(); return false;">Save</button><button onclick="ifm.closeFileForm();return false;">Dismiss</button>';
-		$(document.body).prepend(a);
-		self.bindOverlayClickEvent();
+
+	/**
+	 * Shows the delete dialog for multiple files
+	 */
+	this.showMultiDeleteDialog = function() {
+		self.showModal( Mustache.render( self.templates.multidelete, { count: $('#filetable tr.selectedItem').length } ) );
+		var form = $('#formDeleteFiles');
+		form.find( '#buttonYes' ).on( 'click', function() {
+			self.multiDelete();
+			self.hideModal();
+			return false;
+		});
+		form.find( '#buttonNo' ).on( 'click', function() {
+			self.hideModal();
+			return false;
+		});
 	};
-	this.hideSaveQuestion = function() {
-		$("#savequestion").remove();
-	};
-	this.handleMultiselect = function() {
-		var amount = $("#filetable tr.selectedItem").length;
-		if(amount > 0) {
-			if(document.getElementById("multiseloptions")===null) {
-				$(document.body).prepend('<div id="multiseloptions">\
-					<div style="font-size:0.8em;background-color:#00A3A3;padding:2px;">\
-						<a style="color:#FFF" onclick="$(\'input[name=multisel]\').attr(\'checked\', false);$(\'#multiseloptions\').remove();">[close]</a>\
-					</div>\
-					<ul><li><a onclick="ifm.multiDelete();"><span class="icon icon-trash"></span> delete (<span class="amount"></span>)</a></li></ul></div>\
-				');
-				$("#multiseloptions").draggable();
-				//$("#multiseloptions").resizable({ghost: true, minHeight: 50, minWidth: 100});
-			}
-			$("#multiseloptions .amount").text(amount);
-		}
-		else {
-			if(document.getElementById("multiseloptions")!==null)
-				$("#multiseloptions").remove();
-		}
-	};
-	this.multiDeleteDialog = function() {
-		var form = '<form id="deleteFile"><div class="modal-body"><label>Do you really want to delete these '+$('#filetable tr.selectedItem').length+' files?</label>';
-		form += '</div><div class="modal-footer"><button type="button" class="btn btn-danger" onclick="ifm.multiDelete();ifm.hideModal();return false;">Yes</button>';
-		form += '<button type="button" class="btn btn-default" onclick="ifm.hideModal();return false;">No</button></div></form>';
-		self.showModal( form );
-	};
+
+	/**
+	 * Deletes multiple files
+	 */
 	this.multiDelete = function() {
 		var elements = $('#filetable tr.selectedItem');
 		var filenames = [];
 		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
-			url: self.IFM_SCFN,
+			url: self.api,
 			type: "POST",
 			data: ({
-				api: "deleteMultipleFiles",
+				api: "multidelete",
 				dir: self.currentDir,
 				filenames: filenames
 			}),
@@ -632,25 +818,110 @@ function IFM() {
 			error: function() { ifm.showMessage("General error occured", "e"); }
 		});
 	};
+
+	// --------------------
+	// helper functions
+	// --------------------
+
+	/**
+	 * Shows a notification
+	 *
+	 * @param string m - message text
+	 * @param string t - message type (e: error, s: success)
+	 */
+	this.showMessage = function(m, t) {
+		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		var element = ( self.config.inline ) ? self.rootElement : "body";
+		$.notify(
+				{ message: m },
+				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+		);
+	};
+
+	/**
+	 * Combines two path components
+	 *
+	 * @param string a - component 1
+	 * @param string b - component 2
+	 */
+	this.pathCombine = function(a, b) {
+		if(a == "" && b == "") return "";
+		if(b[0] == "/") b = b.substring(1);
+		if(a == "") return b;
+		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
+		if(b == "") return a;
+		return a+"/"+b;
+	};
+
+	/**
+	 * Prevents a user to submit a form via clicking enter
+	 *
+	 * @param object e - click event
+	 */
+	this.preventEnter = function(e) {
+		if( e.keyCode == 13 ) return false;
+		else return true;
+	}
+
+	/**
+	 * Checks if an element is part of an array
+	 *
+	 * @param obj needle - search item
+	 * @param array haystack - array to search
+	 */
 	this.inArray = function(needle, haystack) {
 		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
 	};
-	this.task_add = function(name,id) { // uFI stands for uploadFileInformation
-		if(!document.getElementById("waitqueue")) {
-			$(document.body).prepend('<div id="waitqueue"></div>');
-			//$("#waitqueue").on("mouseover", function() { $(this).toggleClass("left"); });
+
+	/**
+	 * Adds a task to the taskbar.
+	 *
+	 * @param string name - description of the task
+	 * @param string id - identifier for the task
+	 */
+	this.task_add = function( name, id ) {
+		if( ! document.getElementById( "waitqueue" ) ) {
+			$( document.body ).prepend( '<div id="waitqueue"></div>' );
 		}
-		$("#waitqueue").prepend('<div id="'+id+'" class="panel panel-default"><div class="panel-body"><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div><span class="progbarlabel">'+name+'</span></div></div></div>');
+		$( "#waitqueue" ).prepend('\
+			<div id="'+id+'" class="panel panel-default">\
+				<div class="panel-body">\
+					<div class="progress">\
+						<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>\
+						<span class="progbarlabel">'+name+'</span>\
+					</div>\
+				</div>\
+			</div>\
+		');
 	};
+
+	/**
+	 * Removes a task from the taskbar
+	 *
+	 * @param string id - task identifier
+	 */
 	this.task_done = function(id) {
 		$("#"+id).remove();
 		if($("#waitqueue>div").length == 0) {
 			$("#waitqueue").remove();
 		}
 	};
+
+	/**
+	 * Updates a task
+	 *
+	 * @param integer progress - percentage of status
+	 * @param string id - task identifier
+	 */
 	this.task_update = function(progress, id) {
 		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
 	};
+
+	/**
+	 * Highlights an item in the file table
+	 *
+	 * @param object param - either an element id or a jQuery object
+	 */
 	this.highlightItem = function( param ) {
 		var highlight = function( el ) {
 			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
@@ -661,7 +932,7 @@ function IFM() {
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
 					scrollOffset = el.offset().top - 55;
-				$('html, body').animate( { scrollTop: scrollOffset }, 500 );
+				$('html, body').animate( { scrollTop: scrollOffset }, 200 );
 			}
 		};
 		if( param.jquery ) {
@@ -679,7 +950,13 @@ function IFM() {
 			}
 		}
 	};
-	this.isElementInViewport = function isElementInViewport (el) {
+
+	/**
+	 * Checks if an element is within the viewport
+	 *
+	 * @param object el - element object
+	 */
+	this.isElementInViewport = function (el) {
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
 		}
@@ -691,6 +968,10 @@ function IFM() {
 				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
 			   );
 	}
+
+	/**
+	 * Generates a GUID
+	 */
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
@@ -700,14 +981,43 @@ function IFM() {
 		}
 		return result;
 	};
+
+	/**
+	 * Logs a message if debug mode is on
+	 *
+	 * @param string m - message text
+	 */
+	this.log = function( m ) {
+		if( self.config.debug ) {
+			console.log( "IFM (debug): " + m );
+		}
+	};
+
+	/**
+	 * Encodes a string for use within javascript
+	 *
+	 * @param string s - encoding string
+	 */
 	this.JSEncode = function(s) {
 		return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
 	};
+
+	/**
+	 * Handles the javascript pop states
+	 *
+	 * @param object event - event object
+	 */
 	this.historyPopstateHandler = function(event) {
 		var dir = "";
 		if( event.state && event.state.dir ) dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
+
+	/**
+	 * Handles keystrokes
+	 *
+	 * @param object e - event object
+	 */
 	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
 		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
@@ -716,26 +1026,30 @@ function IFM() {
 
 		switch( e.key ) {
 			case 'Delete':
-				if( $('#filetable tr.selectedItem').length > 0 ) {
-					e.preventDefault();
-					self.multiDeleteDialog();
-				} else {
-					var item = $('.highlightedItem');
-					if( item.length )
-						self.deleteFileDialog( item.data( 'filename' ) );
+				if( self.config.delete ) {
+					if( $('#filetable tr.selectedItem').length > 0 ) {
+						e.preventDefault();
+						self.showMultiDeleteDialog();
+					} else {
+						var item = $('.highlightedItem');
+						if( item.length )
+							self.showDeleteFileDialog( item.data( 'filename' ) );
+					}
 				}
 				break;
 			case 'e':
-				var item = $('.highlightedItem');
-				if( item.length && ! item.hasClass( 'isDir' ) ) {
-					e.preventDefault();
-					var action = item.data( 'eaction' );
-					switch( action ) {
-						case 'extract':
-							self.extractFileDialog( item.data( 'filename' ) );
-							break;
-						case 'edit':
-							self.editFile( item.data( 'filename' ) );
+				if( self.config.edit ) {
+					var item = $('.highlightedItem');
+					if( item.length && ! item.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						var action = item.data( 'eaction' );
+						switch( action ) {
+							case 'extract':
+								self.showExtractFileDialog( item.data( 'filename' ) );
+								break;
+							case 'edit':
+								self.editFile( item.data( 'filename' ) );
+						}
 					}
 				}
 				break;
@@ -748,24 +1062,34 @@ function IFM() {
 				self.refreshFileTable();
 				break;
 			case 'u':
-				e.preventDefault();
-				self.uploadFileDialog();
+				if( self.config.upload ) {
+					e.preventDefault();
+					self.showUploadFileDialog();
+				}
 				break;
 			case 'o':
-				e.preventDefault();
-				self.remoteUploadDialog();
+				if( self.config.remoteupload ) {
+					e.preventDefault();
+					self.showRemoteUploadDialog();
+				}
 				break;
 			case 'a':
-				e.preventDefault();
-				self.ajaxRequestDialog();
+				if( self.config.ajaxrequest ) {
+					e.preventDefault();
+					self.showAjaxRequestDialog();
+				}
 				break;
 			case 'F':
-				e.preventDefault();
-				self.showFileForm();
+				if( self.config.createfile ) {
+					e.preventDefault();
+					self.showFileDialog();
+				}
 				break;
 			case 'D':
-				e.preventDefault();
-				self.createDirForm();
+				if( self.config.createdir ) {
+					e.preventDefault();
+					self.showCreateDirDialog();
+				}
 				break;
 			case 'h':
 			case 'ArrowLeft':
@@ -796,38 +1120,106 @@ function IFM() {
 				}
 				break;
 			case ' ': // todo: make it work only when noting other is focused
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) {
-					e.preventDefault();
-					var item = $('.highlightedItem');
-					if( item.is( 'tr' ) )
-						item.toggleClass( 'selectedItem' );
+			case 'Enter':
+				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) { 
+					var trParent = $(':focus').parent().parent();
+					if( e.key == 'Enter' && trParent.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						e.stopPropagation();
+						self.changeDirectory( trParent.data( 'filename' ) );
+					} else if( e.key == ' ' && ! trParent.is( ':first-child' ) ) {
+						e.preventDefault();
+						e.stopPropagation();
+						var item = $('.highlightedItem');
+						if( item.is( 'tr' ) )
+							item.toggleClass( 'selectedItem' );
+					}
 				}
 				break;
 		}
-
-		console.log( "key: "+e.key );
 	}
 
-	// initialization
-	this.init = function() {
+	/**
+	 * Initializes the application
+	 */
+	this.initLoadConfig = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getConfig"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.config = d;
+				self.log( "configuration loaded" );
+				self.initLoadTemplates();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load configuration" );
+			}
+		});
+	};
+	
+	this.initLoadTemplates = function() {
+		// load the templates from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getTemplates"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.templates = d;
+				self.log( "templates loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+	
+	this.initApplication = function() {
+		self.rootElement.html(
+			Mustache.render(
+				self.templates.app,
+				{
+					showpath: "/",
+					config: self.config,
+					ftbuttons: function(){
+						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
+					}
+				}
+			)
+		);
 		// bind static buttons
 		$("#refresh").click(function(){
 			self.refreshFileTable();
 		});
 		$("#createFile").click(function(){
-			self.showFileForm();
+			self.showFileDialog();
 		});
 		$("#createDir").click(function(){
-			self.createDirForm();
+			self.showCreateDirDialog();
 		});
 		$("#upload").click(function(){
-			self.uploadFileDialog();
+			self.showUploadFileDialog();
 		});
 		$('#currentDir').on( 'keypress', function (event) {
 			if( event.keyCode == 13 ) {
 				event.preventDefault();
 				self.changeDirectory( $(this).val(), { absolute: true } );
 			}
+		});
+		$('#buttonRemoteUpload').on( 'click', function() {
+			self.showRemoteUploadDialog();
+			return false;
+		});
+		$('#buttonAjaxRequest').on( 'click', function() {
+			self.showAjaxRequestDialog();
+			return false;
 		});
 		// handle keystrokes
 		$(document).on( 'keydown', self.handleKeystrokes );
@@ -840,7 +1232,9 @@ function IFM() {
 			this.refreshFileTable();
 		}
 	};
-}
 
-var ifm = new IFM();
-ifm.init();
+	this.init = function( id ) {
+		self.rootElement = $('#'+id);
+		this.initLoadConfig();
+	};
+}

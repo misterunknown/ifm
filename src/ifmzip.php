@@ -13,6 +13,9 @@
 */
 
 class IFMZip {
+	/**
+	 * Add a folder to the zip file
+	 */
 	private static function folderToZip($folder, &$zipFile, $exclusiveLength) {
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
@@ -34,7 +37,10 @@ class IFMZip {
 		closedir( $handle );
 	}
 
-	public static function create_zip( $src, $out, $root=false )
+	/**
+	 * Create a zip file
+	 */
+	public static function create( $src, $out, $root=false )
 	{
 		$z = new ZipArchive();
 		$z->open( $out, ZIPARCHIVE::CREATE);
@@ -53,11 +59,14 @@ class IFMZip {
 		}
 	}
 
-	public static function unzip_file( $file ) {
-		$zip = new ZipArchive();
+	/**
+	 * Unzip a zip file
+	 */
+	public static function extract( $file, $destination="./" ) {
+		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
-			$zip->extractTo( './' );
+			$zip->extractTo( $destination );
 			$zip->close();
 			return true;
 		} else {
