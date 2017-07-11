@@ -333,7 +333,8 @@ function IFM( params ) {
 	 * @param string content - content of the modal
 	 * @param object options - options for the modal
 	 */
-	this.showModal = function( content, options = {} ) {
+	this.showModal = function( content, options ) {
+		options = options || {};
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
 			.attr( 'id', 'ifmmodal' )
@@ -522,7 +523,8 @@ function IFM( params ) {
 	 * @param string newdir - target directory
 	 * @param object options - options for changing the directory
 	 */
-	this.changeDirectory = function( newdir, options={} ) {
+	this.changeDirectory = function( newdir, options ) {
+		options = options || {};
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
@@ -1559,7 +1561,7 @@ function IFM( params ) {
 	 */
 
 	private function handleRequest() {
-		if($_REQUEST["api"] == "getRealpath") {
+		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
 				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
@@ -1599,7 +1601,7 @@ function IFM( params ) {
 						break;
 				}
 			} else {
-				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
+				print json_encode( array( "status" => "ERROR", "message" => "No valid working directory" ) );
 			}
 		}
 		exit( 0 );
@@ -1613,7 +1615,7 @@ function IFM( params ) {
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
 			$this->mode = $mode;
-			if ( isset( $_REQUEST['api'] ) || $mode == "api" ) {
+			if( isset( $_REQUEST['api'] ) || $mode == "api" ) {
 				$this->handleRequest();
 			} elseif( $mode == "standalone" ) {
 				$this->getApplication();
@@ -1642,7 +1644,7 @@ function IFM( params ) {
 				else {
 					$item = array();
 					$item["name"] = $result;
-					if( is_dir($result) ) {
+					if( is_dir( $result ) ) {
 						$item["type"] = "dir";
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
@@ -1750,7 +1752,7 @@ function IFM( params ) {
 	}
 
 	// creates a directory
-	private function createDir($w, $dn) {
+	private function createDir( $w, $dn ) {
 		if( $this->config['createDir'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
 			exit( 1 );
