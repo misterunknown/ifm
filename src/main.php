@@ -306,8 +306,8 @@ class IFM {
 	}
 
 	// creates a directory
-	private function createDir( $w, $dn ) {
-		if( $this->config['createDir'] != 1 ) {
+	private function createDir($w, $dn) {
+		if( $this->config['createdir'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
 			exit( 1 );
 		}
