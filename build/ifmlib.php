@@ -2546,45 +2546,6 @@ f00bar;
 </tbody>
 
 f00bar;
-		$templates['file'] = <<<'f00bar'
-<form id="formFile">
-<div class="modal-body">
-	<fieldset>
-		<label>Filename:</label>
-		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
-		<div id="content" name="content"></div><br>
-		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
-		<div class="hide" id="editoroptions-head">options</div>
-		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>
-			<input type="checkbox" id="editor-softtabs"> use soft tabs</input>
-			<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>
-		</div>
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
-	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
-	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
-</div>
-</form>
-
-f00bar;
-		$templates['createdir'] = <<<'f00bar'
-<form id="formCreateDir">
-<div class="modal-body">
-	<fieldset>
-		<label>Directoy name:</label>
-		<input class="form-control" type="text" name="dirname" value="" />
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonSave">Save</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
-</div>
-</form>
-
-f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
 <form id="formAjaxRequest">
 <div class="modal-body">

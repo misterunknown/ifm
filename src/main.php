@@ -965,12 +965,6 @@ f00bar;
 		$templates['filetable'] = <<<'f00bar'
 @@@src/templates/filetable.html@@@
 f00bar;
-		$templates['file'] = <<<'f00bar'
-@@@src/templates/modal.file.html@@@
-f00bar;
-		$templates['createdir'] = <<<'f00bar'
-@@@src/templates/modal.createdir.html@@@
-f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
 @@@src/templates/modal.ajaxrequest.html@@@
 f00bar;
