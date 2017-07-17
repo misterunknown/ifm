@@ -1,2 +1,3 @@
-ifm.php -diff
-build/* -diff
+ifm.php		-diff
+ifm.min.php	-diff
+build/*		-diff
