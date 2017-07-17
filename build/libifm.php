@@ -2137,7 +2137,6 @@ function IFM( params ) {
 				break;
 			case "file":
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
-					$lines = file( $srcopt );
 					list( $uname, $hash ) = explode( ":", fgets( fopen( $srcopt, 'r' ) ) );
 					return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				} else {

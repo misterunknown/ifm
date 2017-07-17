@@ -14,7 +14,7 @@ $IFM_SRC_JS = "src/ifm.js";
 
 $IFM_BUILD_STANDALONE = "ifm.php";
 $IFM_BUILD_STANDALONE_COMPRESSED = "ifm.min.php";
-$IFM_BUILD_LIB_PHP = "build/ifmlib.php";
+$IFM_BUILD_LIB_PHP = "build/libifm.php";
 
 /**
  * Prepare main script
@@ -42,11 +42,11 @@ foreach( $IFM_SRC_PHPFILES as $file ) {
 file_put_contents( $IFM_BUILD_STANDALONE, $main );
 file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
 file_put_contents( $IFM_BUILD_STANDALONE, '
-	/**
-	 * start IFM
-	 */
-	$ifm = new IFM();
-	$ifm->run();
+/**
+ * start IFM
+ */
+$ifm = new IFM();
+$ifm->run();
 ', FILE_APPEND );
 
 /**

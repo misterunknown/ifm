@@ -2796,8 +2796,8 @@ class IFMZip {
 	}
 }
 
-	/**
-	 * start IFM
-	 */
-	$ifm = new IFM();
-	$ifm->run();
+/**
+ * start IFM
+ */
+$ifm = new IFM();
+$ifm->run();
