@@ -41,12 +41,12 @@ foreach( $IFM_SRC_PHPFILES as $file ) {
 file_put_contents( $IFM_BUILD_STANDALONE, $main );
 file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
 file_put_contents( $IFM_BUILD_STANDALONE, array(
-	'',
-	'/**',
-	' * start IFM',
-	' */',
-	'$ifm = new IFM();',
-	'$ifm->run();'
+	"\n",
+	"/**\n",
+	" * start IFM\n",
+	" */\n",
+	"$ifm = new IFM();\n",
+	"$ifm->run();\n"
 ), FILE_APPEND );
 
 /**

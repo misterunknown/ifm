@@ -21,7 +21,8 @@ function IFM( params ) {
 	 * @param string content - content of the modal
 	 * @param object options - options for the modal
 	 */
-	this.showModal = function( content, options = {} ) {
+	this.showModal = function( content, options ) {
+		options = options || {};
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
 			.attr( 'id', 'ifmmodal' )
@@ -210,7 +211,8 @@ function IFM( params ) {
 	 * @param string newdir - target directory
 	 * @param object options - options for changing the directory
 	 */
-	this.changeDirectory = function( newdir, options={} ) {
+	this.changeDirectory = function( newdir, options ) {
+		options = options || {};
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
