@@ -13,7 +13,8 @@ $IFM_SRC_PHPFILES = array( "src/ifmzip.php" );
 $IFM_SRC_JS = "src/ifm.js";
 
 $IFM_BUILD_STANDALONE = "ifm.php";
-$IFM_BUILD_LIB_PHP = "build/ifmlib.php";
+$IFM_BUILD_STANDALONE_COMPRESSED = "ifm.min.php";
+$IFM_BUILD_LIB_PHP = "build/libifm.php";
 
 /**
  * Prepare main script
@@ -40,14 +41,18 @@ foreach( $IFM_SRC_PHPFILES as $file ) {
  */
 file_put_contents( $IFM_BUILD_STANDALONE, $main );
 file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
-file_put_contents( $IFM_BUILD_STANDALONE, array(
-	'',
-	'/**',
-	' * start IFM',
-	' */',
-	'$ifm = new IFM();',
-	'$ifm->run();'
-), FILE_APPEND );
+file_put_contents( $IFM_BUILD_STANDALONE, '
+/**
+ * start IFM
+ */
+$ifm = new IFM();
+$ifm->run();
+', FILE_APPEND );
+
+/**
+ * Build compressed standalone script
+ */
+file_put_contents( $IFM_BUILD_STANDALONE_COMPRESSED, '<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>' . gzencode( file_get_contents( "ifm.php", false, null, 5 ) ) );
 
 /**
  * Build library

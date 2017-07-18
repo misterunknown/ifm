@@ -333,7 +333,8 @@ function IFM( params ) {
 	 * @param string content - content of the modal
 	 * @param object options - options for the modal
 	 */
-	this.showModal = function( content, options = {} ) {
+	this.showModal = function( content, options ) {
+		options = options || {};
 		var modal = $( document.createElement( 'div' ) )
 			.addClass( "modal fade" )
 			.attr( 'id', 'ifmmodal' )
@@ -522,7 +523,8 @@ function IFM( params ) {
 	 * @param string newdir - target directory
 	 * @param object options - options for changing the directory
 	 */
-	this.changeDirectory = function( newdir, options={} ) {
+	this.changeDirectory = function( newdir, options ) {
+		options = options || {};
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
 		if( ! config.absolute ) newdir = self.pathCombine( self.currentDir, newdir );
@@ -1405,6 +1407,7 @@ function IFM( params ) {
 				break;
 			case 'h':
 			case 'ArrowLeft':
+			case 'Backspace':
 				e.preventDefault();
 				self.changeDirectory( '..' );
 				break;
@@ -1559,7 +1562,7 @@ function IFM( params ) {
 	 */
 
 	private function handleRequest() {
-		if($_REQUEST["api"] == "getRealpath") {
+		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
 				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
@@ -1599,7 +1602,7 @@ function IFM( params ) {
 						break;
 				}
 			} else {
-				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
+				print json_encode( array( "status" => "ERROR", "message" => "No valid working directory" ) );
 			}
 		}
 		exit( 0 );
@@ -1613,7 +1616,7 @@ function IFM( params ) {
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
 			$this->mode = $mode;
-			if ( isset( $_REQUEST['api'] ) || $mode == "api" ) {
+			if( isset( $_REQUEST['api'] ) || $mode == "api" ) {
 				$this->handleRequest();
 			} elseif( $mode == "standalone" ) {
 				$this->getApplication();
@@ -1642,7 +1645,7 @@ function IFM( params ) {
 				else {
 					$item = array();
 					$item["name"] = $result;
-					if( is_dir($result) ) {
+					if( is_dir( $result ) ) {
 						$item["type"] = "dir";
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
@@ -2543,45 +2546,6 @@ f00bar;
 </tbody>
 
 f00bar;
-		$templates['file'] = <<<'f00bar'
-<form id="formFile">
-<div class="modal-body">
-	<fieldset>
-		<label>Filename:</label>
-		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
-		<div id="content" name="content"></div><br>
-		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
-		<div class="hide" id="editoroptions-head">options</div>
-		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>
-			<input type="checkbox" id="editor-softtabs"> use soft tabs</input>
-			<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>
-		</div>
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
-	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
-	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
-</div>
-</form>
-
-f00bar;
-		$templates['createdir'] = <<<'f00bar'
-<form id="formCreateDir">
-<div class="modal-body">
-	<fieldset>
-		<label>Directoy name:</label>
-		<input class="form-control" type="text" name="dirname" value="" />
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonSave">Save</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
-</div>
-</form>
-
-f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
 <form id="formAjaxRequest">
 <div class="modal-body">
@@ -2834,4 +2798,9 @@ class IFMZip {
 		}
 	}
 }
-/** * start IFM */$ifm = new IFM();$ifm->run();
+
+/**
+ * start IFM
+ */
+$ifm = new IFM();
+$ifm->run();
