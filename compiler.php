@@ -40,14 +40,14 @@ foreach( $IFM_SRC_PHPFILES as $file ) {
  */
 file_put_contents( $IFM_BUILD_STANDALONE, $main );
 file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
-file_put_contents( $IFM_BUILD_STANDALONE, array(
-	'',
-	'/**',
-	' * start IFM',
-	' */',
-	'$ifm = new IFM();',
-	'$ifm->run();'
-), FILE_APPEND );
+file_put_contents( $IFM_BUILD_STANDALONE,
+'
+/**
+ * start IFM
+ */
+$ifm = new IFM();
+$ifm->run();'
+, FILE_APPEND );
 
 /**
  * Build library

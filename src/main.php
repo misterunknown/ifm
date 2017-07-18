@@ -115,7 +115,7 @@ class IFM {
 	 */
 
 	private function handleRequest() {
-		if($_REQUEST["api"] == "getRealpath") {
+		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
 				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
@@ -155,7 +155,7 @@ class IFM {
 						break;
 				}
 			} else {
-				print json_encode(array("status"=>"ERROR", "message"=>"No valid working directory"));
+				print json_encode( array( "status" => "ERROR", "message" => "No valid working directory" ) );
 			}
 		}
 		exit( 0 );
@@ -169,7 +169,7 @@ class IFM {
 			else
 				chdir( realpath( $this->config['root_dir'] ) );
 			$this->mode = $mode;
-			if ( isset( $_REQUEST['api'] ) || $mode == "api" ) {
+			if( isset( $_REQUEST['api'] ) || $mode == "api" ) {
 				$this->handleRequest();
 			} elseif( $mode == "standalone" ) {
 				$this->getApplication();
@@ -198,7 +198,7 @@ class IFM {
 				else {
 					$item = array();
 					$item["name"] = $result;
-					if( is_dir($result) ) {
+					if( is_dir( $result ) ) {
 						$item["type"] = "dir";
 						if( $result == ".." )
 							$item["icon"] = "icon icon-up-open";
