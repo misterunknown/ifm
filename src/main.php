@@ -363,14 +363,17 @@ class IFM {
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
-		if( $this->config['edit'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
+		if( $this->config['edit'] != 1 )
+			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( file_exists( $d['filename'] ) ) {
+			if( file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
-				$utf8content = mb_convert_encoding( $content, 'UTF-8', mb_detect_encoding( $content, 'UTF-8, ISO-8859-1', true ) );
-				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $utf8content ) ) );
-			} else echo json_encode( array( "status" => "ERROR", "message" => "File not found" ) );
+				file_put_contents( "debugifm.txt", "content: ".$content."\n\n\n" );
+				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
+					$content = utf8_encode( $content );
+				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
+			} else echo json_encode( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
 		}
 	}
 
