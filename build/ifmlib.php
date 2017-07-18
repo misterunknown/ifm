@@ -2216,8 +2216,11 @@ function IFM( params ) {
 				return $rpDir;
 			elseif( $rpDir == $rpConfig )
 				return "";
-			else
-				return substr( $rpDir, strlen( $rpConfig ) + 1 );
+			else {
+				$part = substr( $rpDir, strlen( $rpConfig ) );
+				$part = ( in_array( substr( $part, 0, 1 ), ["/", "\\"] ) ) ? substr( $part, 1 ) : $part;
+				return $part;
+			}
 		}
 	}
 
