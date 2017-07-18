@@ -1095,6 +1095,7 @@ function IFM( params ) {
 				break;
 			case 'h':
 			case 'ArrowLeft':
+			case 'Backspace':
 				e.preventDefault();
 				self.changeDirectory( '..' );
 				break;
