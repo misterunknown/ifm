@@ -9,7 +9,7 @@
 chdir( realpath( dirname( __FILE__ ) ) );
 
 $IFM_SRC_MAIN = "src/main.php";
-$IFM_SRC_PHPFILES = array( "src/ifmzip.php" );
+$IFM_SRC_PHPFILES = array( "src/ifmzip.php", "src/htpasswd.php" );
 $IFM_SRC_JS = "src/ifm.js";
 
 $IFM_BUILD_STANDALONE = "ifm.php";
@@ -51,8 +51,6 @@ $ifm->run();
 
 /**
  * Build compressed standalone script
- */
-/*
  * file_put_contents( $IFM_BUILD_STANDALONE_COMPRESSED, '<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>' . gzencode( file_get_contents( "ifm.php", false, null, 5 ) ) );
  */
 

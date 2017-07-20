@@ -15,12 +15,12 @@ ini_set( 'display_errors', 'OFF' );
 
 
 class IFM {
-	const VERSION = '2.4.0';
+	const VERSION = '2.4.2';
 
 	private $defaultconfig = array(
 		// general config
 		"auth" => 0,
-		"auth_source" => 'inlineadmin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
+		"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 		"root_dir" => "",
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
@@ -131,7 +131,12 @@ class IFM {
 			$this->getConfig();
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->getTemplates() );
-		}	else {
+		} elseif( $_REQUEST["api"] == "logout" ) {
+			unset( $_SESSION );
+			session_destroy();
+			header( "Location: " . strtok( $_SERVER["REQUEST_URI"], '?' ) );
+			exit( 0 );
+		} else {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) ) {
 				switch( $_REQUEST["api"] ) {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
@@ -693,8 +698,8 @@ class IFM {
 				break;
 			case "file":
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
-					list( $uname, $hash ) = explode( ":", fgets( fopen( $srcopt, 'r' ) ) );
-					return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
+					$htpasswd = new Htpasswd( $srcopt );
+					return $htpasswd->verify( $user, $pass );
 				} else {
 					return false;
 				}
