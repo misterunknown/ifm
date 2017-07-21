@@ -421,7 +421,6 @@ f00bar;
 			$this->chDirIfNecessary( $d['dir'] );
 			if( file_exists( $d['filename'] ) && is_file( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
-				file_put_contents( "debugifm.txt", "content: ".$content."\n\n\n" );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
 					$content = utf8_encode( $content );
 				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
