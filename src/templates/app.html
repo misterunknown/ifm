@@ -41,6 +41,9 @@
 								{{#config.ajaxrequest}}
 								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> ajax request</a></li>
 								{{/config.ajaxrequest}}
+								{{#config.auth}}
+								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> logout</a></li>
+								{{/config.auth}}
 							</ul>
 						</li>
 					</ul>

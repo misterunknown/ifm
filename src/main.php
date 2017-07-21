@@ -19,7 +19,7 @@ class IFM {
 
 	private $defaultconfig = array(
 		// general config
-		"auth" => 0,
+		"auth" => 1,
 		"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 		"root_dir" => "",
 		"tmp_dir" => "",
@@ -52,36 +52,66 @@ class IFM {
 	);
 
 	private $config = array();
+	private $templates = array();
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
 		if( session_status() !== PHP_SESSION_ACTIVE )
 			session_start();
 		$this->config = array_merge( $this->defaultconfig, $config );
+
+		$templates = array();
+		$templates['app'] = <<<'f00bar'
+@@@src/templates/app.html@@@
+f00bar;
+		$templates['login'] = <<<'f00bar'
+@@@src/templates/login.html@@@
+f00bar;
+		$templates['filetable'] = <<<'f00bar'
+@@@src/templates/filetable.html@@@
+f00bar;
+		$templates['ajaxrequest'] = <<<'f00bar'
+@@@src/templates/modal.ajaxrequest.html@@@
+f00bar;
+		$templates['copymove'] = <<<'f00bar'
+@@@src/templates/modal.copymove.html@@@
+f00bar;
+		$templates['createdir'] = <<<'f00bar'
+@@@src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['deletefile'] = <<<'f00bar'
+@@@src/templates/modal.deletefile.html@@@
+f00bar;
+		$templates['extractfile'] = <<<'f00bar'
+@@@src/templates/modal.extractfile.html@@@
+f00bar;
+		$templates['file'] = <<<'f00bar'
+@@@src/templates/modal.file.html@@@
+f00bar;
+		$templates['multidelete'] = <<<'f00bar'
+@@@src/templates/modal.multidelete.html@@@
+f00bar;
+		$templates['remoteupload'] = <<<'f00bar'
+@@@src/templates/modal.remoteupload.html@@@
+f00bar;
+		$templates['renamefile'] = <<<'f00bar'
+@@@src/templates/modal.renamefile.html@@@
+f00bar;
+		$templates['uploadfile'] = <<<'f00bar'
+@@@src/templates/modal.uploadfile.html@@@
+f00bar;
+		$this->templates = $templates;
 	}
 
 	/**
 	 * This function contains the client-side application
 	 */
 	public function getApplication() {
-		print '<!DOCTYPE HTML>
-		<html>
-			<head>
-				<title>IFM - improved file manager</title>
-				<meta charset="utf-8">
-				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1">';
-		$this->getCSS();
-		print '
-			</head>
-			<body>
-				<div id="ifm"></div>';
+		$this->getHTMLHeader();
+		print '<div id="ifm"></div>';
 		$this->getJS();
-		print '
-			<script>var ifm = new IFM(); ifm.init( "ifm" );</script>
-			</body>
-			</html>
-		';
+		print '<script>var ifm = new IFM(); ifm.init( "ifm" );</script>';
+		$this->getHTMLFooter();
 	}
 
 	public function getInlineApplication() {
@@ -110,6 +140,22 @@ class IFM {
 		';
 	}
 
+	public function getHTMLHeader() {
+		print '<!DOCTYPE HTML>
+		<html>
+			<head>
+				<title>IFM - improved file manager</title>
+				<meta charset="utf-8">
+				<meta http-equiv="X-UA-Compatible" content="IE=edge">
+				<meta name="viewport" content="width=device-width, initial-scale=1">';
+		$this->getCSS();
+		print '</head><body>';
+	}
+
+	public function getHTMLFooter() {
+		print '</body></html>';
+	}
+
 	/*
 	   main functions
 	 */
@@ -130,7 +176,7 @@ class IFM {
 		elseif( $_REQUEST["api"] == "getConfig" ) {
 			$this->getConfig();
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
-			echo json_encode( $this->getTemplates() );
+			echo json_encode( $this->templates );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
@@ -732,30 +778,12 @@ class IFM {
 	}
 
 	private function loginForm($loginFailed=false) {
-		print '<!DOCTYPE HTML>
-			<html>
-			<head>
-				<title>IFM - improved file manager</title>
-				<meta charset="utf-8">
-				<style type="text/css">
-					* { box-sizing: border-box; font-family: Monospace, Arial, sans-serif; }
-					html { text-align: center; }
-					body { margin:auto; width: auto; display: inline-block; }
-					form { padding: 1em; border: 1px dotted #CCC; }
-					button { margin: 3px; margin-top: 10px; padding: 9px 12px; border: 1px solid #444; border-radius: 2px; font-size: 0.9em; font-weight: bold; text-transform: uppercase; cursor: pointer; background: #444; color: #fff; }
-					div.err { color: red; font-weight: bold; margin-bottom: 1em; }
-				</style>
-				</head>
-				<body>
-				<h1>IFM - Login</h1>
-				<form method="post">';
-		if($loginFailed){ print '<div class="err">Login attempt failed. Please try again.</div>'; }
-		print '<label>username:</label> <input type="text" name="user" size="12"><br>
-			<label>password:</label> <input type="password" name="pass" size="12"><br>
-			<button type="submit">login</button>
-			</form>
-			</body>
-			</html>';
+		$err = "";
+		if( $loginFailed ) 
+			$err = '<div class="alert alert-danger">Login failed.</div>';
+		$this->getHTMLHeader();
+		print str_replace( "{{error}}", $err, $this->templates['login'] );
+		$this->getHTMLFooter();
 	}
 
 	private function filePermsDecode( $perms ) {
@@ -965,45 +993,4 @@ class IFM {
 		fclose($stdout_stream);
 	}
 
-	private function getTemplates() {
-		$templates = array();
-		$templates['app'] = <<<'f00bar'
-@@@src/templates/app.html@@@
-f00bar;
-		$templates['filetable'] = <<<'f00bar'
-@@@src/templates/filetable.html@@@
-f00bar;
-		$templates['ajaxrequest'] = <<<'f00bar'
-@@@src/templates/modal.ajaxrequest.html@@@
-f00bar;
-		$templates['copymove'] = <<<'f00bar'
-@@@src/templates/modal.copymove.html@@@
-f00bar;
-		$templates['createdir'] = <<<'f00bar'
-@@@src/templates/modal.createdir.html@@@
-f00bar;
-		$templates['deletefile'] = <<<'f00bar'
-@@@src/templates/modal.deletefile.html@@@
-f00bar;
-		$templates['extractfile'] = <<<'f00bar'
-@@@src/templates/modal.extractfile.html@@@
-f00bar;
-		$templates['file'] = <<<'f00bar'
-@@@src/templates/modal.file.html@@@
-f00bar;
-		$templates['multidelete'] = <<<'f00bar'
-@@@src/templates/modal.multidelete.html@@@
-f00bar;
-		$templates['remoteupload'] = <<<'f00bar'
-@@@src/templates/modal.remoteupload.html@@@
-f00bar;
-		$templates['renamefile'] = <<<'f00bar'
-@@@src/templates/modal.renamefile.html@@@
-f00bar;
-		$templates['uploadfile'] = <<<'f00bar'
-@@@src/templates/modal.uploadfile.html@@@
-f00bar;
-
-		return $templates;
-	}
 }
