@@ -124,6 +124,7 @@ f00bar;
 		print '
 			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
 		';
 	}
