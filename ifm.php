@@ -1708,82 +1708,61 @@ function IFM( params ) {
 	 */
 	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
-		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
+		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
 			return;
-		}
 
 		switch( e.key ) {
-			case 'Delete':
-				if( self.config.delete ) {
-					if( $('#filetable tr.selectedItem').length > 0 ) {
-						e.preventDefault();
-						self.showMultiDeleteDialog();
-					} else {
-						var item = $('.highlightedItem');
-						if( item.length )
-							self.showDeleteFileDialog( item.data( 'filename' ) );
-					}
-				}
-				break;
-			case 'e':
-				if( self.config.edit ) {
-					var item = $('.highlightedItem');
-					if( item.length && ! item.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						var action = item.data( 'eaction' );
-						switch( action ) {
-							case 'extract':
-								self.showExtractFileDialog( item.data( 'filename' ) );
-								break;
-							case 'edit':
-								self.editFile( item.data( 'filename' ) );
-						}
-					}
-				}
-				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
+				return;
 				break;
 			case 'r':
 				e.preventDefault();
 				self.refreshFileTable();
+				return;
 				break;
 			case 'u':
 				if( self.config.upload ) {
 					e.preventDefault();
 					self.showUploadFileDialog();
 				}
+				return;
 				break;
 			case 'o':
 				if( self.config.remoteupload ) {
 					e.preventDefault();
 					self.showRemoteUploadDialog();
 				}
+				return;
 				break;
 			case 'a':
 				if( self.config.ajaxrequest ) {
 					e.preventDefault();
 					self.showAjaxRequestDialog();
 				}
+				return;
 				break;
 			case 'F':
 				if( self.config.createfile ) {
 					e.preventDefault();
 					self.showFileDialog();
 				}
+				return;
 				break;
 			case 'D':
 				if( self.config.createdir ) {
 					e.preventDefault();
 					self.showCreateDirDialog();
 				}
+				return;
 				break;
 			case 'h':
 			case 'ArrowLeft':
 			case 'Backspace':
 				e.preventDefault();
 				self.changeDirectory( '..' );
+				return;
 				break;
 			case 'l':
 			case 'ArrowRight':
@@ -1791,22 +1770,26 @@ function IFM( params ) {
 				var item = $('.highlightedItem');
 				if( item.hasClass('isDir') )
 					self.changeDirectory( item.data( 'filename' ) );
+				return;
 				break;
 			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
 				self.highlightItem('next');
+				return;
 				break;
 			case 'k':
 			case 'ArrowUp':
 				e.preventDefault();
 				self.highlightItem('prev');
+				return;
 				break;
 			case 'Escape':
 				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
 					e.preventDefault();
 					$('.highlightedItem').removeClass( 'highlightedItem' );
 				}
+				return;
 				break;
 			case ' ': // todo: make it work only when noting other is focused
 			case 'Enter':
@@ -1824,6 +1807,58 @@ function IFM( params ) {
 							item.toggleClass( 'selectedItem' );
 					}
 				}
+				return;
+				break;
+		}
+
+		/**
+		 * Some operations do not work if the highlighted item is the parent
+		 * directory. In these cases the keybindings are ignored.
+		 */
+		if( $('.highlightedItem').data( 'filename' ) == ".." )
+			return;
+
+		switch( e.key ) {
+			case 'Delete':
+				if( self.config.delete ) {
+					if( $('#filetable tr.selectedItem').length > 0 ) {
+						e.preventDefault();
+						self.showMultiDeleteDialog();
+					} else {
+						var item = $('.highlightedItem');
+						if( item.length )
+							self.showDeleteFileDialog( item.data( 'filename' ) );
+					}
+				}
+				return;
+				break;
+			case 'c':
+			case 'm':
+				if( self.config.copymove ) {
+					var item = $('.highlightedItem');
+					if( item.length ) {
+						e.preventDefault();
+						self.showCopyMoveDialog( item.data( 'filename' ) );
+					}
+				}
+				return;
+				break;
+			case 'e':
+				if( self.config.edit ) {
+					var item = $('.highlightedItem');
+					if( item.length && ! item.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						var action = item.data( 'eaction' );
+						switch( action ) {
+							case 'extract':
+								self.showExtractFileDialog( item.data( 'filename' ) );
+								break;
+							case 'edit':
+								self.editFile( item.data( 'filename' ) );
+						}
+					}
+				}
+				return;
 				break;
 		}
 	}
@@ -1990,7 +2025,6 @@ function IFM( params ) {
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "getFolderTree":
-						sleep(10);
 						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
 						break;
 					default:
@@ -2120,7 +2154,7 @@ function IFM( params ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid destination directory given." ) );
 			exit( 1 );
 		}
-		if( ! file_exists( $d['filename'] ) ) {
+		if( ! file_exists( $d['filename'] ) || $d['filename'] == ".." ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid filename given." ) );
 			exit( 1 );
 		}
@@ -2210,7 +2244,7 @@ function IFM( params ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
+			if( file_exists( $d['filename'] ) && is_file( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
 				file_put_contents( "debugifm.txt", "content: ".$content."\n\n\n" );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
@@ -2282,6 +2316,8 @@ function IFM( params ) {
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
+		} elseif( $d['filename'] == ".." ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid file name given" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )

@@ -1022,82 +1022,61 @@ function IFM( params ) {
 	 */
 	this.handleKeystrokes = function( e ) {
 		// bind 'del' key
-		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] ) {
+		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
 			return;
-		}
 
 		switch( e.key ) {
-			case 'Delete':
-				if( self.config.delete ) {
-					if( $('#filetable tr.selectedItem').length > 0 ) {
-						e.preventDefault();
-						self.showMultiDeleteDialog();
-					} else {
-						var item = $('.highlightedItem');
-						if( item.length )
-							self.showDeleteFileDialog( item.data( 'filename' ) );
-					}
-				}
-				break;
-			case 'e':
-				if( self.config.edit ) {
-					var item = $('.highlightedItem');
-					if( item.length && ! item.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						var action = item.data( 'eaction' );
-						switch( action ) {
-							case 'extract':
-								self.showExtractFileDialog( item.data( 'filename' ) );
-								break;
-							case 'edit':
-								self.editFile( item.data( 'filename' ) );
-						}
-					}
-				}
-				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
+				return;
 				break;
 			case 'r':
 				e.preventDefault();
 				self.refreshFileTable();
+				return;
 				break;
 			case 'u':
 				if( self.config.upload ) {
 					e.preventDefault();
 					self.showUploadFileDialog();
 				}
+				return;
 				break;
 			case 'o':
 				if( self.config.remoteupload ) {
 					e.preventDefault();
 					self.showRemoteUploadDialog();
 				}
+				return;
 				break;
 			case 'a':
 				if( self.config.ajaxrequest ) {
 					e.preventDefault();
 					self.showAjaxRequestDialog();
 				}
+				return;
 				break;
 			case 'F':
 				if( self.config.createfile ) {
 					e.preventDefault();
 					self.showFileDialog();
 				}
+				return;
 				break;
 			case 'D':
 				if( self.config.createdir ) {
 					e.preventDefault();
 					self.showCreateDirDialog();
 				}
+				return;
 				break;
 			case 'h':
 			case 'ArrowLeft':
 			case 'Backspace':
 				e.preventDefault();
 				self.changeDirectory( '..' );
+				return;
 				break;
 			case 'l':
 			case 'ArrowRight':
@@ -1105,22 +1084,26 @@ function IFM( params ) {
 				var item = $('.highlightedItem');
 				if( item.hasClass('isDir') )
 					self.changeDirectory( item.data( 'filename' ) );
+				return;
 				break;
 			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
 				self.highlightItem('next');
+				return;
 				break;
 			case 'k':
 			case 'ArrowUp':
 				e.preventDefault();
 				self.highlightItem('prev');
+				return;
 				break;
 			case 'Escape':
 				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
 					e.preventDefault();
 					$('.highlightedItem').removeClass( 'highlightedItem' );
 				}
+				return;
 				break;
 			case ' ': // todo: make it work only when noting other is focused
 			case 'Enter':
@@ -1138,6 +1121,58 @@ function IFM( params ) {
 							item.toggleClass( 'selectedItem' );
 					}
 				}
+				return;
+				break;
+		}
+
+		/**
+		 * Some operations do not work if the highlighted item is the parent
+		 * directory. In these cases the keybindings are ignored.
+		 */
+		if( $('.highlightedItem').data( 'filename' ) == ".." )
+			return;
+
+		switch( e.key ) {
+			case 'Delete':
+				if( self.config.delete ) {
+					if( $('#filetable tr.selectedItem').length > 0 ) {
+						e.preventDefault();
+						self.showMultiDeleteDialog();
+					} else {
+						var item = $('.highlightedItem');
+						if( item.length )
+							self.showDeleteFileDialog( item.data( 'filename' ) );
+					}
+				}
+				return;
+				break;
+			case 'c':
+			case 'm':
+				if( self.config.copymove ) {
+					var item = $('.highlightedItem');
+					if( item.length ) {
+						e.preventDefault();
+						self.showCopyMoveDialog( item.data( 'filename' ) );
+					}
+				}
+				return;
+				break;
+			case 'e':
+				if( self.config.edit ) {
+					var item = $('.highlightedItem');
+					if( item.length && ! item.hasClass( 'isDir' ) ) {
+						e.preventDefault();
+						var action = item.data( 'eaction' );
+						switch( action ) {
+							case 'extract':
+								self.showExtractFileDialog( item.data( 'filename' ) );
+								break;
+							case 'edit':
+								self.editFile( item.data( 'filename' ) );
+						}
+					}
+				}
+				return;
 				break;
 		}
 	}

@@ -329,7 +329,7 @@ f00bar;
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid destination directory given." ) );
 			exit( 1 );
 		}
-		if( ! file_exists( $d['filename'] ) ) {
+		if( ! file_exists( $d['filename'] ) || $d['filename'] == ".." ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid filename given." ) );
 			exit( 1 );
 		}
@@ -419,7 +419,7 @@ f00bar;
 			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
+			if( file_exists( $d['filename'] ) && is_file( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
 				file_put_contents( "debugifm.txt", "content: ".$content."\n\n\n" );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
@@ -491,6 +491,8 @@ f00bar;
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
+		} elseif( $d['filename'] == ".." ) {
+			echo json_encode( array( "status" => "ERROR", "message" => "No valid file name given" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
