@@ -200,7 +200,7 @@ f00bar;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "getFolderTree":
-						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => realpath( $this->config['root_dir'] ) ) ) ), $this->getFolderTreeRecursive( $this->config['root_dir'] ) ) );
+						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => $this->getRootDir() ) ) ), $this->getFolderTreeRecursive( $this->getRootDir() ) ) );
 						break;
 					default:
 						echo json_encode( array( "status" => "ERROR", "message" => "No valid api action given" ) );
@@ -301,7 +301,7 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( realpath( $this->config['root_dir'] ) == dirname( __FILE__ ) ) ? "true" : "false";
+		$ret['isDocroot'] = ( $this->getRootDir() == dirname( __FILE__ ) ) ? "true" : "false";
 		echo json_encode( $ret );
 	}
 
@@ -800,12 +800,27 @@ f00bar;
 		);
 	}
 
+	private function isAbsolutePath( $path ) {
+		if( $path === null || $path === '' )
+			return false;
+		return $path[0] === DIRECTORY_SEPARATOR || preg_match('~\A[A-Z]:(?![^/\\\\])~i',$path) > 0;
+	}
+
+	private function getRootDir() {
+		if( $this->config['root_dir'] == "" )
+			return realpath( dirname( __FILE__ ) );
+		elseif( $this->isAbsolutePath( $this->config['root_dir'] ) )
+			return realpath( $this->config['root_dir'] );
+		else
+			return realpath( $this->pathCombine( dirname( __FILE__ ), $this->config['root_dir'] ) );
+	}
+
 	private function getValidDir( $dir ) {
-		if( ! $this->isPathValid( $dir ) || ! is_dir( $dir ) ) {
+		if( ! $this->isPathValid( $dir ) || ! is_dir( $dir ) )
 			return "";
-		} else {
+		else {
 			$rpDir = realpath( $dir );
-			$rpConfig = realpath( $this->config['root_dir'] );
+			$rpConfig = $this->getRootDir();
 			if( $rpConfig == "/" )
 				return $rpDir;
 			elseif( $rpDir == $rpConfig )
@@ -817,6 +832,7 @@ f00bar;
 			}
 		}
 	}
+
 
 	private function isPathValid( $dir ) {
 		/**
@@ -831,7 +847,7 @@ f00bar;
 			$tmp_d = dirname( $tmp_d );
 		}
 		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
-		$rpConfig = ( $this->config['root_dir'] == "" ) ? realpath( dirname( __FILE__ ) ) : realpath( $this->config['root_dir'] );
+		$rpConfig = $this->getRootDir();
 		if( ! is_string( $rpDir ) || ! is_string( $rpConfig ) ) // can happen if open_basedir is in effect
 			return false;
 		elseif( $rpDir == $rpConfig )
@@ -948,7 +964,7 @@ f00bar;
 		elseif( trim( $a ) == "" )
 			return ltrim( $b, '/' );
 		else
-			return rtrim( $a, '/' ) . '/' . ltrim( $b, '/' );
+			return rtrim( $a, '/' ) . '/' . trim( $b, '/' );
 	}
 
 	// check if filename is allowed
