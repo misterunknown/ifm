@@ -422,7 +422,7 @@ f00bar;
 <div class="modal-body">
 	<fieldset>
 		<label>Upload file</label><br>
-		<input class="file" type="file" name="ufile" id="ufile"><br>
+		<input class="file" type="file" name="files" multiple><br>
 		<label>new filename</label>
 		<input class="form-control" type="text" name="newfilename"><br>
 	</fieldset>
@@ -1298,8 +1298,21 @@ function IFM( params ) {
 		self.showModal( self.templates.uploadfile );
 		var form = $('#formUploadFile');
 		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonUpload' ).on( 'click', function() {
-			self.uploadFile();
+		form.find( 'input[name=files]' ).on( 'change', function( e ) {
+			if( e.target.files.length > 1 )
+				form.find( 'input[name=newfilename]' ).attr( 'readonly', true );
+			else 
+				form.find( 'input[name=newfilename]' ).attr( 'readonly', false );
+		});
+		form.find( '#buttonUpload' ).on( 'click', function( e ) {
+			e.preventDefault();
+			var files = form.find( 'input[name=files]' )[0].files;
+			if( files.length > 1 )
+				for( var i = 0; i < files.length; i++ ) {
+					self.uploadFile( files[i] );
+				}
+			else
+				self.uploadFile( files[0], form.find( 'input[name=newfilename]' ).val() );
 			self.hideModal();
 			return false;
 		});
@@ -1312,14 +1325,13 @@ function IFM( params ) {
 	/**
 	 * Uploads a file
 	 */
-	this.uploadFile = function() {
-		var ufile = document.getElementById( 'ufile' ).files[0];
+	this.uploadFile = function( file, newfilename ) {
 		var data = new FormData();
-		var newfilename = $("#formUploadFile input[name^=newfilename]").val();
-		data.append('api', 'upload');
-		data.append('dir', self.currentDir);
-		data.append('file', ufile);
-		data.append('newfilename', newfilename);
+ 		data.append( 'api', 'upload' );
+ 		data.append( 'dir', self.currentDir );
+ 		data.append( 'file', file );
+		if( newfilename )
+			data.append( 'newfilename', newfilename );
 		var id = self.generateGuid();
 		$.ajax({
 			url: self.api,
@@ -1331,7 +1343,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+newfilename+' done.') } ;
+				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -1343,7 +1355,7 @@ function IFM( params ) {
 			error: function() { self.showMessage("General error occured", "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add("Upload "+ufile.name, id);
+		self.task_add("Upload "+file.name, id);
 	};
 
 	/**
