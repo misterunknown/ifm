@@ -266,6 +266,7 @@ f00bar;
 						$item["type"] = "file";
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
+						$item["ext"] = strtolower($type);
 					}
 					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
 					if( $this->config['showfilesize'] == 1 ) {
