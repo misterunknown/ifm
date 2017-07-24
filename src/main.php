@@ -70,6 +70,12 @@ f00bar;
 		$templates['filetable'] = <<<'f00bar'
 @@@src/templates/filetable.html@@@
 f00bar;
+		$templates['footer'] = <<<'f00bar'
+@@@src/templates/footer.html@@@
+f00bar;
+		$templates['task'] = <<<'f00bar'
+@@@src/templates/task.html@@@
+f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
 @@@src/templates/modal.ajaxrequest.html@@@
 f00bar;

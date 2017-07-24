@@ -59,7 +59,7 @@ function IFM( params ) {
 	 */
 	this.refreshFileTable = function () {
 		var id = self.generateGuid();
-		self.task_add( "Refresh", id );
+		self.task_add( { id: id, name: "Refresh" } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -519,7 +519,7 @@ function IFM( params ) {
 	 */
 	this.copyMove = function( source, destination, action ) {
 		var id = self.generateGuid();
-		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
+		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -610,8 +610,21 @@ function IFM( params ) {
 		self.showModal( self.templates.uploadfile );
 		var form = $('#formUploadFile');
 		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonUpload' ).on( 'click', function() {
-			self.uploadFile();
+		form.find( 'input[name=files]' ).on( 'change', function( e ) {
+			if( e.target.files.length > 1 )
+				form.find( 'input[name=newfilename]' ).attr( 'readonly', true );
+			else 
+				form.find( 'input[name=newfilename]' ).attr( 'readonly', false );
+		});
+		form.find( '#buttonUpload' ).on( 'click', function( e ) {
+			e.preventDefault();
+			var files = form.find( 'input[name=files]' )[0].files;
+			if( files.length > 1 )
+				for( var i = 0; i < files.length; i++ ) {
+					self.uploadFile( files[i] );
+				}
+			else
+				self.uploadFile( files[0], form.find( 'input[name=newfilename]' ).val() );
 			self.hideModal();
 			return false;
 		});
@@ -624,14 +637,13 @@ function IFM( params ) {
 	/**
 	 * Uploads a file
 	 */
-	this.uploadFile = function() {
-		var ufile = document.getElementById( 'ufile' ).files[0];
+	this.uploadFile = function( file, newfilename ) {
 		var data = new FormData();
-		var newfilename = $("#formUploadFile input[name^=newfilename]").val();
-		data.append('api', 'upload');
-		data.append('dir', self.currentDir);
-		data.append('file', ufile);
-		data.append('newfilename', newfilename);
+ 		data.append( 'api', 'upload' );
+ 		data.append( 'dir', self.currentDir );
+ 		data.append( 'file', file );
+		if( newfilename )
+			data.append( 'newfilename', newfilename );
 		var id = self.generateGuid();
 		$.ajax({
 			url: self.api,
@@ -643,7 +655,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+newfilename+' done.') } ;
+				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -655,7 +667,7 @@ function IFM( params ) {
 			error: function() { self.showMessage("General error occured", "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add("Upload "+ufile.name, id);
+		self.task_add( { id: id, name: "Upload " + file.name } );
 	};
 
 	/**
@@ -739,7 +751,7 @@ function IFM( params ) {
 			error: function() { ifm.showMessage("General error occured", "e"); },
 			complete: function() { ifm.task_done(id); }
 		});
-		ifm.task_add("Remote upload: "+filename, id);
+		ifm.task_add( { id: id, name: "Remote upload: "+filename } );
 	};
 
 	/**
@@ -878,23 +890,32 @@ function IFM( params ) {
 	/**
 	 * Adds a task to the taskbar.
 	 *
-	 * @param string name - description of the task
-	 * @param string id - identifier for the task
+	 * @param object task - description of the task: { id: "guid", name: "Task Name", type: "(info|warning|danger|success)" }
 	 */
-	this.task_add = function( name, id ) {
-		if( ! document.getElementById( "waitqueue" ) ) {
-			$( document.body ).prepend( '<div id="waitqueue"></div>' );
+	this.task_add = function( task ) {
+		if( ! task.id ) {
+			console.log( "Error: No task id given.");
+			return false;
 		}
-		$( "#waitqueue" ).prepend('\
-			<div id="'+id+'" class="panel panel-default">\
-				<div class="panel-body">\
-					<div class="progress">\
-						<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>\
-						<span class="progbarlabel">'+name+'</span>\
-					</div>\
-				</div>\
-			</div>\
-		');
+		if( ! document.querySelector( "footer" ) ) {
+			$( document.body ).append( Mustache.render( self.templates.footer ) );
+			$( 'a[name=showAll]' ).on( 'click', function( e ) {
+				var f = $( 'footer' );
+				if( f.css( 'maxHeight' ) == '80%' ) {
+					f.css( 'maxHeight', '6em' );
+					f.css( 'overflow', 'hidden' );
+				} else {
+					f.css( 'maxHeight', '80%' );
+					f.css( 'overflow', 'scroll' );
+				}
+			});
+			$(document.body).css( 'padding-bottom', '6em' );
+		}
+		task.id = "wq-"+task.id;
+		task.type = task.type || "info";
+		var wq = $( "#waitqueue" );
+		wq.prepend( Mustache.render( self.templates.task, task ) );
+		$( 'span[name=taskCount]' ).text( wq.find( '>div' ).length );
 	};
 
 	/**
@@ -902,11 +923,13 @@ function IFM( params ) {
 	 *
 	 * @param string id - task identifier
 	 */
-	this.task_done = function(id) {
-		$("#"+id).remove();
-		if($("#waitqueue>div").length == 0) {
-			$("#waitqueue").remove();
+	this.task_done = function( id ) {
+		$( '#wq-'+id ).remove();
+		if( $( '#waitqueue>div' ).length == 0) {
+			$( 'footer' ).remove();
+			$( document.body ).css( 'padding-bottom', '0' );
 		}
+		$( 'span[name=taskCount]' ).text( $('#waitqueue>div').length );
 	};
 
 	/**
@@ -915,8 +938,8 @@ function IFM( params ) {
 	 * @param integer progress - percentage of status
 	 * @param string id - task identifier
 	 */
-	this.task_update = function(progress, id) {
-		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
+	this.task_update = function( progress, id ) {
+		$('#wq-'+id+' .progress-bar').css( 'width', progress+'%' ).attr( 'aria-valuenow', progress );
 	};
 
 	/**
@@ -1259,6 +1282,28 @@ function IFM( params ) {
 			self.showAjaxRequestDialog();
 			return false;
 		});
+		$(document).on( 'dragover', function( e ) {
+			e.preventDefault();
+			e.stopPropagation();
+			console.log( e );
+			$('#filedropoverlay').css( 'display', 'block' );
+		});
+		$( '#filedropoverlay' )
+			.on( 'drop', function( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+				console.log( e );
+				var files = e.originalEvent.dataTransfer.files;
+				for( var i = 0; i < files.length; i++ ) {
+					self.uploadFile( files[i] );
+				}
+				$('#filedropoverlay').css( 'display', 'none' );
+			})
+			.on( 'dragleave', function( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+				$('#filedropoverlay').css( 'display', 'none' );
+			});
 		// handle keystrokes
 		$(document).on( 'keydown', self.handleKeystrokes );
 		// handle history manipulation

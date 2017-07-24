@@ -36,25 +36,23 @@ input[name=newperms] { width: 7em; }
 
 #navbar { max-width: 100%; }
 
-div.footer { color: #adadad; font-size: 10pt; }
-div.footer div.panel-body { padding: 5px !important; }
+div.ifminfo { color: #adadad; font-size: 10pt; }
+div.ifminfo div.panel-body { padding: 5px !important; }
 
 @media (max-width: 768px) {
 	.icon { font-size: 12pt; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
-#waitqueue {
+footer {
 	position: fixed;
-	display: block;
-	bottom: 1em;
+	padding-top: 1em;
+	border-top: 1px;
+	background-color: #EEE;
+	bottom: 0;
 	width: 100%;
-	text-align: center;
-}
-
-#waitqueue > div {
-	width: 75%;
-	margin: auto;
+	max-height: 6em;
+	overflow:hidden;
 }
 
 #waitqueue .progress {
@@ -66,4 +64,27 @@ div.footer div.panel-body { padding: 5px !important; }
 	top: 0;
 	left: 10px;
 	font-weight: bold;
+}
+
+#filedropoverlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	background-color: #FFF;
+	filter: alpha(opacity=50);
+	-moz-opacity: 0.5;
+	opacity: 0.5;    
+}
+
+#filedropoverlay div {
+    border-radius: 5px;
+    color: #000;
+    background-color: #fff;
+    position:relative;
+    top:50%;
+	font-size: 6em;
 }
