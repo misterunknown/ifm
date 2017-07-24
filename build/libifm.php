@@ -114,6 +114,9 @@ class IFM {
 				</div>
 			</div>
 		</nav>
+		<div id="filedropoverlay">
+			<div>Drop files to upload</div>
+		</div>
 		<div class="container">
 			<table id="filetable" class="table">
 				<thead>
@@ -606,7 +609,6 @@ f00bar;
 			<style type="text/css">';?> body {
 	padding-top: 70px;
 	overflow-y: scroll;
-	padding-bottom: 7em;
 }
 
 .icon {
@@ -670,6 +672,29 @@ footer {
 	top: 0;
 	left: 10px;
 	font-weight: bold;
+}
+
+#filedropoverlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	background-color: #FFF;
+	filter: alpha(opacity=50);
+	-moz-opacity: 0.5;
+	opacity: 0.5;    
+}
+
+#filedropoverlay div {
+    border-radius: 5px;
+    color: #000;
+    background-color: #fff;
+    position:relative;
+    top:50%;
+	font-size: 6em;
 }
  <?php print '</style>
 		';
@@ -1992,6 +2017,28 @@ function IFM( params ) {
 			self.showAjaxRequestDialog();
 			return false;
 		});
+		$(document).on( 'dragover', function( e ) {
+			e.preventDefault();
+			e.stopPropagation();
+			console.log( e );
+			$('#filedropoverlay').css( 'display', 'block' );
+		});
+		$( '#filedropoverlay' )
+			.on( 'drop', function( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+				console.log( e );
+				var files = e.originalEvent.dataTransfer.files;
+				for( var i = 0; i < files.length; i++ ) {
+					self.uploadFile( files[i] );
+				}
+				$('#filedropoverlay').css( 'display', 'none' );
+			})
+			.on( 'dragleave', function( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+				$('#filedropoverlay').css( 'display', 'none' );
+			});
 		// handle keystrokes
 		$(document).on( 'keydown', self.handleKeystrokes );
 		// handle history manipulation

@@ -65,3 +65,26 @@ footer {
 	left: 10px;
 	font-weight: bold;
 }
+
+#filedropoverlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	background-color: #FFF;
+	filter: alpha(opacity=50);
+	-moz-opacity: 0.5;
+	opacity: 0.5;    
+}
+
+#filedropoverlay div {
+    border-radius: 5px;
+    color: #000;
+    background-color: #fff;
+    position:relative;
+    top:50%;
+	font-size: 6em;
+}
