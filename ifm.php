@@ -643,6 +643,7 @@ input[name=newperms] { width: 7em; }
 #filetable tbody tr.highlightedItem td:first-child a { outline: none; }
 #filetable tbody tr.selectedItem { background-color: #337ab7; color: #FFF; }
 #filetable tbody tr.selectedItem * a { color: #FFF; }
+#filetable tbody tr td { vertical-align: inherit; }
 
 #navbar { max-width: 100%; }
 
@@ -839,17 +840,17 @@ function IFM( params ) {
 				item.download.icon = "icon icon-download";
 				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
 					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
-				if( item.name.toLowerCase().substr(-4) == ".zip" )
+				if( item.ext == ".zip" )
 					item.eaction = "extract";
 				else
 					item.eaction = "edit";
-				if( self.config.edit && item.name.toLowerCase().substr(-4) != ".zip" )
+				if( self.config.edit && item.ext != ".zip" && item.icon.indexOf( 'file-image' ) == -1)
 					item.button.push({
 						action: "edit",
 						icon: "icon icon-pencil",
 						title: "edit"
 					});
-				if( self.config.extract && item.name.toLowerCase().substr(-4) == ".zip" )
+				if( self.config.extract && item.ext == ".zip" )
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
@@ -2181,6 +2182,7 @@ function IFM( params ) {
 						$item["type"] = "file";
 						$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
+						$item["ext"] = strtolower($type);
 					}
 					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
 					if( $this->config['showfilesize'] == 1 ) {
