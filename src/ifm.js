@@ -1034,7 +1034,8 @@ function IFM( params ) {
 	 */
 	this.historyPopstateHandler = function(event) {
 		var dir = "";
-		if( event.state && event.state.dir ) dir = decodeURIComponent( event.state.dir );
+		if( event.state && event.state.dir )
+			dir = event.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
 
@@ -1310,7 +1311,7 @@ function IFM( params ) {
 		window.onpopstate = self.historyPopstateHandler;
 		// load initial file table
 		if( window.location.hash ) {
-			self.changeDirectory( window.location.hash.substring( 1 ) );
+			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
 		} else {
 			this.refreshFileTable();
 		}
