@@ -372,7 +372,8 @@ f00bar;
 		}
 		if( $dn == "" ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid directory name") );
-		} elseif( strpos( $dn, '/' ) !== false ) echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in directory names" ) );
+		} elseif( ! $this->isFilenameValid( $dn ) )
+			echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in directory names" ) );
 		else {
 			$this->chDirIfNecessary( $w );
 			if( @mkdir( $dn ) ) {
@@ -497,7 +498,7 @@ f00bar;
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
-		} elseif( $d['filename'] == ".." ) {
+		} elseif( ! $this->isFilenameValid( $d['filename'] ) ) {
 			echo json_encode( array( "status" => "ERROR", "message" => "No valid file name given" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
@@ -636,8 +637,8 @@ f00bar;
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) )
 				echo json_encode( array( "status" => "ERROR", "message" => "Directory not found" ) );
-			elseif ( ! $this->allowedFileName( $d['filename'] ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Filename not allowed" ) );
+			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
+				echo json_encode( array( "status" => "ERROR", "message" => "Filename not valid" ) );
 			else {
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
@@ -672,8 +673,8 @@ f00bar;
 			$this->chDirIfNecessary( $d['dir'] );
 			$ch = curl_init( );
 			if( $ch ) {
-				if( $this->allowedFileName( $filename ) == false )
-					echo json_encode( array( "status" => "ERROR", "message" => "This filename is not allowed due to the config." ) );
+				if( $this->isFilenameValid( $filename ) == false )
+					echo json_encode( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
 				elseif( filter_var( $d['url'], FILTER_VALIDATE_URL ) === false )
 					echo json_encode( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
 				else {
@@ -976,7 +977,7 @@ f00bar;
 	}
 
 	// check if filename is allowed
-	private function allowedFileName( $f ) {
+	private function isFilenameValid( $f ) {
 		if( $this->config['showhtdocs'] != 1 && substr( $f, 0, 3 ) == ".ht" )
 			return false;
 		elseif( $this->config['showhiddenfiles'] != 1 && substr( $f, 0, 1 ) == "." )
