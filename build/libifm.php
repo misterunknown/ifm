@@ -145,7 +145,7 @@ class IFM {
 			</table>
 		</div>
 		<div class="container">
-			<div class="panel panel-default footer"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+			<div class="panel panel-default ifminfo"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
 		</div>
 
 f00bar;
@@ -259,6 +259,31 @@ f00bar;
 </tr>
 {{/items}}
 </tbody>
+
+f00bar;
+		$templates['footer'] = <<<'f00bar'
+<footer class="footer">
+<div class="container">
+	<div class="row">
+		<div class="col-xs-1">
+			<a name="showAll">Tasks <span class="badge" name="taskCount">1</span></a>
+		</div>
+		<div id="waitqueue" class="col-xs-11">
+		</div>
+	</div> <!-- row -->
+</div> <!-- container -->
+</footer>
+
+f00bar;
+		$templates['task'] = <<<'f00bar'
+<div id="{{id}}" class="panel panel-default">
+<div class="panel-body">
+	<div class="progress">
+		<div class="progress-bar progress-bar-{{type}} progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>
+		<span class="progbarlabel">{{name}}</span>
+	</div>
+</div>
+</div>
 
 f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
@@ -581,6 +606,7 @@ f00bar;
 			<style type="text/css">';?> body {
 	padding-top: 70px;
 	overflow-y: scroll;
+	padding-bottom: 7em;
 }
 
 .icon {
@@ -616,25 +642,23 @@ input[name=newperms] { width: 7em; }
 
 #navbar { max-width: 100%; }
 
-div.footer { color: #adadad; font-size: 10pt; }
-div.footer div.panel-body { padding: 5px !important; }
+div.ifminfo { color: #adadad; font-size: 10pt; }
+div.ifminfo div.panel-body { padding: 5px !important; }
 
 @media (max-width: 768px) {
 	.icon { font-size: 12pt; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
-#waitqueue {
+footer {
 	position: fixed;
-	display: block;
-	bottom: 1em;
+	padding-top: 1em;
+	border-top: 1px;
+	background-color: #EEE;
+	bottom: 0;
 	width: 100%;
-	text-align: center;
-}
-
-#waitqueue > div {
-	width: 75%;
-	margin: auto;
+	max-height: 6em;
+	overflow:hidden;
 }
 
 #waitqueue .progress {
@@ -745,7 +769,7 @@ function IFM( params ) {
 	 */
 	this.refreshFileTable = function () {
 		var id = self.generateGuid();
-		self.task_add( "Refresh", id );
+		self.task_add( { id: id, name: "Refresh" } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1205,7 +1229,7 @@ function IFM( params ) {
 	 */
 	this.copyMove = function( source, destination, action ) {
 		var id = self.generateGuid();
-		self.task_add( action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination, id );
+		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1353,7 +1377,7 @@ function IFM( params ) {
 			error: function() { self.showMessage("General error occured", "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add("Upload "+file.name, id);
+		self.task_add( { id: id, name: "Upload " + file.name } );
 	};
 
 	/**
@@ -1437,7 +1461,7 @@ function IFM( params ) {
 			error: function() { ifm.showMessage("General error occured", "e"); },
 			complete: function() { ifm.task_done(id); }
 		});
-		ifm.task_add("Remote upload: "+filename, id);
+		ifm.task_add( { id: id, name: "Remote upload: "+filename } );
 	};
 
 	/**
@@ -1576,23 +1600,32 @@ function IFM( params ) {
 	/**
 	 * Adds a task to the taskbar.
 	 *
-	 * @param string name - description of the task
-	 * @param string id - identifier for the task
+	 * @param object task - description of the task: { id: "guid", name: "Task Name", type: "(info|warning|danger|success)" }
 	 */
-	this.task_add = function( name, id ) {
-		if( ! document.getElementById( "waitqueue" ) ) {
-			$( document.body ).prepend( '<div id="waitqueue"></div>' );
+	this.task_add = function( task ) {
+		if( ! task.id ) {
+			console.log( "Error: No task id given.");
+			return false;
 		}
-		$( "#waitqueue" ).prepend('\
-			<div id="'+id+'" class="panel panel-default">\
-				<div class="panel-body">\
-					<div class="progress">\
-						<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemax="100" style="width:100%"></div>\
-						<span class="progbarlabel">'+name+'</span>\
-					</div>\
-				</div>\
-			</div>\
-		');
+		if( ! document.querySelector( "footer" ) ) {
+			$( document.body ).append( Mustache.render( self.templates.footer ) );
+			$( 'a[name=showAll]' ).on( 'click', function( e ) {
+				var f = $( 'footer' );
+				if( f.css( 'maxHeight' ) == '80%' ) {
+					f.css( 'maxHeight', '6em' );
+					f.css( 'overflow', 'hidden' );
+				} else {
+					f.css( 'maxHeight', '80%' );
+					f.css( 'overflow', 'scroll' );
+				}
+			});
+			$(document.body).css( 'padding-bottom', '6em' );
+		}
+		task.id = "wq-"+task.id;
+		task.type = task.type || "info";
+		var wq = $( "#waitqueue" );
+		wq.prepend( Mustache.render( self.templates.task, task ) );
+		$( 'span[name=taskCount]' ).text( wq.find( '>div' ).length );
 	};
 
 	/**
@@ -1600,11 +1633,13 @@ function IFM( params ) {
 	 *
 	 * @param string id - task identifier
 	 */
-	this.task_done = function(id) {
-		$("#"+id).remove();
-		if($("#waitqueue>div").length == 0) {
-			$("#waitqueue").remove();
+	this.task_done = function( id ) {
+		$( '#wq-'+id ).remove();
+		if( $( '#waitqueue>div' ).length == 0) {
+			$( 'footer' ).remove();
+			$( document.body ).css( 'padding-bottom', '0' );
 		}
+		$( 'span[name=taskCount]' ).text( $('#waitqueue>div').length );
 	};
 
 	/**
@@ -1613,8 +1648,8 @@ function IFM( params ) {
 	 * @param integer progress - percentage of status
 	 * @param string id - task identifier
 	 */
-	this.task_update = function(progress, id) {
-		$('#'+id+' .progress-bar').css('width', progress+'%').attr('aria-valuenow', progress);    
+	this.task_update = function( progress, id ) {
+		$('#wq-'+id+' .progress-bar').css( 'width', progress+'%' ).attr( 'aria-valuenow', progress );
 	};
 
 	/**
