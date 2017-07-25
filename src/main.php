@@ -993,7 +993,7 @@ f00bar;
 					return false;
 		}
 		// custom limitations
-		foreach( $this->config->forbiddenChars as $char )
+		foreach( $this->config['forbiddenChars'] as $char )
 			if( strpos( $f, $char ) !== false )
 				return false;
 		return true;
