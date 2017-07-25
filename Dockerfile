@@ -2,14 +2,11 @@ FROM alpine:3.5
 
 ENV PHP_INI_DIR /etc/php5
 
-# ensure www-data user exists
+# ensure apache user exists with the desired uid
 RUN set -x \
-    && addgroup -g 82 -S www-data \
-    && adduser -u 82 -D -S -G www-data www-data
-# 82 is the standard uid/gid for "www-data" in Alpine
-# http://git.alpinelinux.org/cgit/aports/tree/main/apache2/apache2.pre-install?h=v3.3.2
-# http://git.alpinelinux.org/cgit/aports/tree/main/lighttpd/lighttpd.pre-install?h=v3.3.2
-# http://git.alpinelinux.org/cgit/aports/tree/main/nginx-initscripts/nginx-initscripts.pre-install?h=v3.3.2
+    && deluser xfs \
+    && addgroup -g 33 -S apache \
+    && adduser -u 33 -D -S -G apache apache
 
 RUN set -xe; \
     apk add --no-cache --virtual .image-runtime-deps \
@@ -44,7 +41,7 @@ RUN set -xe; \
 
 RUN mkdir -p /run/apache2 \
     && mv /var/www/localhost/htdocs /var/www/html \
-    && chown -R www-data:www-data /var/www \
+    && chown -R apache:apache /var/www \
     && chmod g+ws /var/www/html \
     && rm /var/www/html/index.html \
     && rm -Rf /var/www/localhost \
