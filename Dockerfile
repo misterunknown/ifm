@@ -80,7 +80,7 @@ RUN { \
         echo 'error_log = "/var/www/php.log"';      \
     } > $PHP_INI_DIR/conf.d/ZZ_ifm.ini 
     
-COPY docker/apache2-foreground /usr/local/bin/
+COPY apache2-foreground /usr/local/bin/
 
 COPY ifm.php /var/www/html/index.php
 
