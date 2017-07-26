@@ -2056,14 +2056,12 @@ function IFM( params ) {
 		$(document).on( 'dragover', function( e ) {
 			e.preventDefault();
 			e.stopPropagation();
-			console.log( e );
 			$('#filedropoverlay').css( 'display', 'block' );
 		});
 		$( '#filedropoverlay' )
 			.on( 'drop', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				console.log( e );
 				var files = e.originalEvent.dataTransfer.files;
 				for( var i = 0; i < files.length; i++ ) {
 					self.uploadFile( files[i] );
@@ -3078,7 +3076,6 @@ class IFMArchive {
 		if( ! file_exists( $file ) )
 			return false;
 		$tar = new PharData( $file );
-		file_put_contents( "debug.txt", "Exist: asparagus?" . ( file_exists( "asparagus") ? "yes" : "no" ) );
 		try {
 			$tar->extractTo( $destination, null, true );
 			return true;

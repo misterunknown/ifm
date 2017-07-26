@@ -78,7 +78,6 @@ class IFMArchive {
 		if( ! file_exists( $file ) )
 			return false;
 		$tar = new PharData( $file );
-		file_put_contents( "debug.txt", "Exist: asparagus?" . ( file_exists( "asparagus") ? "yes" : "no" ) );
 		try {
 			$tar->extractTo( $destination, null, true );
 			return true;

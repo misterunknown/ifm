@@ -1317,14 +1317,12 @@ function IFM( params ) {
 		$(document).on( 'dragover', function( e ) {
 			e.preventDefault();
 			e.stopPropagation();
-			console.log( e );
 			$('#filedropoverlay').css( 'display', 'block' );
 		});
 		$( '#filedropoverlay' )
 			.on( 'drop', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				console.log( e );
 				var files = e.originalEvent.dataTransfer.files;
 				for( var i = 0; i < files.length; i++ ) {
 					self.uploadFile( files[i] );
