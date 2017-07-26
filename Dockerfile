@@ -1,6 +1,22 @@
 FROM alpine:3.5
 
 ENV PHP_INI_DIR /etc/php5
+# general settings
+ENV IFM_AUTH=0                                                  \
+    IFM_AUTH_SOURCE='inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC'                               \
+    IFM_ROOT_DIR=""                                             \
+    IFM_TMP_DIR=""                                              \
+    IFM_DEFAULTTIMEZONE="Europe/Berlin"
+# api controls
+ENV IFM_API_AJAXREQUEST=1 IFM_API_CHMOD=1 IFM_API_COPYMOVE=1    \
+    IFM_API_CREATEDIR=1 IFM_API_CREATEFILE=1 IFM_API_EDIT=1     \
+    IFM_API_DELETE=1 IFM_API_DOWNLOAD=1 IFM_API_EXTRACT=1       \
+    IFM_API_UPLOAD=1 IFM_API_REMOTEUPLOAD=1 IFM_API_RENAME=1    \
+	IFM_API_ZIPNLOAD=1
+# gui controls
+ENV IFM_GUI_SHOWLASTMODIFIED=0 IFM_GUI_SHOWFILESIZE=1 IFM_GUI_SHOWOWNER=1   \
+    IFM_GUI_SHOWGROUP=1 IFM_GUI_SHOWPERMISSIONS=2 IFM_GUI_SHOWHTDOCS=1      \
+    IFM_GUI_SHOWHIDDENFILES=1 IFM_GUI_SHOWPATH=0
 
 # ensure apache user exists with the desired uid
 RUN set -x \
@@ -76,13 +92,13 @@ RUN { \
         echo 'log_errors = On';                     \
         echo 'error_log = "/var/www/php.log"';      \
     } > $PHP_INI_DIR/conf.d/ZZ_ifm.ini 
-    
-COPY apache2-foreground /usr/local/bin/
+
+COPY docker-startup.sh /usr/local/bin/
 
 COPY ifm.php /var/www/html/index.php
 
 WORKDIR /var/www
 
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD ["docker-startup.sh"]
 
