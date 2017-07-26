@@ -9,7 +9,7 @@
 chdir( realpath( dirname( __FILE__ ) ) );
 
 $IFM_SRC_MAIN = "src/main.php";
-$IFM_SRC_PHPFILES = array( "src/ifmzip.php", "src/htpasswd.php" );
+$IFM_SRC_PHPFILES = array( "src/ifmarchive.php", "src/htpasswd.php" );
 $IFM_SRC_JS = "src/ifm.js";
 
 $IFM_BUILD_STANDALONE = "ifm.php";

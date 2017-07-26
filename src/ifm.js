@@ -102,22 +102,21 @@ function IFM( params ) {
 				item.download.icon = "icon icon-download";
 				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
 					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
-				if( item.ext == "zip" )
+				if( self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
-				else
-					item.eaction = "edit";
-				if( self.config.edit && item.ext != "zip" && item.icon.indexOf( 'file-image' ) == -1)
-					item.button.push({
-						action: "edit",
-						icon: "icon icon-pencil",
-						title: "edit"
-					});
-				if( self.config.extract && item.ext == "zip" )
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
 						title: "extract"
 					});
+				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1) {
+					item.eaction = "edit";
+					item.button.push({
+						action: "edit",
+						icon: "icon icon-pencil",
+						title: "edit"
+					});
+				}
 			}
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				if( self.config.copymove )

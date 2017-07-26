@@ -12,7 +12,7 @@
  * this was adapted from http://php.net/manual/de/class.ziparchive.php#110719
 */
 
-class IFMZip {
+class IFMArchive {
 	/**
 	 * Add a folder to the zip file
 	 */
@@ -40,7 +40,7 @@ class IFMZip {
 	/**
 	 * Create a zip file
 	 */
-	public static function create( $src, $out, $root=false )
+	public static function createZip( $src, $out, $root=false )
 	{
 		$z = new ZipArchive();
 		$z->open( $out, ZIPARCHIVE::CREATE);
@@ -62,7 +62,7 @@ class IFMZip {
 	/**
 	 * Unzip a zip file
 	 */
-	public static function extract( $file, $destination="./" ) {
+	public static function extractZip( $file, $destination="./" ) {
 		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
@@ -72,5 +72,23 @@ class IFMZip {
 		} else {
 			return false;
 		}
+	}
+
+	public static function extractTar( $file, $destination="./" ) {
+		if( ! file_exists( $file ) )
+			return false;
+		$tar = new PharData( $file );
+		file_put_contents( "debug.txt", "Exist: asparagus?" . ( file_exists( "asparagus") ? "yes" : "no" ) );
+		try {
+			$tar->extractTo( $destination, null, true );
+			return true;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function createTar( $src, $out, $root=false ) {
+		$tar = new PharData( $out );
+		$tar->buildFromDirectory( $src );
 	}
 }

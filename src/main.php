@@ -264,7 +264,12 @@ f00bar;
 							$item["icon"] = "icon icon-folder-empty";
 					} else {
 						$item["type"] = "file";
-						$type = substr( strrchr( $result, "." ), 1 );
+						if( in_array( substr( $result, -7 ), array( ".tar.gz", ".tar.xz" ) ) )
+							$type = substr( $result, -6 );
+						elseif( substr( $result, -8 ) == ".tar.bz2" )
+							$type = "tar.bz2";
+						else
+							$type = substr( strrchr( $result, "." ), 1 );
 						$item["icon"] = $this->getTypeIcon( $type );
 						$item["ext"] = strtolower($type);
 					}
@@ -536,8 +541,8 @@ f00bar;
 			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
-			if( ! file_exists( $d['filename'] ) || substr( $d['filename'],-4 ) != ".zip" ) {
-				echo json_encode( array( "status" => "ERROR","message" => "No valid zip file found" ) );
+			if( ! file_exists( $d['filename'] ) ) {
+				echo json_encode( array( "status" => "ERROR","message" => "No valid archive found" ) );
 				exit( 1 );
 			}
 			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
@@ -550,11 +555,19 @@ f00bar;
 				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
 				exit( 1 );
 			}
-			if( ! IFMZip::extract( $d['filename'], $d['targetdir'] ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+			if( substr( strtolower( $d['filename'] ), -4 ) == ".zip" ) {
+				if( ! IFMArchive::extractZip( $d['filename'], $d['targetdir'] ) ) {
+					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+				} else {
+					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+				}
 			} else {
-				echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
-			}
+				if( ! IFMArchive::extractTar( $d['filename'], $d['targetdir'] ) ) {
+					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+				} else {
+					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+				}
+			} 
 		}
 	}
 
@@ -642,7 +655,7 @@ f00bar;
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMZip::create( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMArchive::createZip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -886,7 +899,7 @@ f00bar;
 			case "csv": case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
 			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
 			case "pdf": return 'icon icon-file-pdf'; break;
-			case "tgz":	case "zip": case "tar": case "7z": case "rar": return 'icon icon-file-archive';
+			case "tgz":	case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
 			default: return 'icon icon-doc';
 		}
 	}
