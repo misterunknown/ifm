@@ -2198,7 +2198,7 @@ function IFM( params ) {
 
 		if( $handle = opendir( "." ) ) {
 			while( false !== ( $result = readdir( $handle ) ) ) {
-				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && dirname( __FILE__ ) == getcwd() ) { }
+				if( $result == basename( $_SERVER['SCRIPT_NAME'] ) && $this->getScriptRoot() == getcwd() ) { }
 				elseif( ( $result == ".htaccess" || $result==".htpasswd" ) && $this->config['showhtdocs'] != 1 ) {}
 				elseif( $result == "." ) {}
 				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {}
@@ -2262,7 +2262,7 @@ function IFM( params ) {
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == dirname( __FILE__ ) ) ? "true" : "false";
+		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
 		echo json_encode( $ret );
 	}
 
@@ -2598,7 +2598,7 @@ function IFM( params ) {
 				try {
 					IFMArchive::createZip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
 					if( $d['filename'] == "." ) {
-						if( getcwd() == dirname( __FILE__ ) )
+						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
 						else
 							$d['filename'] = basename( getcwd() );
@@ -2774,11 +2774,15 @@ function IFM( params ) {
 
 	private function getRootDir() {
 		if( $this->config['root_dir'] == "" )
-			return realpath( dirname( __FILE__ ) );
+			return realpath( $this->getScriptRoot() );
 		elseif( $this->isAbsolutePath( $this->config['root_dir'] ) )
 			return realpath( $this->config['root_dir'] );
 		else
-			return realpath( $this->pathCombine( dirname( __FILE__ ), $this->config['root_dir'] ) );
+			return realpath( $this->pathCombine( $this->getScriptRoot(), $this->config['root_dir'] ) );
+	}
+
+	private function getScriptRoot() {
+		return ( defined( 'IFM_FILENAME' ) ? dirname( realpath( IFM_FILENAME ) ) : dirname( __FILE__ ) );
 	}
 
 	private function getValidDir( $dir ) {
@@ -2825,7 +2829,7 @@ function IFM( params ) {
 	}
 
 	private function chDirIfNecessary($d) {
-		if( substr( getcwd(), strlen( dirname( __FILE__ ) ) ) != $this->getValidDir($d) ) {
+		if( substr( getcwd(), strlen( $this->getScriptRoot() ) ) != $this->getValidDir($d) ) {
 			chdir( $d );
 		}
 	}
