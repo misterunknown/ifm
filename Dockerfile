@@ -37,7 +37,7 @@ RUN set -xe; \
         xz 
 
 RUN set -xe; \
-    apk add --no-cache --virtual .wordpress-runtime-deps \
+    apk add --no-cache --virtual .ifm-runtime-deps \
         apache2 \
         apache2-utils \
         php5-apache2 \
@@ -84,11 +84,11 @@ RUN mkdir -p /run/apache2 \
 RUN { \
         echo 'date.timezone = "Europe/Berlin"';     \
         echo 'zlib.output_compression = On';        \
-        echo 'zlib.output_compression_level = 6';   \  
-        echo 'memory_limit = 256M';                 \ 
-        echo 'max_execution_time = 120';             \ 
-        echo 'upload_max_filesize = 512M';           \
-        echo 'post_max_size = 512M';                 \
+        echo 'zlib.output_compression_level = 6';   \
+        echo 'memory_limit = 256M';                 \
+        echo 'max_execution_time = 120';            \
+        echo 'upload_max_filesize = 512M';          \
+        echo 'post_max_size = 512M';                \
         echo 'log_errors = On';                     \
         echo 'error_log = "/var/www/php.log"';      \
     } > $PHP_INI_DIR/conf.d/ZZ_ifm.ini 
