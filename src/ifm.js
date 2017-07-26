@@ -161,7 +161,7 @@ function IFM( params ) {
 				});
 			} else {
 				if( self.config.isDocroot )
-					$(this).attr( "href", self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) );
+					$(this).attr( "href", self.hrefEncode( self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) ) );
 				else
 					$(this).on( 'click', function() {
 						$( '#d_' + this.id ).submit();
@@ -1023,7 +1023,39 @@ function IFM( params ) {
 	 * @param string s - decoded string
 	 */
 	this.HTMLEncode = function( s ) {
-		return s.replace(/'/g, '&#39;').replace(/"/g, '&#43;');
+		return s.replace( /'/g, '&#39;').replace( /"/g, '&#43;');
+	}
+
+	/**
+	 * Encodes a string for use in the href attribute of an anchor.
+	 *
+	 * @param string s - decoded string
+	 */
+	this.hrefEncode = function( s ) {
+		return s
+			.replace( '%', '%25' )
+			.replace( ';', '%3B' )
+			.replace( '?', '%3F' )
+			.replace( ':', '%3A' )
+			.replace( '@', '%40' )
+			.replace( '&', '%26' )
+			.replace( '=', '%3D' )
+			.replace( '+', '%2B' )
+			.replace( '$', '%24' )
+			.replace( ',', '%2C' )
+			.replace( '<', '%3C' )
+			.replace( '>', '%3E' )
+			.replace( '#', '%23' )
+			.replace( '"', '%22' )
+			.replace( '{', '%7B' )
+			.replace( '}', '%7D' )
+			.replace( '|', '%7C' )
+			.replace( '^', '%5E' )
+			.replace( '[', '%5B' )
+			.replace( ']', '%5D' )
+			.replace( '`', '%60' )
+			.replace( '\\', '%5C' )
+		;
 	}
 
 	/**
