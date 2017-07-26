@@ -27,6 +27,23 @@ The IFM uses the following resources:
 ## installation
 Just copy the ifm.php to your webspace - thats all :)
 
+## docker
+
+The docker image is based on alpine 3.5 for a small image footprint, with necessary apache, php and supporting packages installed and exposes port 80.
+
+### build image
+
+Run the following command from the top source dir:
+
+`docker build -t ifm .`
+
+### run image
+
+The script is installed inside the image at `/var/www/html/index.php`. Its default configuration is unchanged, thus it will display the contents of the document root (`/var/www/html`).  
+
+Here is an example of how to start up a container with this image:
+`docker run --rm -i -p "9090:80" -v "/data:/var/www/html/data" ifm`
+
 ## key bindings
 * <kbd>e</kbd> - edit / extract current file
 * <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> - vim-style navigation (alternative to arrow keys)
