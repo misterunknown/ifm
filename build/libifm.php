@@ -2272,7 +2272,16 @@ function IFM( params ) {
 		if( $handle = opendir( $start_dir ) ) {
 			while (false !== ( $result = readdir( $handle ) ) ) {
 				if( is_dir( $this->pathCombine( $start_dir, $result ) ) && $result != "." && $result != ".." ) {
-					array_push( $ret, array( "text" => $result, "dataAttributes" => array( "path" => $this->pathCombine( $start_dir, $result ) ), "nodes" => $this->getFolderTreeRecursive( $this->pathCombine( $start_dir, $result ) ) ) );
+					array_push(
+						$ret,
+						array(
+							"text" => htmlspecialchars( $result ),
+							"dataAttributes" => array(
+								"path" => $this->pathCombine( $start_dir, $result )
+							),
+							"nodes" => $this->getFolderTreeRecursive( $this->pathCombine( $start_dir, $result ) )
+						)
+					);
 				}
 			}
 		}
