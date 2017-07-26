@@ -101,7 +101,7 @@ function IFM( params ) {
 				item.download.action = "download";
 				item.download.icon = "icon icon-download";
 				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
-					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.pathCombine( self.currentDir, item.name ) + '\' class=\'imgpreview\'>"';
+					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.HTMLEncode( self.pathCombine( self.currentDir, item.name ) ) + '\' class=\'imgpreview\'>"';
 				if( self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
 					item.button.push({
@@ -161,7 +161,7 @@ function IFM( params ) {
 				});
 			} else {
 				if( self.config.isDocroot )
-					$(this).attr( "href", self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) );
+					$(this).attr( "href", self.hrefEncode( self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) ) );
 				else
 					$(this).on( 'click', function() {
 						$( '#d_' + this.id ).submit();
@@ -394,7 +394,7 @@ function IFM( params ) {
 		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
 		var form = $( '#formDeleteFile' );
 		form.find( '#buttonYes' ).on( 'click', function() {
-			self.deleteFile( self.JSEncode( filename ) );
+			self.deleteFile( filename );
 			self.hideModal();
 			return false;
 		});
@@ -562,7 +562,7 @@ function IFM( params ) {
 		form.find('#buttonExtract').on( 'click', function() {
 			var t = form.find('input[name=extractTargetLocation]:checked').val();
 			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
-			self.extractFile( self.JSEncode( filename ), t );
+			self.extractFile( filename, t );
 			self.hideModal();
 			return false;
 		});
@@ -1018,13 +1018,45 @@ function IFM( params ) {
 	};
 
 	/**
-	 * Encodes a string for use within javascript
+	 * Encodes a string to use in HTML attributes
 	 *
-	 * @param string s - encoding string
+	 * @param string s - decoded string
 	 */
-	this.JSEncode = function(s) {
-		return s.replace(/'/g, '\\x27').replace(/"/g, '\\x22');
-	};
+	this.HTMLEncode = function( s ) {
+		return s.replace( /'/g, '&#39;').replace( /"/g, '&#43;');
+	}
+
+	/**
+	 * Encodes a string for use in the href attribute of an anchor.
+	 *
+	 * @param string s - decoded string
+	 */
+	this.hrefEncode = function( s ) {
+		return s
+			.replace( '%', '%25' )
+			.replace( ';', '%3B' )
+			.replace( '?', '%3F' )
+			.replace( ':', '%3A' )
+			.replace( '@', '%40' )
+			.replace( '&', '%26' )
+			.replace( '=', '%3D' )
+			.replace( '+', '%2B' )
+			.replace( '$', '%24' )
+			.replace( ',', '%2C' )
+			.replace( '<', '%3C' )
+			.replace( '>', '%3E' )
+			.replace( '#', '%23' )
+			.replace( '"', '%22' )
+			.replace( '{', '%7B' )
+			.replace( '}', '%7D' )
+			.replace( '|', '%7C' )
+			.replace( '^', '%5E' )
+			.replace( '[', '%5B' )
+			.replace( ']', '%5D' )
+			.replace( '`', '%60' )
+			.replace( '\\', '%5C' )
+		;
+	}
 
 	/**
 	 * Handles the javascript pop states
@@ -1285,14 +1317,12 @@ function IFM( params ) {
 		$(document).on( 'dragover', function( e ) {
 			e.preventDefault();
 			e.stopPropagation();
-			console.log( e );
 			$('#filedropoverlay').css( 'display', 'block' );
 		});
 		$( '#filedropoverlay' )
 			.on( 'drop', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				console.log( e );
 				var files = e.originalEvent.dataTransfer.files;
 				for( var i = 0; i < files.length; i++ ) {
 					self.uploadFile( files[i] );
