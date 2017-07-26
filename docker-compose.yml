@@ -1,0 +1,112 @@
+################################################################################
+# Wordpress docker setup with companion containers.
+################################################################################
+# This is a basic example for creating a docker based wordpress stack with some
+# companion containers for managing the wordpress instance without the need for 
+# server access.
+#
+# It uses the following components:
+# * Jason Wilder's supreme nginx-proxy acting as a reverse-proxy for serving 
+#   multiple web (see https://github.com/jwilder/nginx-proxy)
+# * The stock wordpress image from the docker library
+# * The stock mariadb image from the docker library
+# * The official phpmyadmin image for direct database access
+# * Our ifm image for accessing select directories
+#
+# Prerequisites:
+#
+# * The reverse-proxy tries to bind to port 9080 by default. Make sure this port 
+#   is available (i.e. no other process is listening) or adjust the port mapping
+#   below
+# 
+# * The DNS names that are used to access the services are: 
+#   * http://wordpress.dev:9080
+#   * http://pma.dev:9080 (PHPMyAdmin)
+#   * http://ifm.dev:9080 (IFM)
+#   For these names to be resolved by your browser you need to add the following
+#   line to your `/etc/hosts` file:  
+#   
+#   127.0.0.1 wordpress.dev pma.dev ifm.dev
+#
+# How to use:
+#
+# * From the top sourcedir run `docker-compose up -d`.  
+#   This will pull all necessary images and start up the configured services.
+#
+# * Run `docker-compose down` to stop and remove all containers.  
+#
+# * See `docker-compose --help` for more options. 
+#
+# Notes:
+#
+# * When services are started for the first time, wordpress will enter the setup
+#   wizzard.  
+#   Use the following database settings during configuration:
+#     * DB Name: wordpress
+#     * DB Host: mysql
+#     * DB User: root
+#     * DB Pass: toor
+#
+# * This setup should work on macOS and Linux. NOT TESTED on Windows.    
+################################################################################
+version: '2'
+services:
+  rproxy:
+    network_mode: bridge
+    image: jwilder/nginx-proxy
+    ports:
+      - "9080:80"
+    volumes:
+      - ./volumes/rproxy/conf.d:/etc/nginx/conf.d
+      - ./volumes/rproxy/log:/var/log/nginx
+      - ./volumes/rproxy/certs:/etc/nginx/certs:ro
+      - ./volumes/rproxy/htpasswd:/etc/nginx/htpasswd:ro
+      - ./volumes/rproxy/vhost.d:/etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  wordpress:
+    network_mode: bridge
+    image: wordpress
+    links:
+      - mariadb:mysql
+    volumes:
+      - ./volumes/wp/docroot:/var/www/html
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - VIRTUAL_HOST=wordpress.dev
+
+  mariadb:
+    network_mode: bridge
+    image: mariadb:latest
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=toor
+
+  phpmyadmin:
+    network_mode: bridge
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mariadb:db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - VIRTUAL_HOST=pma.dev
+      - PMA_USER=root
+      - PMA_PASSWORD=toor
+      - PMA_ABSOLUTE_URI=pma.dev
+
+  filemanager:
+    network_mode: bridge
+    image: digitalmobil/ifm
+    volumes:
+      - ./volumes/wp/docroot:/var/www/html/wordpress
+      - ./volumes/rproxy:/var/www/html/rproxy
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - VIRTUAL_HOST=ifm.dev
+      - IFM_AUTH=1
+
