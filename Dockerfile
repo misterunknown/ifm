@@ -53,6 +53,7 @@ RUN set -xe; \
         php5-soap \
         php5-pcntl \
         php5-xml \
+        php5-phar \
         php5-zip
 
 RUN mkdir -p /run/apache2 \
