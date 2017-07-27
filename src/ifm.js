@@ -303,7 +303,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -1266,10 +1266,30 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
 			}
 		});
 	};
@@ -1281,6 +1301,7 @@ function IFM( params ) {
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
