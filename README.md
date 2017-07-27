@@ -19,10 +19,19 @@ The IFM uses the following resources:
 * image preview
 
 ## requirements
-| Client                            | Server                                                       |
-|:--------------------------------- |:------------------------------------------------------------ |
-| HTML5 and CSS3 compatible browser | PHP >= 5.5 (only if using auth; if not PHP 5.4 works either) |
-| activated JavaScript              | optional: cURL extention (for remote upload)                 |
+
+* Client
+  * HTML5 and CSS3 compatible browser
+  * activated javascript
+* Server
+  * PHP >= 5.5
+  * extensions
+    * bz2
+    * curl (for remote upload)
+    * json
+    * phar (for tar support)
+    * zip
+    * zlib
 
 ## installation
 Just copy the ifm.php to your webspace - thats all :)
