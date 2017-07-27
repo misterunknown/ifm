@@ -14,12 +14,11 @@ The IFM uses the following resources:
 * copy/move files and directories
 * download files and directories
 * upload files directly or via URL
-* extract zip archives
+* extract archives (tar, tgz, tar.gz, tar.bz2, zip)
 * change permissions
 * image preview
 
 ## requirements
-
 * Client
   * HTML5 and CSS3 compatible browser
   * activated javascript
