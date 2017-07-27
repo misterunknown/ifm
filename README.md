@@ -29,6 +29,7 @@ The IFM uses the following resources:
     * bz2
     * curl (for remote upload)
     * json
+    * openssl (for remote uploads from https sources)
     * phar (for tar support)
     * zip
     * zlib
