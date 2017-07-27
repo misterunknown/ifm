@@ -163,6 +163,7 @@ f00bar;
 	public function getCSS() {
 		print '
 			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
@@ -216,6 +217,9 @@ f00bar;
 		}
 		elseif( $_REQUEST["api"] == "getConfig" ) {
 			$this->getConfig();
+		}
+		elseif( $_REQUEST["api"] == "getFolders" ) {
+			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
 		} elseif( $_REQUEST["api"] == "logout" ) {
@@ -239,9 +243,7 @@ f00bar;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
-					case "getFolderTree":
-						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => $this->getRootDir() ) ) ), $this->getFolderTreeRecursive( $this->getRootDir() ) ) );
-						break;
+					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					default:
 						echo json_encode( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
@@ -349,6 +351,50 @@ f00bar;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
 		echo json_encode( $ret );
+	}
+
+	private function getFolders( $d ) {
+		if( ! isset( $d['dir'] ) )
+			$d['dir'] = $this->getRootDir();
+		if( ! $this->isPathValid( $d['dir'] ) )
+			echo "[]";
+		else {
+			$ret = array();
+			foreach( glob( $this->pathCombine( $d['dir'], "*" ), GLOB_ONLYDIR ) as $dir ) {
+				array_push( $ret, array(
+					"text" => htmlspecialchars( basename( $dir ) ),
+					"lazyLoad" => true,
+					"dataAttr" => array( "path" => $dir )
+				));
+			}
+			sort( $ret );
+			if( $this->getScriptRoot() == realpath( $d['dir'] ) )
+				$ret = array_merge(
+					array(
+						0 => array(
+							"text" => "/ [root]",
+							"dataAttributes" => array( "path" => $this->getRootDir() )
+						)
+					),
+					$ret
+				);
+			echo json_encode( $ret );
+		}
+	}
+
+	private function getFolderTree( $d ) {
+		echo json_encode(
+			array_merge(
+				array(
+					0 => array(
+						"text" => "/ [root]",
+						"nodes" => array(),
+						"dataAttributes" => array( "path" => $this->getRootDir() )
+					)
+				),
+				$this->getFolderTreeRecursive( $d['dir']  )
+			)
+		);
 	}
 
 	private function getFolderTreeRecursive( $start_dir ) {
@@ -900,6 +946,7 @@ f00bar;
 			$tmp_i = pathinfo( $tmp_d );
 			array_push( $tmp_missing_parts, $tmp_i['filename'] );
 			$tmp_d = dirname( $tmp_d );
+			if( $tmp_d == dirname( $tmp_d ) ) break;
 		}
 		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
 		$rpConfig = $this->getRootDir();
