@@ -486,12 +486,30 @@ function IFM( params ) {
 			url: self.api,
 			type: "POST",
 			data: ({
-				api: "getFolderTree",
-				dir: self.currentDir
+				api: "getFolders"
 			}),
 			dataType: "json",
 			success: function( data ) {
-				$( '#copyMoveTree' ).treeview( { data: data, levels: 0, expandIcon: "icon icon-folder-empty", collapseIcon: "icon icon-folder-open-empty" } );
+				$( '#copyMoveTree' ).treeview({
+					data: data,
+					levels: 1,
+					expandIcon: "icon icon-folder-empty",
+					emptyIcon: "icon icon-folder-empty",
+					collapseIcon: "icon icon-folder-open-empty",
+					loadingIcon: "icon icon-spin5",
+					lazyLoad: function( n, cb ) {
+						$.ajax({
+							url: self.api,
+							type: "POST",
+							data: {
+								api: "getFolders",
+								dir: n.dataAttr.path
+							},
+							dataType: "json",
+							success: cb
+						});
+					}
+				});
 			},
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
