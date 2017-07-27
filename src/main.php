@@ -68,6 +68,7 @@ class IFM {
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
+		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? getenv('IFM_API_AJAXREQUEST') : $this->config['ajaxrequest'] ;
 		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? getenv('IFM_API_CHMOD') : $this->config['chmod'] ;
 		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? getenv('IFM_API_COPYMOVE') : $this->config['copymove'] ;
