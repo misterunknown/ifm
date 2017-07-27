@@ -46,7 +46,7 @@ class IFM {
 		"showowner" => 1,
 		"showgroup" => 1,
 		"showpermissions" => 2,
-		"showhtdocs" => 1,
+		"showhtdocs" => 0,
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 	);
