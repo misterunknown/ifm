@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
+		"locale" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -53,6 +54,7 @@ class IFM {
 
 	private $config = array();
 	private $templates = array();
+	private $i18n = array();
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
@@ -121,9 +123,9 @@ class IFM {
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>
+						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
 						{{#config.upload}}
-						<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>
+						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
 						{{#config.createfile}}
 						<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>
@@ -524,6 +526,25 @@ f00bar;
 
 f00bar;
 		$this->templates = $templates;
+
+		$i18n = array();
+		$i18n['en'] = <<<'f00bar'
+{
+	"refresh": "Refresh",
+	"upload": "Upload",
+	"file_edit_success": "File successfully edited / created."
+}
+f00bar;
+		$i18n['en'] = json_decode($i18n['en'], true);
+		$i18n['de'] = <<<'f00bar'
+{
+	"refresh": "Auffrischen",
+	"upload": "Hochladen",
+	"file_edit_success": "Datei erfolgreich geändert / angelegt."
+}
+f00bar;
+		$i18n['de'] = json_decode($i18n['de'], true);
+		$this->i18n = $i18n;
 	}
 
 	/**
@@ -1143,7 +1164,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -2172,10 +2193,30 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
 			}
 		});
 	};
@@ -2187,6 +2228,7 @@ function IFM( params ) {
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
@@ -2301,6 +2343,8 @@ function IFM( params ) {
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
+		} elseif( $_REQUEST["api"] == "getI18N" ) {
+			echo json_encode( $this->i18n[$this->config[locale]] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();

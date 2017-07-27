@@ -24,6 +24,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
+		"locale" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -54,6 +55,7 @@ class IFM {
 
 	private $config = array();
 	private $templates = array();
+	private $i18n = array();
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
@@ -148,6 +150,17 @@ f00bar;
 @@@file:src/templates/modal.uploadfile.html@@@
 f00bar;
 		$this->templates = $templates;
+
+		$i18n = array();
+		$i18n['en'] = <<<'f00bar'
+@@@src/i18n/en.json@@@
+f00bar;
+		$i18n['en'] = json_decode($i18n['en'], true);
+		$i18n['de'] = <<<'f00bar'
+@@@src/i18n/de.json@@@
+f00bar;
+		$i18n['de'] = json_decode($i18n['de'], true);
+		$this->i18n = $i18n;
 	}
 
 	/**
@@ -230,6 +243,8 @@ f00bar;
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
+		} elseif( $_REQUEST["api"] == "getI18N" ) {
+			echo json_encode( $this->i18n[$this->config[locale]] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
