@@ -51,6 +51,7 @@ RUN set -xe; \
         php5-zlib \
         php5-posix \
         php5-soap \
+        php5-openssl \
         php5-pcntl \
         php5-xml \
         php5-phar \
