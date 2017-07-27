@@ -37,9 +37,9 @@ The IFM uses the following resources:
 Just copy the ifm.php to your webspace - thats all :)
 
 ## security information
-By default, the IFM is locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
+The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
-For security reasons it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration. [See also](https://github.com/misterunknown/ifm/wiki/Configuration).
+By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration. [See also](https://github.com/misterunknown/ifm/wiki/Configuration).
 
 ## key bindings
 * <kbd>e</kbd> - edit / extract current file
