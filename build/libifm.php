@@ -23,7 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
-		"locale" => "en",
+		"language" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -107,7 +107,7 @@ class IFM {
 				<div class="navbar-header">
 					<a class="navbar-brand">IFM</a>
 					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-						<span class="sr-only">Toggle navigation</span>
+						<span class="sr-only">{{i18n.toggle_nav}}</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -117,7 +117,7 @@ class IFM {
 					<form class="navbar-form navbar-left">
 						<div class="form-group">
 							<div class="input-group">
-								<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">{{showpath}}</span></span>
+								<span class="input-group-addon" id="currentDirLabel">{{i18n.path_content}} <span id="docroot">{{showpath}}</span></span>
 								<input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 							</div>
 						</div>
@@ -128,21 +128,21 @@ class IFM {
 						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
 						{{#config.createfile}}
-						<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>
+						<li><a id="createFile"><span title="{{i18n.file_new}}" class="icon icon-doc-inv"></span> <span class="visible-xs">{{i18n.file_new}}</span></a></li>
 						{{/config.createfile}}
 						{{#config.createdir}}
-						<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>
+						<li><a id="createDir"><span title="{{i18n.folder_new}}" class="icon icon-folder"></span> <span class="visible-xs">{{i18n.folder_new}}</span></a></li>
 						{{/config.createdir}}
 						<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								{{#config.remoteupload}}
-								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> remote upload</a></li>
+								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a></li>
 								{{/config.remoteupload}}
 								{{#config.ajaxrequest}}
-								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> ajax request</a></li>
+								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a></li>
 								{{/config.ajaxrequest}}
 								{{#config.auth}}
-								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> logout</a></li>
+								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> {{i18n.logout}}</a></li>
 								{{/config.auth}}
 							</ul>
 						</li>
@@ -151,30 +151,30 @@ class IFM {
 			</div>
 		</nav>
 		<div id="filedropoverlay">
-			<div>Drop files to upload</div>
+			<div>{{i18n.upload_drop}}</div>
 		</div>
 		<div class="container">
 			<table id="filetable" class="table">
 				<thead>
 					<tr>
-						<th>Filename</th>
+						<th>{{i18n.filename}}</th>
 						{{#config.download}}
 						<th><!-- column for download link --></th>
 						{{/config.download}}
 						{{#config.showlastmodified}}
-						<th>last modified</th>
+						<th>{{i18n.last_modified}}</th>
 						{{/config.showlastmodified}}
 						{{#config.showfilesize}}
-						<th>size</th>
+						<th>{{i18n.size}}</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th class="hidden-xs">permissions</th>
+						<th class="hidden-xs">{{i18n.permissions}}</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th class="hidden-xs hidden-sm">owner</th>
+						<th class="hidden-xs hidden-sm">{{i18n.owner}}</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th class="hidden-xs hidden-sm hidden-md">group</th>
+						<th class="hidden-xs hidden-sm hidden-md">{{i18n.group}}</th>
 						{{/config.showgroup}}
 						<th class="buttons"><!-- column for buttons --></th>
 					</tr>
@@ -184,7 +184,7 @@ class IFM {
 			</table>
 		</div>
 		<div class="container">
-			<div class="panel panel-default ifminfo"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+			<div class="panel panel-default ifminfo"><div class="panel-body">{{i18n.footer}} <a href="http://github.com/misterunknown/ifm">{{i18n.github}}</a></div></div>
 		</div>
 
 f00bar;
@@ -234,13 +234,13 @@ body {
 
 <div class="container">
 	<form action="" method="post" class="form-signin">
-		<h2 class="form-signin-heading text-center">IFM Login</h2>
+		<h2 class="form-signin-heading text-center">IFM {{i18n.login}}</h2>
 		{{error}}
-		<label for="inputEmail" class="sr-only">Username</label>
-		<input type="text" id="user" name="user" class="form-control" placeholder="Username" required autofocus>
-		<label for="inputPassword" class="sr-only">Password</label>
-		<input type="password" id="pass" name="pass" class="form-control" placeholder="Password" required>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+		<label for="inputEmail" class="sr-only">{{i18n.username}}</label>
+		<input type="text" id="user" name="user" class="form-control" placeholder="{{i18n.username}}" required autofocus>
+		<label for="inputPassword" class="sr-only">{{i18n.password}}</label>
+		<input type="password" id="pass" name="pass" class="form-control" placeholder="{{i18n.password}}" required>
+		<button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
 	</form>
 </div> <!-- /container -->
 
@@ -305,7 +305,7 @@ f00bar;
 <div class="container">
 	<div class="row">
 		<div class="col-xs-1">
-			<a name="showAll">Tasks <span class="badge" name="taskCount">1</span></a>
+			<a name="showAll">{{i18n.tasks}} <span class="badge" name="taskCount">1</span></a>
 		</div>
 		<div id="waitqueue" class="col-xs-11">
 		</div>
@@ -512,15 +512,15 @@ f00bar;
 <form id="formUploadFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Upload file</label><br>
+		<label>{{i18n.upload_file}}</label><br>
 		<input class="file" type="file" name="files" multiple><br>
-		<label>new filename</label>
+		<label>{{i18n.filename_new}}</label>
 		<input class="form-control" type="text" name="newfilename"><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button class="btn btn-default" id="buttonUpload">Upload</button>
-	<button class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
@@ -532,7 +532,30 @@ f00bar;
 {
 	"refresh": "Refresh",
 	"upload": "Upload",
-	"file_edit_success": "File successfully edited / created."
+	"file_edit_success": "File successfully edited / created.",
+	"toggle_nav": "Toggle navigation",
+	"path_content": "Content of",
+	"file_new": "New File",
+	"folder_new": "New Folder",
+	"upload_remote": "Remote Upload",
+	"ajax_request": "AJAX Request",
+	"logout": "Log Off",
+	"upload_drop": "Drop files to upload",
+	"filename": "Filename",
+	"size": "Size",
+	"last_modified": "Last Modified",
+	"permissions": "Permissions",
+	"owner": "Owner",
+	"group": "Group",
+	"footer": "IFM - improved file manager | ifm.php hidden |",
+	"github": "Visit the project on GitHub",
+	"tasks": "Tasks",
+	"login": "Login",
+	"username": "username",
+	"password": "Password",
+	"upload_file": "Upload File",
+	"filename_new": "New Filename",
+	"cancel": "Cancel"
 }
 f00bar;
 		$i18n['en'] = json_decode($i18n['en'], true);
@@ -540,7 +563,30 @@ f00bar;
 {
 	"refresh": "Auffrischen",
 	"upload": "Hochladen",
-	"file_edit_success": "Datei erfolgreich geändert / angelegt."
+	"file_edit_success": "Datei erfolgreich geändert / angelegt.",
+	"toggle_nav": "Navigation umschalten",
+	"path_content": "Inhalt von",
+	"file_new": "Neue Datei",
+	"folder_new": "Neue Ordner",
+	"upload_remote": "Hochladen von draussen",
+	"ajax_request": "AJAX Request",
+	"logout": "Abmelden",
+	"upload_drop": "Dateien zum hochladen hier hinziehen",
+	"filename": "Dateiname",
+	"size": "Größe",
+	"last_modified": "Zuletzt geändert",
+	"permissions": "Berechtigungen",
+	"owner": "Besitzer",
+	"group": "Gruppe",
+	"footer": "IFM - verbesserter file manager | ifm.php versteckt |",
+	"github": "Besuche das Projekt auf GitHub",
+	"tasks": "Aufgaben",
+	"login": "Anmeldung",
+	"username": "Benutzername",
+	"password": "Passwort",
+	"upload_file": "Datei hochladen",
+	"filename_new": "Neuer Dateiname",
+	"cancel": "Abbrechen"
 }
 f00bar;
 		$i18n['de'] = json_decode($i18n['de'], true);
@@ -2344,7 +2390,7 @@ function IFM( params ) {
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
-			echo json_encode( $this->i18n[$this->config[locale]] );
+			echo json_encode( $this->i18n[$this->config['language']] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
