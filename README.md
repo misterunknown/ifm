@@ -51,6 +51,7 @@ By default, it is not allowed to show or edit the `.htaccess` file. This is beca
 * <kbd>a</kbd> - show ajax request dialog
 * <kbd>F</kbd> - new file
 * <kbd>D</kbd> - new directory
+* <kbd>c</kbd><kbd>m</kbd> - show copy/move dialog
 * <kbd>space</kbd> - select a highlighted item
 * <kbd>del</kbd> - delete selected files
 * <kbd>Enter</kbd> - open a file or change to the directory
