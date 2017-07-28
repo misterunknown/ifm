@@ -24,7 +24,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
-		"locale" => "en",
+		"language" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -236,7 +236,7 @@ f00bar;
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
-			echo json_encode( $this->i18n[$this->config[locale]] );
+			echo json_encode( $this->i18n[$this->config['language']] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
