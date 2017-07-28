@@ -47,7 +47,7 @@ class IFM {
 		"showowner" => 1,
 		"showgroup" => 1,
 		"showpermissions" => 2,
-		"showhtdocs" => 1,
+		"showhtdocs" => 0,
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 	);
@@ -61,7 +61,40 @@ class IFM {
 		if( session_status() !== PHP_SESSION_ACTIVE )
 			session_start();
 
-		$this->config = array_merge( $this->defaultconfig, $config );
+		// load the default config
+		$this->config = $this->defaultconfig;
+
+		// load config from environment variables
+		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? getenv('IFM_AUTH') : $this->config['auth'] ;
+		$this->config['auth_source'] =  getenv('IFM_AUTH_SOURCE') !== false ? getenv('IFM_AUTH_SOURCE') : $this->config['auth_source'] ;
+		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
+		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
+		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
+		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
+		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? getenv('IFM_API_AJAXREQUEST') : $this->config['ajaxrequest'] ;
+		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? getenv('IFM_API_CHMOD') : $this->config['chmod'] ;
+		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? getenv('IFM_API_COPYMOVE') : $this->config['copymove'] ;
+		$this->config['createdir'] =  getenv('IFM_API_CREATEDIR') !== false ? getenv('IFM_API_CREATEDIR') : $this->config['createdir'] ;
+		$this->config['createfile'] =  getenv('IFM_API_CREATEFILE') !== false ? getenv('IFM_API_CREATEFILE') : $this->config['createfile'] ;
+		$this->config['edit'] =  getenv('IFM_API_EDIT') !== false ? getenv('IFM_API_EDIT') : $this->config['edit'] ;
+		$this->config['delete'] =  getenv('IFM_API_DELETE') !== false ? getenv('IFM_API_DELETE') : $this->config['delete'] ;
+		$this->config['download'] =  getenv('IFM_API_DOWNLOAD') !== false ? getenv('IFM_API_DOWNLOAD') : $this->config['download'] ;
+		$this->config['extract'] =  getenv('IFM_API_EXTRACT') !== false ? getenv('IFM_API_EXTRACT') : $this->config['extract'] ;
+		$this->config['upload'] =  getenv('IFM_API_UPLOAD') !== false ? getenv('IFM_API_UPLOAD') : $this->config['upload'] ;
+		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? getenv('IFM_API_REMOTEUPLOAD') : $this->config['remoteupload'] ;
+		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? getenv('IFM_API_RENAME') : $this->config['rename'] ;
+		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? getenv('IFM_API_ZIPNLOAD') : $this->config['zipnload'] ;
+		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? getenv('IFM_GUI_SHOWLASTMODIFIED') : $this->config['showlastmodified'] ;
+		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? getenv('IFM_GUI_SHOWFILESIZE') : $this->config['showfilesize'] ;
+		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? getenv('IFM_GUI_SHOWOWNER') : $this->config['showowner'] ;
+		$this->config['showgroup'] =  getenv('IFM_GUI_SHOWGROUP') !== false ? getenv('IFM_GUI_SHOWGROUP') : $this->config['showgroup'] ;
+		$this->config['showpermissions'] =  getenv('IFM_GUI_SHOWPERMISSIONS') !== false ? getenv('IFM_GUI_SHOWPERMISSIONS') : $this->config['showpermissions'] ;
+		$this->config['showhtdocs'] =  getenv('IFM_GUI_SHOWHTDOCS') !== false ? getenv('IFM_GUI_SHOWHTDOCS') : $this->config['showhtdocs'] ;
+		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? getenv('IFM_GUI_SHOWHIDDENFILES') : $this->config['showhiddenfiles'] ;
+		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? getenv('IFM_GUI_SHOWPATH') : $this->config['showpath'] ;
+
+		// load config from passed array
+		$this->config = array_merge( $this->config, $config );
 
 		$templates = array();
 		$templates['app'] = <<<'f00bar'
@@ -143,6 +176,7 @@ f00bar;
 	public function getCSS() {
 		print '
 			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
@@ -196,6 +230,9 @@ f00bar;
 		}
 		elseif( $_REQUEST["api"] == "getConfig" ) {
 			$this->getConfig();
+		}
+		elseif( $_REQUEST["api"] == "getFolders" ) {
+			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
@@ -221,9 +258,7 @@ f00bar;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
-					case "getFolderTree":
-						echo json_encode( array_merge( array( 0 => array( "text" => "/ [root]", "nodes" => array(), "dataAttributes" => array( "path" => $this->getRootDir() ) ) ), $this->getFolderTreeRecursive( $this->getRootDir() ) ) );
-						break;
+					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					default:
 						echo json_encode( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
@@ -331,6 +366,50 @@ f00bar;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
 		echo json_encode( $ret );
+	}
+
+	private function getFolders( $d ) {
+		if( ! isset( $d['dir'] ) )
+			$d['dir'] = $this->getRootDir();
+		if( ! $this->isPathValid( $d['dir'] ) )
+			echo "[]";
+		else {
+			$ret = array();
+			foreach( glob( $this->pathCombine( $d['dir'], "*" ), GLOB_ONLYDIR ) as $dir ) {
+				array_push( $ret, array(
+					"text" => htmlspecialchars( basename( $dir ) ),
+					"lazyLoad" => true,
+					"dataAttr" => array( "path" => $dir )
+				));
+			}
+			sort( $ret );
+			if( $this->getScriptRoot() == realpath( $d['dir'] ) )
+				$ret = array_merge(
+					array(
+						0 => array(
+							"text" => "/ [root]",
+							"dataAttributes" => array( "path" => $this->getRootDir() )
+						)
+					),
+					$ret
+				);
+			echo json_encode( $ret );
+		}
+	}
+
+	private function getFolderTree( $d ) {
+		echo json_encode(
+			array_merge(
+				array(
+					0 => array(
+						"text" => "/ [root]",
+						"nodes" => array(),
+						"dataAttributes" => array( "path" => $this->getRootDir() )
+					)
+				),
+				$this->getFolderTreeRecursive( $d['dir']  )
+			)
+		);
 	}
 
 	private function getFolderTreeRecursive( $start_dir ) {
@@ -882,6 +961,7 @@ f00bar;
 			$tmp_i = pathinfo( $tmp_d );
 			array_push( $tmp_missing_parts, $tmp_i['filename'] );
 			$tmp_d = dirname( $tmp_d );
+			if( $tmp_d == dirname( $tmp_d ) ) break;
 		}
 		$rpDir = $this->pathCombine( realpath( $tmp_d ), implode( "/", array_reverse( $tmp_missing_parts ) ) );
 		$rpConfig = $this->getRootDir();

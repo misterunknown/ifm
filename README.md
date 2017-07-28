@@ -13,19 +13,33 @@ The IFM uses the following resources:
 * create/edit files and directories
 * copy/move files and directories
 * download files and directories
-* upload files directly or via URL
-* extract zip archives
+* upload files directly, via URL or per drag & drop
+* extract archives (tar, tgz, tar.gz, tar.bz2, zip)
 * change permissions
 * image preview
 
 ## requirements
-| Client                            | Server                                                       |
-|:--------------------------------- |:------------------------------------------------------------ |
-| HTML5 and CSS3 compatible browser | PHP >= 5.5 (only if using auth; if not PHP 5.4 works either) |
-| activated JavaScript              | optional: cURL extention (for remote upload)                 |
+* Client
+  * HTML5 and CSS3 compatible browser
+  * activated javascript
+* Server
+  * PHP >= 5.5
+  * extensions
+    * bz2
+    * curl (for remote upload)
+    * json
+    * openssl (for remote uploads from https sources)
+    * phar (for tar support)
+    * zip
+    * zlib
 
 ## installation
 Just copy the ifm.php to your webspace - thats all :)
+
+## security information
+The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
+
+By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration. [See also](https://github.com/misterunknown/ifm/wiki/Configuration).
 
 ## key bindings
 * <kbd>e</kbd> - edit / extract current file
@@ -37,6 +51,7 @@ Just copy the ifm.php to your webspace - thats all :)
 * <kbd>a</kbd> - show ajax request dialog
 * <kbd>F</kbd> - new file
 * <kbd>D</kbd> - new directory
+* <kbd>c</kbd><kbd>m</kbd> - show copy/move dialog
 * <kbd>space</kbd> - select a highlighted item
 * <kbd>del</kbd> - delete selected files
 * <kbd>Enter</kbd> - open a file or change to the directory
@@ -117,6 +132,3 @@ listed below:
 
 ## issues
 Currently there are no known issues. If you find any flaws please let me know.
-
-## security information
-By default, the IFM is locked to it's own directory, so you are not able to go above. You can change that by setting the $root_dir in the scripts configuration.
