@@ -13,7 +13,7 @@ The IFM uses the following resources:
 * create/edit files and directories
 * copy/move files and directories
 * download files and directories
-* upload files directly or via URL
+* upload files directly, via URL or per drag & drop
 * extract archives (tar, tgz, tar.gz, tar.bz2, zip)
 * change permissions
 * image preview
