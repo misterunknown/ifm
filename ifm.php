@@ -868,9 +868,7 @@ function IFM( params ) {
 				dir: self.currentDir
 			},
 			dataType: "json",
-			success: function( data ) {
-				self.rebuildFileTable( data );
-			},
+			success: self.rebuildFileTable,
 			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
@@ -2327,7 +2325,6 @@ function IFM( params ) {
 	 */
 
 	private function getFiles( $dir ) {
-		$this->log( '$dir: '.$dir );
 		$this->chDirIfNecessary( $dir );
 
 		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
@@ -2349,8 +2346,6 @@ function IFM( params ) {
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
 
-		$this->log( '$files: '.print_r($files, true ) );
-		$this->log( '$dirs: '.print_r($dirs, true ) );
 		$this->jsonResponse( array_merge( $dirs, $files ) );
 	}
 
@@ -2884,8 +2879,8 @@ function IFM( params ) {
 	   help functions
 	 */
 
-	private function log( $string ) {
-		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), $string, FILE_APPEND );
+	private function log( $d ) {
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) : $d ), FILE_APPEND );
 	}
 
 	private function jsonResponse( $array ) {
@@ -2894,29 +2889,29 @@ function IFM( params ) {
 		if( $json === false ) {
 			switch(json_last_error()) {
 			case JSON_ERROR_NONE:
-				$err = ' - Keine Fehler';
+				echo ' - No errors';
 				break;
 			case JSON_ERROR_DEPTH:
-				$err = ' - Maximale Stacktiefe überschritten';
+				echo ' - Maximum stack depth exceeded';
 				break;
 			case JSON_ERROR_STATE_MISMATCH:
-				$err = ' - Unterlauf oder Nichtübereinstimmung der Modi';
+				echo ' - Underflow or the modes mismatch';
 				break;
 			case JSON_ERROR_CTRL_CHAR:
-				$err = ' - Unerwartetes Steuerzeichen gefunden';
+				echo ' - Unexpected control character found';
 				break;
 			case JSON_ERROR_SYNTAX:
-				$err = ' - Syntaxfehler, ungültiges JSON';
+				echo ' - Syntax error, malformed JSON';
 				break;
 			case JSON_ERROR_UTF8:
-				$err = ' - Missgestaltete UTF-8 Zeichen, möglicherweise fehlerhaft kodiert';
+				echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
 				break;
 			default:
-				$err = ' - Unbekannter Fehler';
+				echo ' - Unknown error';
 				break;
 			}
-			
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $err ) );
+
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not encode json: " . $err ) );
 		} else {
 			echo $json;
 		}
