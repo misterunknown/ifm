@@ -479,6 +479,33 @@ f00bar;
 </div>
 
 f00bar;
+		$templates['search'] = <<<'f00bar'
+<form id="searchForm">
+<div class="modal-body">
+	<fieldset>
+		<label>Pattern:</label>
+		<input type="text" class="form-control" id="searchPattern" name="pattern" value="{{lastSearch}}"><br>
+		<table id="searchResults" class="table">
+		</table>
+	</fieldset>
+</div>
+</form>
+
+f00bar;
+		$templates['searchresults'] = <<<'f00bar'
+<tbody>
+{{#items}}
+<tr class="{{rowclasses}}" data-filename="{{name}}">
+	<td>
+		<a tabindex="0" id="{{guid}}" class="searchitem" {{{tooltip}}} data-type="{{type}}" data-folder="{{folder}}">
+			<span class="{{icon}}"></span> {{linkname}} <span style="color:#999">({{folder}})</span>
+		</a>
+	</td>
+</tr>
+{{/items}}
+</tbody>
+
+f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
 <form id="formUploadFile">
 <div class="modal-body">
@@ -786,6 +813,7 @@ function IFM( params ) {
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 	this.rootElement = "";
+	this.search = {};
 
 	/**
 	 * Shows a bootstrap modal
@@ -852,6 +880,13 @@ function IFM( params ) {
 	 * @param object data - object with items
 	 */
 	this.rebuildFileTable = function( data ) {
+		if( data.status == "ERROR" ) {
+			this.showMessage( data.message, "e" );
+			return;
+		} else if ( ! Array.isArray( data ) ) {
+			this.showMessage( "Invalid data from server", "e" );
+			return;
+		}
 		data.forEach( function( item ) {
 			item.guid = self.generateGuid();
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
@@ -1622,6 +1657,50 @@ function IFM( params ) {
 		});
 	};
 
+	this.showSearchDialog = function() {
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
+		$( '#searchResults tbody' ).remove();
+		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
+		$( '#searchPattern' ).on( 'keypress', function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				e.stopPropagation();
+				self.search.lastSearch = e.target.value;
+				$.ajax({
+					url: self.api,
+					type: "POST",
+					data: {
+						api: "searchItems",
+						dir: self.currentDir,
+						pattern: e.target.value
+					},
+					dataType: "json",
+					success: function( data ) {
+						data.forEach( function(e) {
+							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+						});
+						self.search.data = data;
+						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+					}
+				});
+			}
+		});
+		$( document ).on( 'click', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			e.stopPropagation();
+			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+			self.hideModal();
+		});
+		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			if( e.key == "Enter" )
+				e.target.click();
+		});
+	}
+
 	// --------------------
 	// helper functions
 	// --------------------
@@ -1871,6 +1950,10 @@ function IFM( params ) {
 			return;
 
 		switch( e.key ) {
+			case '/':
+				e.preventDefault();
+				self.showSearchDialog();
+				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
@@ -2206,6 +2289,7 @@ function IFM( params ) {
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
+					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					default:
 						echo json_encode( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
@@ -2241,7 +2325,6 @@ function IFM( params ) {
 	 */
 
 	private function getFiles( $dir ) {
-		$dir = $this->getValidDir( $dir );
 		$this->chDirIfNecessary( $dir );
 
 		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
@@ -2253,52 +2336,8 @@ function IFM( params ) {
 				elseif( $result == "." ) {}
 				elseif( $result != ".." && substr( $result, 0, 1 ) == "." && $this->config['showhiddenfiles'] != 1 ) {}
 				else {
-					$item = array();
-					$item["name"] = $result;
-					if( is_dir( $result ) ) {
-						$item["type"] = "dir";
-						if( $result == ".." )
-							$item["icon"] = "icon icon-up-open";
-						else 
-							$item["icon"] = "icon icon-folder-empty";
-					} else {
-						$item["type"] = "file";
-						if( in_array( substr( $result, -7 ), array( ".tar.gz", ".tar.xz" ) ) )
-							$type = substr( $result, -6 );
-						elseif( substr( $result, -8 ) == ".tar.bz2" )
-							$type = "tar.bz2";
-						else
-							$type = substr( strrchr( $result, "." ), 1 );
-						$item["icon"] = $this->getTypeIcon( $type );
-						$item["ext"] = strtolower($type);
-					}
-					if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $result ) ); }
-					if( $this->config['showfilesize'] == 1 ) {
-						$item["size"] = filesize( $result );
-						if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
-						elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
-						elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
-						else $item["size"] = $item["size"] . " Byte";
-					}
-					if( $this->config['showpermissions'] > 0 ) {
-						if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $result ) ), -3 );
-						elseif( $this->config['showpermissions'] == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $result ) );
-						if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
-						$item["filepermmode"] = ( $this->config['showpermissions'] == 1 ) ? "short" : "long";
-					}
-					if( $this->config['showowner'] == 1  ) {
-						if ( function_exists( "posix_getpwuid" ) && fileowner($result) !== false ) {
-							$ownerarr = posix_getpwuid( fileowner( $result ) );
-							$item["owner"] = $ownerarr['name'];
-						} else $item["owner"] = false;
-					}
-					if( $this->config['showgroup'] == 1 ) {
-						if( function_exists( "posix_getgrgid" ) && filegroup( $result ) !== false ) {
-							$grouparr = posix_getgrgid( filegroup( $result ) );
-							$item["group"] = $grouparr['name'];
-						} else $item["group"] = false;
-					}
-					if( is_dir( $result ) ) $dirs[] = $item;
+					$item = $this->getItemInformation( $result );
+					if( $item['type'] == "dir" ) $dirs[] = $item;
 					else $files[] = $item;
 				}
 			}
@@ -2306,7 +2345,57 @@ function IFM( params ) {
 		}
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
-		echo json_encode( array_merge( $dirs, $files ) );
+
+		$this->jsonResponse( array_merge( $dirs, $files ) );
+	}
+
+	private function getItemInformation( $name ) {
+		$item = array();
+		$item["name"] = $name;
+		if( is_dir( $name ) ) {
+			$item["type"] = "dir";
+			if( $name == ".." )
+				$item["icon"] = "icon icon-up-open";
+			else 
+				$item["icon"] = "icon icon-folder-empty";
+		} else {
+			$item["type"] = "file";
+			if( in_array( substr( $name, -7 ), array( ".tar.gz", ".tar.xz" ) ) )
+				$type = substr( $name, -6 );
+			elseif( substr( $name, -8 ) == ".tar.bz2" )
+				$type = "tar.bz2";
+			else
+				$type = substr( strrchr( $name, "." ), 1 );
+			$item["icon"] = $this->getTypeIcon( $type );
+			$item["ext"] = strtolower($type);
+		}
+		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
+		if( $this->config['showfilesize'] == 1 ) {
+			$item["size"] = filesize( $name );
+			if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
+			elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
+			elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
+			else $item["size"] = $item["size"] . " Byte";
+		}
+		if( $this->config['showpermissions'] > 0 ) {
+			if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $name ) ), -3 );
+			elseif( $this->config['showpermissions'] == 2 ) $item["fileperms"] = $this->filePermsDecode( fileperms( $name ) );
+			if( $item["fileperms"] == "" ) $item["fileperms"] = " ";
+			$item["filepermmode"] = ( $this->config['showpermissions'] == 1 ) ? "short" : "long";
+		}
+		if( $this->config['showowner'] == 1  ) {
+			if ( function_exists( "posix_getpwuid" ) && fileowner($name) !== false ) {
+				$ownerarr = posix_getpwuid( fileowner( $name ) );
+				$item["owner"] = $ownerarr['name'];
+			} else $item["owner"] = false;
+		}
+		if( $this->config['showgroup'] == 1 ) {
+			if( function_exists( "posix_getgrgid" ) && filegroup( $name ) !== false ) {
+				$grouparr = posix_getgrgid( filegroup( $name ) );
+				$item["group"] = $grouparr['name'];
+			} else $item["group"] = false;
+		}
+		return $item;
 	}
 
 	private function getConfig() {
@@ -2343,6 +2432,32 @@ function IFM( params ) {
 				);
 			echo json_encode( $ret );
 		}
+	}
+
+	private function searchItems( $d ) {
+		$this->chDirIfNecessary( $d['dir'] );
+		if( strpos( $d['pattern'], '/' ) !== false ) {
+			echo json_decode( array( "status" => "ERROR", "message" => "Pattern must not contain slashes" ) );
+			exit( 1 );
+		}
+		try {
+			$results = $this->searchItemsRecursive( $d['pattern'] );
+			echo json_encode( $results );
+		} catch( Exception $e ) {
+			echo json_encode( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+		}
+	}
+
+	private function searchItemsRecursive( $pattern, $dir="" ) {
+		$items = array();
+		$dir = $dir ? $dir : '.';
+		foreach( glob( $this->pathCombine( $dir, $pattern ) ) as $result ) {
+			array_push( $items, $this->getItemInformation( $result ) );
+		}
+		foreach( glob( $this->pathCombine( $dir, '*') , GLOB_ONLYDIR ) as $subdir ) {
+			$items = array_merge( $items, $this->searchItemsRecursive( $pattern, $subdir ) );
+		}
+		return $items;
 	}
 
 	private function getFolderTree( $d ) {
@@ -2760,11 +2875,57 @@ function IFM( params ) {
 			echo json_encode( array( "status" => "error", "message" => "Corrupt parameter data" ) );
 	}
 
-	//apis
-
 	/*
 	   help functions
 	 */
+
+	private function log( $d ) {
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) : $d ), FILE_APPEND );
+	}
+
+	private function jsonResponse( $array ) {
+		$this->convertToUTF8( $array );
+		$json = json_encode( $array );
+		if( $json === false ) {
+			switch(json_last_error()) {
+			case JSON_ERROR_NONE:
+				echo ' - No errors';
+				break;
+			case JSON_ERROR_DEPTH:
+				echo ' - Maximum stack depth exceeded';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				echo ' - Underflow or the modes mismatch';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				echo ' - Unexpected control character found';
+				break;
+			case JSON_ERROR_SYNTAX:
+				echo ' - Syntax error, malformed JSON';
+				break;
+			case JSON_ERROR_UTF8:
+				echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+				break;
+			default:
+				echo ' - Unknown error';
+				break;
+			}
+
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not encode json: " . $err ) );
+		} else {
+			echo $json;
+		}
+	}
+
+	private function convertToUTF8( &$item ) {
+		if( is_array( $item ) )
+			array_walk(
+				$item,
+				array( $this, 'convertToUTF8' )
+			);
+		else
+			$item = utf8_encode( $item );
+	}
 
 	public function checkAuth() {
 		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
