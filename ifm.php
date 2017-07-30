@@ -479,6 +479,33 @@ f00bar;
 </div>
 
 f00bar;
+		$templates['search'] = <<<'f00bar'
+<form id="searchForm">
+<div class="modal-body">
+	<fieldset>
+		<label>Pattern:</label>
+		<input type="text" class="form-control" id="searchPattern" name="pattern" value="{{lastSearch}}"><br>
+		<table id="searchResults" class="table">
+		</table>
+	</fieldset>
+</div>
+</form>
+
+f00bar;
+		$templates['searchresults'] = <<<'f00bar'
+<tbody>
+{{#items}}
+<tr class="{{rowclasses}}" data-filename="{{name}}">
+	<td>
+		<a tabindex="0" id="{{guid}}" class="searchitem" {{{tooltip}}} data-type="{{type}}" data-folder="{{folder}}">
+			<span class="{{icon}}"></span> {{linkname}} <span style="color:#999">({{folder}})</span>
+		</a>
+	</td>
+</tr>
+{{/items}}
+</tbody>
+
+f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
 <form id="formUploadFile">
 <div class="modal-body">
@@ -786,6 +813,7 @@ function IFM( params ) {
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 	this.rootElement = "";
+	this.search = {};
 
 	/**
 	 * Shows a bootstrap modal
@@ -840,7 +868,9 @@ function IFM( params ) {
 				dir: self.currentDir
 			},
 			dataType: "json",
-			success: self.rebuildFileTable,
+			success: function( data ) {
+				self.rebuildFileTable( data );
+			},
 			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
@@ -852,6 +882,13 @@ function IFM( params ) {
 	 * @param object data - object with items
 	 */
 	this.rebuildFileTable = function( data ) {
+		if( data.status == "ERROR" ) {
+			this.showMessage( data.message, "e" );
+			return;
+		} else if ( ! Array.isArray( data ) ) {
+			this.showMessage( "Invalid data from server", "e" );
+			return;
+		}
 		data.forEach( function( item ) {
 			item.guid = self.generateGuid();
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
@@ -1622,6 +1659,50 @@ function IFM( params ) {
 		});
 	};
 
+	this.showSearchDialog = function() {
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
+		$( '#searchResults tbody' ).remove();
+		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
+		$( '#searchPattern' ).on( 'keypress', function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				e.stopPropagation();
+				self.search.lastSearch = e.target.value;
+				$.ajax({
+					url: self.api,
+					type: "POST",
+					data: {
+						api: "searchItems",
+						dir: self.currentDir,
+						pattern: e.target.value
+					},
+					dataType: "json",
+					success: function( data ) {
+						data.forEach( function(e) {
+							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+						});
+						self.search.data = data;
+						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+					}
+				});
+			}
+		});
+		$( document ).on( 'click', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			e.stopPropagation();
+			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+			self.hideModal();
+		});
+		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			if( e.key == "Enter" )
+				e.target.click();
+		});
+	}
+
 	// --------------------
 	// helper functions
 	// --------------------
@@ -1871,6 +1952,10 @@ function IFM( params ) {
 			return;
 
 		switch( e.key ) {
+			case '/':
+				e.preventDefault();
+				self.showSearchDialog();
+				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
@@ -2242,7 +2327,7 @@ function IFM( params ) {
 	 */
 
 	private function getFiles( $dir ) {
-		$dir = $this->getValidDir( $dir );
+		$this->log( '$dir: '.$dir );
 		$this->chDirIfNecessary( $dir );
 
 		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
@@ -2263,7 +2348,10 @@ function IFM( params ) {
 		}
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
-		echo json_encode( array_merge( $dirs, $files ) );
+
+		$this->log( '$files: '.print_r($files, true ) );
+		$this->log( '$dirs: '.print_r($dirs, true ) );
+		$this->jsonResponse( array_merge( $dirs, $files ) );
 	}
 
 	private function getItemInformation( $name ) {
@@ -2353,6 +2441,10 @@ function IFM( params ) {
 
 	private function searchItems( $d ) {
 		$this->chDirIfNecessary( $d['dir'] );
+		if( strpos( $d['pattern'], '/' ) !== false ) {
+			echo json_decode( array( "status" => "ERROR", "message" => "Pattern must not contain slashes" ) );
+			exit( 1 );
+		}
 		try {
 			$results = $this->searchItemsRecursive( $d['pattern'] );
 			echo json_encode( $results );
@@ -2788,11 +2880,57 @@ function IFM( params ) {
 			echo json_encode( array( "status" => "error", "message" => "Corrupt parameter data" ) );
 	}
 
-	//apis
-
 	/*
 	   help functions
 	 */
+
+	private function log( $string ) {
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), $string, FILE_APPEND );
+	}
+
+	private function jsonResponse( $array ) {
+		$this->convertToUTF8( $array );
+		$json = json_encode( $array );
+		if( $json === false ) {
+			switch(json_last_error()) {
+			case JSON_ERROR_NONE:
+				$err = ' - Keine Fehler';
+				break;
+			case JSON_ERROR_DEPTH:
+				$err = ' - Maximale Stacktiefe überschritten';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				$err = ' - Unterlauf oder Nichtübereinstimmung der Modi';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				$err = ' - Unerwartetes Steuerzeichen gefunden';
+				break;
+			case JSON_ERROR_SYNTAX:
+				$err = ' - Syntaxfehler, ungültiges JSON';
+				break;
+			case JSON_ERROR_UTF8:
+				$err = ' - Missgestaltete UTF-8 Zeichen, möglicherweise fehlerhaft kodiert';
+				break;
+			default:
+				$err = ' - Unbekannter Fehler';
+				break;
+			}
+			
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $err ) );
+		} else {
+			echo $json;
+		}
+	}
+
+	private function convertToUTF8( &$item ) {
+		if( is_array( $item ) )
+			array_walk(
+				$item,
+				array( $this, 'convertToUTF8' )
+			);
+		else
+			$item = utf8_encode( $item );
+	}
 
 	public function checkAuth() {
 		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {

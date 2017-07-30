@@ -137,6 +137,12 @@ f00bar;
 		$templates['renamefile'] = <<<'f00bar'
 @@@src/templates/modal.renamefile.html@@@
 f00bar;
+		$templates['search'] = <<<'f00bar'
+@@@src/templates/modal.search.html@@@
+f00bar;
+		$templates['searchresults'] = <<<'f00bar'
+@@@src/templates/modal.searchresults.html@@@
+f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
 @@@src/templates/modal.uploadfile.html@@@
 f00bar;
@@ -279,7 +285,6 @@ f00bar;
 	 */
 
 	private function getFiles( $dir ) {
-		$dir = $this->getValidDir( $dir );
 		$this->chDirIfNecessary( $dir );
 
 		unset( $files ); unset( $dirs ); $files = array(); $dirs = array();
@@ -300,7 +305,8 @@ f00bar;
 		}
 		usort( $dirs, array( $this, "sortByName" ) );
 		usort( $files, array( $this, "sortByName" ) );
-		echo json_encode( array_merge( $dirs, $files ) );
+
+		$this->jsonResponse( array_merge( $dirs, $files ) );
 	}
 
 	private function getItemInformation( $name ) {
@@ -829,11 +835,57 @@ f00bar;
 			echo json_encode( array( "status" => "error", "message" => "Corrupt parameter data" ) );
 	}
 
-	//apis
-
 	/*
 	   help functions
 	 */
+
+	private function log( $d ) {
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) : $d ), FILE_APPEND );
+	}
+
+	private function jsonResponse( $array ) {
+		$this->convertToUTF8( $array );
+		$json = json_encode( $array );
+		if( $json === false ) {
+			switch(json_last_error()) {
+			case JSON_ERROR_NONE:
+				echo ' - No errors';
+				break;
+			case JSON_ERROR_DEPTH:
+				echo ' - Maximum stack depth exceeded';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				echo ' - Underflow or the modes mismatch';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				echo ' - Unexpected control character found';
+				break;
+			case JSON_ERROR_SYNTAX:
+				echo ' - Syntax error, malformed JSON';
+				break;
+			case JSON_ERROR_UTF8:
+				echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+				break;
+			default:
+				echo ' - Unknown error';
+				break;
+			}
+
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not encode json: " . $err ) );
+		} else {
+			echo $json;
+		}
+	}
+
+	private function convertToUTF8( &$item ) {
+		if( is_array( $item ) )
+			array_walk(
+				$item,
+				array( $this, 'convertToUTF8' )
+			);
+		else
+			$item = utf8_encode( $item );
+	}
 
 	public function checkAuth() {
 		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
