@@ -49,6 +49,7 @@ class IFM {
 		"showhtdocs" => 0,
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
+		"contextmenu" => 1
 	);
 
 	private $config = array();
@@ -183,6 +184,7 @@ f00bar;
 				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
+				<script>';?> @@@src/includes/BootstrapMenu.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
 		';

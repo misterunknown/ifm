@@ -209,7 +209,24 @@ function IFM( params ) {
 					break;
 			}
 		});
-
+		if( self.config.contextmenu ) {
+			var contextMenu = new BootstrapMenu( '.clickable-row', {
+				fetchElementData: function( $rowElem ) {
+					var data = $rowElem.data();
+					data.isDir = $rowElem.hasClass( 'isDir' );
+					data.element = $rowElem[0];
+					return data;
+				},
+				actions: [{
+					name: 'download',
+					onClick: function( item ) {
+						console.log( item );
+						$( '#d_' + item.element.children[0].children[0].id ).submit();
+					},
+					iconClass: "icon icon-cloud"
+				}]
+			});
+		}
 	};
 
 	/**
