@@ -841,34 +841,48 @@ function IFM( params ) {
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
-		var modal = $( document.createElement( 'div' ) )
-			.addClass( "modal fade" )
-			.attr( 'id', 'ifmmodal' )
-			.attr( 'role', 'dialog' );
-		var modalDialog = $( document.createElement( 'div' ) )
-			.addClass( "modal-dialog" )
-			.attr( 'role', 'document' );
-		if( options.large == true ) modalDialog.addClass( 'modal-lg' );
-		var modalContent = $(document.createElement('div'))
-			.addClass("modal-content")
-			.append( content );
-		modalDialog.append( modalContent );
-		modal.append( modalDialog );
-		$( document.body ).append( modal );
-		modal.on('hide.bs.modal', function () { $(this).remove(); });
-		modal.on('shown.bs.modal', function () {
+		var modal = document.createElement( 'div' );
+		modal.classList.add( 'modal', 'fade' );
+		modal.id = 'ifmmodal';
+		modal.attributes.role = 'dialog';
+		var modalDialog = document.createElement( 'div' );
+		modalDialog.classList.add( 'modal-dialog' );
+		modalDialog.attributes.role = 'document';
+		if( options.large == true ) modalDialog.classList.add( 'modal-lg' );
+		var modalContent = document.createElement('div');
+		modalContent.classList.add( 'modal-content' );
+		modalContent.innerHTML = content;
+		modalDialog.appendChild( modalContent );
+		modal.appendChild( modalDialog );
+		document.body.appendChild( modal );
+		modal.addEventListener( 'hide.bs.modal', function( e ) { console.log( e ); $(this).remove(); });
+		modal.addEventListener( 'shown.bs.modal', function( e ) {
+			console.log( e );
 			var formElements = $(this).find('input, button');
 			if( formElements.length > 0 ) {
 				formElements.first().focus();
 			}
 		});
-		modal.modal('show');
+
+		// For this we have to use jquery, because bootstrap modals depend on them. Even the bs.modal
+		// events require jquery, as they cannot be recognized by addEventListener()
+		$(modal)
+			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
+			.on( 'shown.bs.modal', function( e ) {
+				console.log( e );
+				var formElements = $(this).find('input, button');
+				if( formElements.length > 0 ) {
+					formElements.first().focus();
+				}
+			})
+			.modal('show');
 	};
 
 	/**
 	 * Hides a bootstrap modal
 	 */
 	this.hideModal = function() {
+		// Hide the modal via jquery to get the hide.bs.modal event triggered
 		$('#ifmmodal').modal('hide');
 	};
 
@@ -966,8 +980,8 @@ function IFM( params ) {
 		});
 		self.fileCache = data;
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
-		$( "#filetable tbody" ).remove();
-		$( "#filetable" ).append( $(newTBody) );
+		var filetable = document.getElementById( 'filetable' );
+		filetable.innerHTML = newTBody;
 		$( '.clickable-row' ).click( function( event ) {
 			if( event.ctrlKey ) {
 				$( this ).toggleClass( 'selectedItem' );
@@ -1031,14 +1045,13 @@ function IFM( params ) {
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
 				fetchElementData: function( row ) {
 					var data = {};
-					var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) );
 					data.selected =
 						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
 						.map( function(e){ return ifm.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
 					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
 					return data;
 				},
-				actionGroups:[
+				actionsGroups:[
 					['edit', 'extract', 'rename'],
 					['copymove', 'download'],
 					['delete']
@@ -1051,7 +1064,7 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-pencil",
 						isShown: function( data ) {
-							return ( self.config.edit && data.clicked.eaction == "edit" );
+							return ( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
 						}
 					},
 					extract: {
@@ -1061,7 +1074,7 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-archive",
 						isShown: function( data ) {
-							return ( self.config.extract && data.clicked.eaction == "extract" );
+							return ( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
 						}
 					},
 					rename: {
@@ -1070,7 +1083,7 @@ function IFM( params ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
 						iconClass: "icon icon-terminal",
-						isShown: function() { return self.config.rename; }
+						isShown: function( data ) { return ( self.config.rename && !data.selected.length ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -1081,9 +1094,9 @@ function IFM( params ) {
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
-								self.showCopyMoveDialog( data.selected.map(function( e ) { return e.name; }) );
+								self.showCopyMoveDialog( data.selected );
 							else
-								self.showCopyMoveDialog( data.clicked.name );
+								self.showCopyMoveDialog( data.clicked );
 						},
 						iconClass: "icon icon-folder-empty",
 						isShown: function() { return self.config.copymove; }
@@ -1232,7 +1245,7 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.editFile = function( name ) {
+	this.editFile = function( filename ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1240,7 +1253,7 @@ function IFM( params ) {
 			data: ({
 				api: "getContent",
 				dir: self.currentDir,
-				filename: name
+				filename: filename
 			}),
 			success: function( data ) {
 						if( data.status == "OK" && data.data.content != null ) {
@@ -1429,16 +1442,12 @@ function IFM( params ) {
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
 		$( '#copyButton' ).on( 'click', function() {
-			items.forEach( function( item ) {
-				self.copyMove( item.name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
-			});
+			self.copyMove( items, $('#copyMoveTree .node-selected').data('path'), 'copy' );
 			self.hideModal();
 			return false;
 		});
 		$( '#moveButton' ).on( 'click', function() {
-			filenames.forEach( function( filename ) {
-				self.copyMove( item.name, $('#copyMoveTree .node-selected').data('path'), 'move' );
-			});
+			self.copyMove( items, $('#copyMoveTree .node-selected').data('path'), 'move' );
 			self.hideModal();
 			return false;
 		});
@@ -1455,34 +1464,38 @@ function IFM( params ) {
 	 * @params {string} destination - target directory
 	 * @params {string} action - action (copy|move)
 	 */
-	this.copyMove = function( source, destination, action ) {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination } );
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: {
-				dir: self.currentDir,
-				api: "copyMove",
-				action: action,
-				filename: source,
-				destination: destination
-			},
-			dataType: "json",
-			success: function(data) {
-				if( data.status == "OK" ) {
-					self.showMessage( data.message, "s" );
-				} else {
-					self.showMessage( data.message, "e" );
+	this.copyMove = function( sources, destination, action ) {
+		if( ! Array.isArray( sources ) )
+			sources = [sources];
+		sources.forEach( function( source ) {
+			var id = self.generateGuid();
+			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
+			$.ajax({
+				url: self.api,
+				type: "POST",
+				data: {
+					dir: self.currentDir,
+					api: "copyMove",
+					action: action,
+					filename: source.name,
+					destination: destination
+				},
+				dataType: "json",
+				success: function( data ) {
+					if( data.status == "OK" ) {
+						self.showMessage( data.message, "s" );
+					} else {
+						self.showMessage( data.message, "e" );
+					}
+					self.refreshFileTable();
+				},
+				error: function() {
+					self.showMessage( "General error occured.", "e" );
+				},
+				complete: function() {
+					self.task_done( id );
 				}
-				self.refreshFileTable();
-			},
-			error: function() {
-				self.showMessage( "General error occured.", "e" );
-			},
-			complete: function() {
-				self.task_done( id );
-			}
+			});
 		});
 	};
 
@@ -1509,9 +1522,11 @@ function IFM( params ) {
 			self.hideModal();
 			return false;
 		});
-		form.find('#extractCustomLocation').on( 'click', function(e) {
-			$(e.target).prev().children().first().prop( 'checked', true );
-		});
+		form.find('#extractCustomLocation')
+			.on( 'click', function(e) {
+				$(e.target).prev().children().first().prop( 'checked', true );
+			})
+			.on( 'keypress', self.preventEnter );
 	};
 
 	/**
@@ -2063,6 +2078,7 @@ function IFM( params ) {
 		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
 			return;
 
+		// global key events
 		switch( e.key ) {
 			case '/':
 				e.preventDefault();
@@ -2120,14 +2136,6 @@ function IFM( params ) {
 				self.changeDirectory( '..' );
 				return;
 				break;
-			case 'l':
-			case 'ArrowRight':
-				e.preventDefault();
-				var item = $('.highlightedItem');
-				if( item.hasClass('isDir') )
-					self.changeDirectory( item.data( 'filename' ) );
-				return;
-				break;
 			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
@@ -2140,79 +2148,79 @@ function IFM( params ) {
 				self.highlightItem('prev');
 				return;
 				break;
+		}
+
+		// key events which need a highlighted item
+		var element = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( ! element )
+			return;
+		item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
+
+		switch( e.key ) {
+			case 'l':
+			case 'ArrowRight':
+				e.preventDefault();
+				if( item.type == "dir" )
+					self.changeDirectory( item.name );
+				return;
+				break;
 			case 'Escape':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
+				if( element.children[0].children[0] == document.activeElement ) {
 					e.preventDefault();
-					$('.highlightedItem').removeClass( 'highlightedItem' );
+					element.classList.toggle( 'highlightedItem' );
 				}
 				return;
 				break;
 			case ' ': // todo: make it work only when noting other is focused
 			case 'Enter':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) { 
-					var trParent = $(':focus').parent().parent();
-					if( e.key == 'Enter' && trParent.hasClass( 'isDir' ) ) {
+				if( element.children[0].children[0] == document.activeElement ) { 
+					if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
 						e.preventDefault();
 						e.stopPropagation();
-						self.changeDirectory( trParent.data( 'filename' ) );
-					} else if( e.key == ' ' && ! trParent.is( ':first-child' ) ) {
+						self.changeDirectory( item.name );
+					} else if( e.key == ' ' && item.name != ".." ) {
 						e.preventDefault();
 						e.stopPropagation();
-						var item = $('.highlightedItem');
-						if( item.is( 'tr' ) )
-							item.toggleClass( 'selectedItem' );
+						element.classList.toggle( 'selectedItem' );
 					}
 				}
 				return;
 				break;
 		}
 
-		/**
-		 * Some operations do not work if the highlighted item is the parent
-		 * directory. In these cases the keybindings are ignored.
-		 */
-		if( $('.highlightedItem').data( 'filename' ) == ".." )
+		// Some operations do not work if the highlighted item is the parent
+		// directory. In these cases the keybindings are ignored.
+		if( item.name == ".." )
 			return;
+
+		var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+				.map( function( e ) { return self.fileCache[e.children[0].children[0].id] } );
 
 		switch( e.key ) {
 			case 'Delete':
 				if( self.config.delete ) {
-					if( $('#filetable tr.selectedItem').length > 0 ) {
+					if( selectedItems.length > 0 ) {
 						e.preventDefault();
 						self.showMultiDeleteDialog();
-					} else {
-						var item = $('.highlightedItem');
-						if( item.length )
-							self.showDeleteFileDialog( item.data( 'filename' ) );
-					}
+					} else
+						self.showDeleteFileDialog( item.name );
 				}
 				return;
 				break;
 			case 'c':
 			case 'm':
 				if( self.config.copymove ) {
-					var item = $('.highlightedItem');
-					if( item.length ) {
-						e.preventDefault();
-						self.showCopyMoveDialog( item.data( 'filename' ) );
-					}
+					self.showCopyMoveDialog( selectedItems );
 				}
 				return;
 				break;
 			case 'e':
-				if( self.config.edit ) {
-					var item = $('.highlightedItem');
-					if( item.length && ! item.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						var action = item.data( 'eaction' );
-						switch( action ) {
-							case 'extract':
-								self.showExtractFileDialog( item.data( 'filename' ) );
-								break;
-							case 'edit':
-								self.editFile( item.data( 'filename' ) );
-						}
-					}
+				if( self.config.edit && item.eaction == "edit" ) {
+					e.preventDefault();
+					self.editFile( item.name );
+				} else if( self.config.extract && item.eaction == "extract" ) {
+					e.preventDefault();
+					self.showExtractFileDialog( item.name );
 				}
 				return;
 				break;
@@ -2262,8 +2270,7 @@ function IFM( params ) {
 	};
 	
 	this.initApplication = function() {
-		self.rootElement.html(
-			Mustache.render(
+		self.rootElement.innerHTML = Mustache.render(
 				self.templates.app,
 				{
 					showpath: "/",
@@ -2271,9 +2278,7 @@ function IFM( params ) {
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
-				}
-			)
-		);
+				});
 		// bind static buttons
 		$("#refresh").click(function(){
 			self.refreshFileTable();
@@ -2322,7 +2327,7 @@ function IFM( params ) {
 				$('#filedropoverlay').css( 'display', 'none' );
 			});
 		// handle keystrokes
-		$(document).on( 'keydown', self.handleKeystrokes );
+		document.onkeydown = self.handleKeystrokes;
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
 		// load initial file table
@@ -2334,7 +2339,7 @@ function IFM( params ) {
 	};
 
 	this.init = function( id ) {
-		self.rootElement = $('#'+id);
+		self.rootElement = document.getElementById( id );
 		this.initLoadConfig();
 	};
 }
