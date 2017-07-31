@@ -3129,7 +3129,11 @@ function IFM( params ) {
 		if( $loginFailed ) 
 			$err = '<div class="alert alert-danger">Login failed.</div>';
 		$this->getHTMLHeader();
-		print str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{i18n.username}}", $this->i18n[$this->config['language']]['username'], $html );
+		$html = str_replace( "{{i18n.password}}", $this->i18n[$this->config['language']]['password'], $html );
+		$html = str_replace( "{{i18n.login}}", $this->i18n[$this->config['language']]['login'], $html );
+		print $html;
 		$this->getHTMLFooter();
 	}
 
