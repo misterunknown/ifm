@@ -2957,7 +2957,8 @@ function IFM( params ) {
 				array( $this, 'convertToUTF8' )
 			);
 		else
-			$item = utf8_encode( $item );
+			if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $item, "UTF-8" ) )
+				$item = utf8_encode( $item );
 	}
 
 	public function checkAuth() {
