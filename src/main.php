@@ -97,55 +97,55 @@ class IFM {
 
 		$templates = array();
 		$templates['app'] = <<<'f00bar'
-@@@src/templates/app.html@@@
+@@@file:src/templates/app.html@@@
 f00bar;
 		$templates['login'] = <<<'f00bar'
-@@@src/templates/login.html@@@
+@@@file:src/templates/login.html@@@
 f00bar;
 		$templates['filetable'] = <<<'f00bar'
-@@@src/templates/filetable.html@@@
+@@@file:src/templates/filetable.html@@@
 f00bar;
 		$templates['footer'] = <<<'f00bar'
-@@@src/templates/footer.html@@@
+@@@file:src/templates/footer.html@@@
 f00bar;
 		$templates['task'] = <<<'f00bar'
-@@@src/templates/task.html@@@
+@@@file:src/templates/task.html@@@
 f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
-@@@src/templates/modal.ajaxrequest.html@@@
+@@@file:src/templates/modal.ajaxrequest.html@@@
 f00bar;
 		$templates['copymove'] = <<<'f00bar'
-@@@src/templates/modal.copymove.html@@@
+@@@file:src/templates/modal.copymove.html@@@
 f00bar;
 		$templates['createdir'] = <<<'f00bar'
-@@@src/templates/modal.createdir.html@@@
+@@@file:src/templates/modal.createdir.html@@@
 f00bar;
 		$templates['deletefile'] = <<<'f00bar'
-@@@src/templates/modal.deletefile.html@@@
+@@@file:src/templates/modal.deletefile.html@@@
 f00bar;
 		$templates['extractfile'] = <<<'f00bar'
-@@@src/templates/modal.extractfile.html@@@
+@@@file:src/templates/modal.extractfile.html@@@
 f00bar;
 		$templates['file'] = <<<'f00bar'
-@@@src/templates/modal.file.html@@@
+@@@file:src/templates/modal.file.html@@@
 f00bar;
 		$templates['multidelete'] = <<<'f00bar'
-@@@src/templates/modal.multidelete.html@@@
+@@@file:src/templates/modal.multidelete.html@@@
 f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
-@@@src/templates/modal.remoteupload.html@@@
+@@@file:src/templates/modal.remoteupload.html@@@
 f00bar;
 		$templates['renamefile'] = <<<'f00bar'
-@@@src/templates/modal.renamefile.html@@@
+@@@file:src/templates/modal.renamefile.html@@@
 f00bar;
 		$templates['search'] = <<<'f00bar'
-@@@src/templates/modal.search.html@@@
+@@@file:src/templates/modal.search.html@@@
 f00bar;
 		$templates['searchresults'] = <<<'f00bar'
-@@@src/templates/modal.searchresults.html@@@
+@@@file:src/templates/modal.searchresults.html@@@
 f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
-@@@src/templates/modal.uploadfile.html@@@
+@@@file:src/templates/modal.uploadfile.html@@@
 f00bar;
 		$this->templates = $templates;
 	}
@@ -169,24 +169,24 @@ f00bar;
 
 	public function getCSS() {
 		print '
-			<style type="text/css">';?> @@@src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@src/includes/fontello-embedded.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@src/includes/animation.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@src/style.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
 		';
 	}
 
 	public function getJS() {
 		print '
-				<script>';?> @@@src/includes/ace.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/jquery.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/bootstrap.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/BootstrapMenu.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/includes/mustache.min.js@@@ <?php print '</script>
-				<script>';?> @@@src/ifm.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/ace.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/jquery.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/bootstrap.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/BootstrapMenu.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/mustache.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/ifm.js@@@ <?php print '</script>
 		';
 	}
 
