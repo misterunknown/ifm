@@ -4,23 +4,25 @@
  * @param object params - object with some configuration values, currently you only can set the api url
  */
 function IFM( params ) {
-	var self = this; // reference to ourself, because "this" does not work within callbacks
+	// reference to ourself, because "this" does not work within callbacks
+	var self = this;
 
 	// set the backend for the application
 	params = params || {};
 	self.api = params.api || window.location.pathname;
 
-	this.editor = null; // global ace editor
-	this.fileChanged = false; // flag for check if file was changed already
-	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
-	this.rootElement = "";
-	this.search = {};
+	this.editor = null;		// global ace editor
+	this.fileChanged = false;	// flag for check if file was changed already
+	this.currentDir = "";		// this is the global variable for the current directory; it is used for AJAX requests
+	this.rootElement = "";		// global root element, currently not used
+	this.fileCache = [];		// holds the current set of files
+	this.search = {};		// holds the last search query, as well as the search results
 
 	/**
 	 * Shows a bootstrap modal
 	 *
-	 * @param string content - content of the modal
-	 * @param object options - options for the modal
+	 * @param {string} content - content of the modal
+	 * @param {object} options - options for the modal
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
@@ -147,6 +149,7 @@ function IFM( params ) {
 					});
 			}
 		});
+		self.fileCache = data;
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
 		$( "#filetable tbody" ).remove();
 		$( "#filetable" ).append( $(newTBody) );
@@ -211,20 +214,92 @@ function IFM( params ) {
 		});
 		if( self.config.contextmenu ) {
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
-				fetchElementData: function( $rowElem ) {
-					var data = $rowElem.data();
-					data.isDir = $rowElem.hasClass( 'isDir' );
-					data.element = $rowElem[0];
+				fetchElementData: function( row ) {
+					var data = {};
+					var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) );
+					data.selected =
+						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+						.map( function(e){ return ifm.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
+					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
 					return data;
 				},
-				actions: [{
-					name: 'download',
-					onClick: function( item ) {
-						console.log( item );
-						$( '#d_' + item.element.children[0].children[0].id ).submit();
+				actionGroups:[
+					['edit', 'extract', 'rename'],
+					['copymove', 'download'],
+					['delete']
+				],
+				actions: {
+					edit: {
+						name: "edit",
+						onClick: function( data ) {
+							self.editFile( data.clicked.name );
+						},
+						iconClass: "icon icon-pencil",
+						isShown: function( data ) {
+							return ( self.config.edit && data.clicked.eaction == "edit" );
+						}
 					},
-					iconClass: "icon icon-cloud"
-				}]
+					extract: {
+						name: "extract",
+						onClick: function( data ) {
+							self.showExtractFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) {
+							return ( self.config.extract && data.clicked.eaction == "extract" );
+						}
+					},
+					rename: {
+						name: "rename",
+						onClick: function( data ) {
+							self.showRenameFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-terminal",
+						isShown: function() { return self.config.rename; }
+					},
+					copymove: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'copy/move';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCopyMoveDialog( data.selected.map(function( e ) { return e.name; }) );
+							else
+								self.showCopyMoveDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-folder-empty",
+						isShown: function() { return self.config.copymove; }
+					},
+					download: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'download <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'download';
+						},
+						onClick: function( data ) {
+							console.log( data );
+						},
+						iconClass: "icon icon-download",
+						isShown: function() { return self.config.download; }
+					},
+					delete: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'delete <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'delete';
+						},
+						onClick: function( item ) {
+							console.log( item );
+						},
+						iconClass: "icon icon-trash",
+						isShown: function() { return self.config.delete; }
+					}
+				}
 			});
 		}
 	};
@@ -505,7 +580,7 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.showCopyMoveDialog = function( name ) {
+	this.showCopyMoveDialog = function( items ) {
 		self.showModal( self.templates.copymove );
 		$.ajax({
 			url: self.api,
@@ -539,12 +614,16 @@ function IFM( params ) {
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
 		$( '#copyButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
+			items.forEach( function( item ) {
+				self.copyMove( item.name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
+			});
 			self.hideModal();
 			return false;
 		});
 		$( '#moveButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
+			filenames.forEach( function( filename ) {
+				self.copyMove( item.name, $('#copyMoveTree .node-selected').data('path'), 'move' );
+			});
 			self.hideModal();
 			return false;
 		});
@@ -557,7 +636,9 @@ function IFM( params ) {
 	/**
 	 * Copy or moves a file
 	 * 
-	 * @params string name - name of the file
+	 * @params {string} source - name of the file
+	 * @params {string} destination - target directory
+	 * @params {string} action - action (copy|move)
 	 */
 	this.copyMove = function( source, destination, action ) {
 		var id = self.generateGuid();
@@ -593,7 +674,7 @@ function IFM( params ) {
 	/**
 	 * Shows the extract file dialog
 	 *
-	 * @param string name - name of the file
+	 * @param {string} filename - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
 		var targetDirSuggestion = '';
