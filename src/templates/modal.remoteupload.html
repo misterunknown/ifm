@@ -1,16 +1,16 @@
 <form id="formRemoteUpload">
 <div class="modal-body">
 	<fieldset>
-		<label>Remote upload URL</label><br>
+		<label>{{i18n.upload_remote_url}}</label><br>
 		<input class="form-control" type="text" id="url" name="url" required><br>
-		<label>Filename (required)</label>
+		<label>{{i18n.filename}}</label>
 		<input class="form-control" type="text" id="filename" name="filename" required><br>
-		<label>Method</label>
+		<label>{{i18n.method}}</label>
 		<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonUpload">Upload</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button type="button" class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>

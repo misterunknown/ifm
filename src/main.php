@@ -153,11 +153,11 @@ f00bar;
 
 		$i18n = array();
 		$i18n['en'] = <<<'f00bar'
-@@@src/i18n/en.json@@@
+@@@file:src/i18n/en.json@@@
 f00bar;
 		$i18n['en'] = json_decode($i18n['en'], true);
 		$i18n['de'] = <<<'f00bar'
-@@@src/i18n/de.json@@@
+@@@file:src/i18n/de.json@@@
 f00bar;
 		$i18n['de'] = json_decode($i18n['de'], true);
 		$this->i18n = $i18n;
