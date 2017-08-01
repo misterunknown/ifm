@@ -8,39 +8,40 @@
 
 chdir( realpath( dirname( __FILE__ ) ) );
 
-$IFM_SRC_MAIN = "src/main.php";
-$IFM_SRC_PHPFILES = array( "src/ifmarchive.php", "src/htpasswd.php" );
-$IFM_SRC_JS = "src/ifm.js";
+$IFM_SRC_PHP = array(
+	0 => "src/main.php",
+	1 => "src/ifmarchive.php",
+	2 => "src/htpasswd.php"
+);
 
 $IFM_BUILD_STANDALONE = "ifm.php";
-$IFM_BUILD_STANDALONE_COMPRESSED = "ifm.min.php";
+$IFM_BUILD_STANDALONE_COMPRESSED = "build/ifm.min.php";
 $IFM_BUILD_LIB_PHP = "build/libifm.php";
 
 /**
- * Prepare main script
+ * Concat PHP Files
  */
-$main = file_get_contents( $IFM_SRC_MAIN );
-$includes = NULL;
-preg_match_all( "/\@\@\@([^\@]+)\@\@\@/", $main, $includes, PREG_SET_ORDER );
-foreach( $includes as $file ) {
-	$main = str_replace( $file[0], file_get_contents( $file[1] ), $main );
+$compiled = array( "<?php" );
+foreach( $IFM_SRC_PHP as $phpfile ) {
+	$lines = file( $phpfile );
+	unset( $lines[0] ); // remove <?php line
+	$compiled = array_merge( $compiled, $lines );
 }
+$compiled = join( $compiled );
 
 /**
- * Add PHP files
+ * Process includes
  */
-$phpincludes = array();
-foreach( $IFM_SRC_PHPFILES as $file ) {
-	$content = file( $file );
-	unset( $content[0] ); // remove <?php line
-	$phpincludes = array_merge( $phpincludes, $content );
+$includes = NULL;
+preg_match_all( "/\@\@\@file:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_ORDER );
+foreach( $includes as $file ) {
+	$compiled = str_replace( $file[0], file_get_contents( $file[1] ), $compiled );
 }
 
 /**
  * Build standalone script
  */
-file_put_contents( $IFM_BUILD_STANDALONE, $main );
-file_put_contents( $IFM_BUILD_STANDALONE, $phpincludes, FILE_APPEND );
+file_put_contents( $IFM_BUILD_STANDALONE, $compiled );
 file_put_contents( $IFM_BUILD_STANDALONE, '
 /**
  * start IFM
@@ -57,5 +58,4 @@ $ifm->run();
 /**
  * Build library
  */
-file_put_contents( $IFM_BUILD_LIB_PHP, $main );
-file_put_contents( $IFM_BUILD_LIB_PHP, $phpincludes, FILE_APPEND );
+file_put_contents( $IFM_BUILD_LIB_PHP, $compiled );

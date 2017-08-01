@@ -14,6 +14,7 @@ function IFM( params ) {
 	this.fileChanged = false; // flag for check if file was changed already
 	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
 	this.rootElement = "";
+	this.search = {};
 
 	/**
 	 * Shows a bootstrap modal
@@ -80,6 +81,13 @@ function IFM( params ) {
 	 * @param object data - object with items
 	 */
 	this.rebuildFileTable = function( data ) {
+		if( data.status == "ERROR" ) {
+			this.showMessage( data.message, "e" );
+			return;
+		} else if ( ! Array.isArray( data ) ) {
+			this.showMessage( "Invalid data from server", "e" );
+			return;
+		}
 		data.forEach( function( item ) {
 			item.guid = self.generateGuid();
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
@@ -201,7 +209,24 @@ function IFM( params ) {
 					break;
 			}
 		});
-
+		if( self.config.contextmenu ) {
+			var contextMenu = new BootstrapMenu( '.clickable-row', {
+				fetchElementData: function( $rowElem ) {
+					var data = $rowElem.data();
+					data.isDir = $rowElem.hasClass( 'isDir' );
+					data.element = $rowElem[0];
+					return data;
+				},
+				actions: [{
+					name: 'download',
+					onClick: function( item ) {
+						console.log( item );
+						$( '#d_' + item.element.children[0].children[0].id ).submit();
+					},
+					iconClass: "icon icon-cloud"
+				}]
+			});
+		}
 	};
 
 	/**
@@ -850,6 +875,50 @@ function IFM( params ) {
 		});
 	};
 
+	this.showSearchDialog = function() {
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
+		$( '#searchResults tbody' ).remove();
+		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
+		$( '#searchPattern' ).on( 'keypress', function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				e.stopPropagation();
+				self.search.lastSearch = e.target.value;
+				$.ajax({
+					url: self.api,
+					type: "POST",
+					data: {
+						api: "searchItems",
+						dir: self.currentDir,
+						pattern: e.target.value
+					},
+					dataType: "json",
+					success: function( data ) {
+						data.forEach( function(e) {
+							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+						});
+						self.search.data = data;
+						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+					}
+				});
+			}
+		});
+		$( document ).on( 'click', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			e.stopPropagation();
+			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+			self.hideModal();
+		});
+		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
+			console.log( e );
+			e.preventDefault();
+			if( e.key == "Enter" )
+				e.target.click();
+		});
+	}
+
 	// --------------------
 	// helper functions
 	// --------------------
@@ -1099,6 +1168,10 @@ function IFM( params ) {
 			return;
 
 		switch( e.key ) {
+			case '/':
+				e.preventDefault();
+				self.showSearchDialog();
+				break;
 			case 'g':
 				e.preventDefault();
 				$('#currentDir').focus();
