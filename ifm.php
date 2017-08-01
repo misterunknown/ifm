@@ -529,65 +529,11 @@ f00bar;
 
 		$i18n = array();
 		$i18n['en'] = <<<'f00bar'
-{
-	"refresh": "Refresh",
-	"upload": "Upload",
-	"file_edit_success": "File successfully edited / created.",
-	"toggle_nav": "Toggle navigation",
-	"path_content": "Content of",
-	"file_new": "New File",
-	"folder_new": "New Folder",
-	"upload_remote": "Remote Upload",
-	"ajax_request": "AJAX Request",
-	"logout": "Log Off",
-	"upload_drop": "Drop files to upload",
-	"filename": "Filename",
-	"size": "Size",
-	"last_modified": "Last Modified",
-	"permissions": "Permissions",
-	"owner": "Owner",
-	"group": "Group",
-	"footer": "IFM - improved file manager | ifm.php hidden |",
-	"github": "Visit the project on GitHub",
-	"tasks": "Tasks",
-	"login": "Login",
-	"username": "username",
-	"password": "Password",
-	"upload_file": "Upload File",
-	"filename_new": "New Filename",
-	"cancel": "Cancel"
-}
+@@@src/i18n/en.json@@@
 f00bar;
 		$i18n['en'] = json_decode($i18n['en'], true);
 		$i18n['de'] = <<<'f00bar'
-{
-	"refresh": "Auffrischen",
-	"upload": "Hochladen",
-	"file_edit_success": "Datei erfolgreich geändert / angelegt.",
-	"toggle_nav": "Navigation umschalten",
-	"path_content": "Inhalt von",
-	"file_new": "Neue Datei",
-	"folder_new": "Neue Ordner",
-	"upload_remote": "Hochladen von draussen",
-	"ajax_request": "AJAX Request",
-	"logout": "Abmelden",
-	"upload_drop": "Dateien zum hochladen hier hinziehen",
-	"filename": "Dateiname",
-	"size": "Größe",
-	"last_modified": "Zuletzt geändert",
-	"permissions": "Berechtigungen",
-	"owner": "Besitzer",
-	"group": "Gruppe",
-	"footer": "IFM - verbesserter file manager | ifm.php versteckt |",
-	"github": "Besuche das Projekt auf GitHub",
-	"tasks": "Aufgaben",
-	"login": "Anmeldung",
-	"username": "Benutzername",
-	"password": "Passwort",
-	"upload_file": "Datei hochladen",
-	"filename_new": "Neuer Dateiname",
-	"cancel": "Abbrechen"
-}
+@@@src/i18n/de.json@@@
 f00bar;
 		$i18n['de'] = json_decode($i18n['de'], true);
 		$this->i18n = $i18n;
