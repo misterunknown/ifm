@@ -343,7 +343,7 @@ function IFM( params ) {
 	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
+		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
 		var form = $('#formFile');
 		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
 		form.find('#buttonSave').on( 'click', function() {
@@ -407,7 +407,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -448,7 +448,7 @@ function IFM( params ) {
 	 * Shows the create directory dialog
 	 */
 	this.showCreateDirDialog = function() {
-		self.showModal( self.templates.createdir );
+		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
 		var form = $( '#formCreateDir' );
 		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonSave' ).on( 'click', function() {
@@ -495,7 +495,8 @@ function IFM( params ) {
 		self.showModal(	Mustache.render( self.templates.deletefile, {
 			multiple: Array.isArray( items ),
 			count: items.length,
-			filename: ( Array.isArray( items ) ? items[0].name : items.name )
+			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
+			i18n: self.i18n
 		}));
 		var form = document.getElementById('formDeleteFiles');
 		document.getElementById( 'buttonYes' ).onclick = function() {
@@ -542,7 +543,7 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showRenameFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
 		var form = $( '#formRenameFile' );
 		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonRename' ).on( 'click', function() {
@@ -588,7 +589,7 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showCopyMoveDialog = function( items ) {
-		self.showModal( self.templates.copymove );
+		self.showModal( Mustache.render( self.templates.copymove, { i18n: self.i18n } ) );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -688,7 +689,7 @@ function IFM( params ) {
 		if( filename.lastIndexOf( '.' ) > 1 )
 			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
 		else targetDirSuggestion = filename;
-		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
 		var form = $('#formExtractFile');
 		form.find('#buttonExtract').on( 'click', function() {
 			var t = form.find('input[name=extractTargetLocation]:checked').val();
@@ -739,7 +740,7 @@ function IFM( params ) {
 	 * Shows the upload file dialog
 	 */
 	this.showUploadFileDialog = function() {
-		self.showModal( self.templates.uploadfile );
+		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
 		var form = $('#formUploadFile');
 		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
 		form.find( 'input[name=files]' ).on( 'change', function( e ) {
@@ -836,7 +837,7 @@ function IFM( params ) {
 	 * Show the remote upload dialog
 	 */
 	this.showRemoteUploadDialog = function() {
-		self.showModal( self.templates.remoteupload );
+		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
 		var form = $('#formRemoteUpload');
 		form.find( '#url' )
 			.on( 'keypress', self.preventEnter )
@@ -890,7 +891,7 @@ function IFM( params ) {
 	 * Shows the ajax request dialog
 	 */
 	this.showAjaxRequestDialog = function() {
-		self.showModal( self.templates.ajaxrequest );
+		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
 		var form = $('#formAjaxRequest');
 		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonRequest' ).on( 'click', function() {
@@ -916,7 +917,6 @@ function IFM( params ) {
 			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
 		});
 	};
-
 
 	/**
 	 * Deletes multiple files
@@ -1424,10 +1424,30 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
 			}
 		});
 	};
@@ -1438,6 +1458,7 @@ function IFM( params ) {
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}

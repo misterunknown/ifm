@@ -7,7 +7,7 @@
 				<div class="navbar-header">
 					<a class="navbar-brand">IFM</a>
 					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-						<span class="sr-only">Toggle navigation</span>
+						<span class="sr-only">{{i18n.toggle_nav}}</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -17,33 +17,33 @@
 					<form class="navbar-form navbar-left">
 						<div class="form-group">
 							<div class="input-group">
-								<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">{{showpath}}</span></span>
+								<span class="input-group-addon" id="currentDirLabel">{{i18n.path_content}} <span id="docroot">{{showpath}}</span></span>
 								<input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 							</div>
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>
-						<li><a id="search"><span title="search" class="icon icon-search"></span> <span class="visible-xs">search</span></a></li>
+						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
+						<li><a id="search"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="visible-xs">{{i18n.search}}</span></a></li>
 						{{#config.upload}}
-						<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>
+						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
 						{{#config.createfile}}
-						<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>
+						<li><a id="createFile"><span title="{{i18n.file_new}}" class="icon icon-doc-inv"></span> <span class="visible-xs">{{i18n.file_new}}</span></a></li>
 						{{/config.createfile}}
 						{{#config.createdir}}
-						<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>
+						<li><a id="createDir"><span title="{{i18n.folder_new}}" class="icon icon-folder"></span> <span class="visible-xs">{{i18n.folder_new}}</span></a></li>
 						{{/config.createdir}}
 						<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								{{#config.remoteupload}}
-								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> remote upload</a></li>
+								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a></li>
 								{{/config.remoteupload}}
 								{{#config.ajaxrequest}}
-								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> ajax request</a></li>
+								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a></li>
 								{{/config.ajaxrequest}}
 								{{#config.auth}}
-								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> logout</a></li>
+								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> {{i18n.logout}}</a></li>
 								{{/config.auth}}
 							</ul>
 						</li>
@@ -52,30 +52,30 @@
 			</div>
 		</nav>
 		<div id="filedropoverlay">
-			<div>Drop files to upload</div>
+			<div>{{i18n.upload_drop}}</div>
 		</div>
 		<div class="container">
 			<table id="filetable" class="table">
 				<thead>
 					<tr>
-						<th>Filename</th>
+						<th>{{i18n.filename}}</th>
 						{{#config.download}}
 						<th><!-- column for download link --></th>
 						{{/config.download}}
 						{{#config.showlastmodified}}
-						<th>last modified</th>
+						<th>{{i18n.last_modified}}</th>
 						{{/config.showlastmodified}}
 						{{#config.showfilesize}}
-						<th>size</th>
+						<th>{{i18n.size}}</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th class="hidden-xs">permissions</th>
+						<th class="hidden-xs">{{i18n.permissions}}</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th class="hidden-xs hidden-sm">owner</th>
+						<th class="hidden-xs hidden-sm">{{i18n.owner}}</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th class="hidden-xs hidden-sm hidden-md">group</th>
+						<th class="hidden-xs hidden-sm hidden-md">{{i18n.group}}</th>
 						{{/config.showgroup}}
 						<th class="buttons"><!-- column for buttons --></th>
 					</tr>
@@ -85,5 +85,5 @@
 			</table>
 		</div>
 		<div class="container">
-			<div class="panel panel-default ifminfo"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+			<div class="panel panel-default ifminfo"><div class="panel-body">{{i18n.footer}} <a href="http://github.com/misterunknown/ifm">{{i18n.github}}</a></div></div>
 		</div>

@@ -43,12 +43,12 @@ body {
 
 <div class="container">
 	<form action="" method="post" class="form-signin">
-		<h2 class="form-signin-heading text-center">IFM Login</h2>
+		<h2 class="form-signin-heading text-center">IFM {{i18n.login}}</h2>
 		{{error}}
-		<label for="inputEmail" class="sr-only">Username</label>
-		<input type="text" id="user" name="user" class="form-control" placeholder="Username" required autofocus>
-		<label for="inputPassword" class="sr-only">Password</label>
-		<input type="password" id="pass" name="pass" class="form-control" placeholder="Password" required>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+		<label for="inputEmail" class="sr-only">{{i18n.username}}</label>
+		<input type="text" id="user" name="user" class="form-control" placeholder="{{i18n.username}}" required autofocus>
+		<label for="inputPassword" class="sr-only">{{i18n.password}}</label>
+		<input type="password" id="pass" name="pass" class="form-control" placeholder="{{i18n.password}}" required>
+		<button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
 	</form>
 </div> <!-- /container -->

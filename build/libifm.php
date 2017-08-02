@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
+		"language" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -53,6 +54,7 @@ class IFM {
 
 	private $config = array();
 	private $templates = array();
+	private $i18n = array();
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
@@ -106,7 +108,7 @@ class IFM {
 				<div class="navbar-header">
 					<a class="navbar-brand">IFM</a>
 					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-						<span class="sr-only">Toggle navigation</span>
+						<span class="sr-only">{{i18n.toggle_nav}}</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -116,33 +118,33 @@ class IFM {
 					<form class="navbar-form navbar-left">
 						<div class="form-group">
 							<div class="input-group">
-								<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">{{showpath}}</span></span>
+								<span class="input-group-addon" id="currentDirLabel">{{i18n.path_content}} <span id="docroot">{{showpath}}</span></span>
 								<input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 							</div>
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>
-						<li><a id="search"><span title="search" class="icon icon-search"></span> <span class="visible-xs">search</span></a></li>
+						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
+						<li><a id="search"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="visible-xs">{{i18n.search}}</span></a></li>
 						{{#config.upload}}
-						<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>
+						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
 						{{#config.createfile}}
-						<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>
+						<li><a id="createFile"><span title="{{i18n.file_new}}" class="icon icon-doc-inv"></span> <span class="visible-xs">{{i18n.file_new}}</span></a></li>
 						{{/config.createfile}}
 						{{#config.createdir}}
-						<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>
+						<li><a id="createDir"><span title="{{i18n.folder_new}}" class="icon icon-folder"></span> <span class="visible-xs">{{i18n.folder_new}}</span></a></li>
 						{{/config.createdir}}
 						<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								{{#config.remoteupload}}
-								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> remote upload</a></li>
+								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a></li>
 								{{/config.remoteupload}}
 								{{#config.ajaxrequest}}
-								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> ajax request</a></li>
+								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a></li>
 								{{/config.ajaxrequest}}
 								{{#config.auth}}
-								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> logout</a></li>
+								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> {{i18n.logout}}</a></li>
 								{{/config.auth}}
 							</ul>
 						</li>
@@ -151,30 +153,30 @@ class IFM {
 			</div>
 		</nav>
 		<div id="filedropoverlay">
-			<div>Drop files to upload</div>
+			<div>{{i18n.upload_drop}}</div>
 		</div>
 		<div class="container">
 			<table id="filetable" class="table">
 				<thead>
 					<tr>
-						<th>Filename</th>
+						<th>{{i18n.filename}}</th>
 						{{#config.download}}
 						<th><!-- column for download link --></th>
 						{{/config.download}}
 						{{#config.showlastmodified}}
-						<th>last modified</th>
+						<th>{{i18n.last_modified}}</th>
 						{{/config.showlastmodified}}
 						{{#config.showfilesize}}
-						<th>size</th>
+						<th>{{i18n.size}}</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th class="hidden-xs">permissions</th>
+						<th class="hidden-xs">{{i18n.permissions}}</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th class="hidden-xs hidden-sm">owner</th>
+						<th class="hidden-xs hidden-sm">{{i18n.owner}}</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th class="hidden-xs hidden-sm hidden-md">group</th>
+						<th class="hidden-xs hidden-sm hidden-md">{{i18n.group}}</th>
 						{{/config.showgroup}}
 						<th class="buttons"><!-- column for buttons --></th>
 					</tr>
@@ -184,7 +186,7 @@ class IFM {
 			</table>
 		</div>
 		<div class="container">
-			<div class="panel panel-default ifminfo"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+			<div class="panel panel-default ifminfo"><div class="panel-body">{{i18n.footer}} <a href="http://github.com/misterunknown/ifm">{{i18n.github}}</a></div></div>
 		</div>
 
 f00bar;
@@ -234,13 +236,13 @@ body {
 
 <div class="container">
 	<form action="" method="post" class="form-signin">
-		<h2 class="form-signin-heading text-center">IFM Login</h2>
+		<h2 class="form-signin-heading text-center">IFM {{i18n.login}}</h2>
 		{{error}}
-		<label for="inputEmail" class="sr-only">Username</label>
-		<input type="text" id="user" name="user" class="form-control" placeholder="Username" required autofocus>
-		<label for="inputPassword" class="sr-only">Password</label>
-		<input type="password" id="pass" name="pass" class="form-control" placeholder="Password" required>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+		<label for="inputEmail" class="sr-only">{{i18n.username}}</label>
+		<input type="text" id="user" name="user" class="form-control" placeholder="{{i18n.username}}" required autofocus>
+		<label for="inputPassword" class="sr-only">{{i18n.password}}</label>
+		<input type="password" id="pass" name="pass" class="form-control" placeholder="{{i18n.password}}" required>
+		<button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
 	</form>
 </div> <!-- /container -->
 
@@ -303,7 +305,7 @@ f00bar;
 <div class="container">
 	<div class="row">
 		<div class="col-xs-1">
-			<a name="showAll">Tasks <span class="badge" name="taskCount">1</span></a>
+			<a name="showAll">{{i18n.tasks}} <span class="badge" name="taskCount">1</span></a>
 		</div>
 		<div id="waitqueue" class="col-xs-11">
 		</div>
@@ -329,13 +331,13 @@ f00bar;
 	<fieldset>
 		<label>URL</label><br>
 		<input class="form-control" type="text" id="ajaxurl" required><br>
-		<label>Data</label><br>
+		<label>{{i18n.data}}</label><br>
 		<textarea class="form-control" id="ajaxdata"></textarea><br>
-		<label>Method</label><br>
+		<label>{{i18n.method}}</label><br>
 		<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>
-		<button type="button" class="btn btn-success" id="buttonRequest">Request</button>
-		<button type="button" class="btn btn-default" id="buttonClose">Close</button><br>
-		<label>Response</label><br>
+		<button type="button" class="btn btn-success" id="buttonRequest">{{i18n.request}}</button>
+		<button type="button" class="btn btn-default" id="buttonClose">{{i18n.cancel}}</button><br>
+		<label>{{i18n.response}}</label><br>
 		<textarea class="form-control" id="ajaxresponse"></textarea>
 	</fieldset>
 </form>
@@ -346,13 +348,13 @@ f00bar;
 <form id="formCopyMove">
 <fieldset>
 	<div class="modal-body">
-		<label>Select destination:</label>
+		<label>{{i18n.select_destination}}:</label>
 		<div id="copyMoveTree"><div class="text-center"><span class="icon icon-spin5 animate-spin"></span></div></div>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="copyButton">copy</button>
-		<button type="button" class="btn btn-default" id="moveButton">move</button>
-		<button type="button" class="btn btn-default" id="cancelButton">cancel</button>
+		<button type="button" class="btn btn-default" id="copyButton">{{i18n.copy}}</button>
+		<button type="button" class="btn btn-default" id="moveButton">{{i18n.move}}</button>
+		<button type="button" class="btn btn-default" id="cancelButton">{{i18n.cancel}}</button>
 	</div>
 </fieldset>
 </form>
@@ -362,13 +364,13 @@ f00bar;
 <form id="formCreateDir">
 <div class="modal-body">
 	<fieldset>
-		<label>Directoy name:</label>
+		<label>{{i18n.directoryname}}:</label>
 		<input class="form-control" type="text" name="dirname" value="" />
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonSave">Save</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button type="button" class="btn btn-default" id="buttonSave">{{i18n.save}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
@@ -377,15 +379,15 @@ f00bar;
 <form id="formDeleteFiles">
 <div class="modal-body">
 	{{#multiple}}
-	<label>Do you really want to delete these <code>{{count}}</code> files?</label>
+	<label>{{i18n.file_delete_confirm}} <code>{{count}}</code>?</label>
 	{{/multiple}}
 	{{^multiple}}
-	<label>Do you really want to delete <code>{{filename}}</code>?</label>
+	<label>{{i18n.file_delete_confirm}} <code>{{filename}}</code>?</label>
 	{{/multiple}}
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>
-	<button type="button" class="btn btn-default" id="buttonNo">No</button>
+	<button type="button" class="btn btn-danger" id="buttonYes">{{i18n.delete}}</button>
+	<button type="button" class="btn btn-default" id="buttonNo">{{i18n.cancel}}</button>
 </div>
 </form>
 
@@ -394,7 +396,7 @@ f00bar;
 <form id="formExtractFile">
 <fieldset>
 	<div class="modal-body">
-		<label>Extract {{filename}} to:</label>
+		<label>{{i18n.extract_filename}} {{filename}}:</label>
 		<div class="input-group">
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
 			<span class="form-control">./</span>
@@ -409,8 +411,8 @@ f00bar;
 		</div>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="buttonExtract">extract</button>
-		<button type="button" class="btn btn-default" id="buttonCancel">cancel</button>
+		<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
+		<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 	</div>
 </fieldset>
 </form>
@@ -420,22 +422,22 @@ f00bar;
 <form id="formFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Filename:</label>
+		<label>{{i18n.filename}}:</label>
 		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
 		<div id="content" name="content"></div><br>
-		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
-		<div class="hide" id="editoroptions-head">options</div>
+		<button type="button" class="btn btn-default" id="editoroptions">{{i18n.editor_options}}</button>
+		<div class="hide" id="editoroptions-head">{{i18n.options}}</div>
 		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>
-			<input type="checkbox" id="editor-softtabs"> use soft tabs</input>
-			<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>
+			<input type="checkbox" id="editor-wordwrap"> {{i18n.word_wrap}}</input><br>
+			<input type="checkbox" id="editor-softtabs"> {{i18n.soft_tabs}}</input>
+			<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}"></div>
 		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
-	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
-	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
+	<button type="button" id="buttonSave" class="btn btn-default">{{i18n.save}}</button>
+	<button type="button" id="buttonSaveNotClose" class="btn btn-default">{{i18n.save_wo_close}}</button>
+	<button type="button" id="buttonClose" class="btn btn-default">{{i18n.close}}</button>
 </div>
 </form>
 
@@ -443,11 +445,11 @@ f00bar;
 		$templates['multidelete'] = <<<'f00bar'
 <form id="formDeleteFiles">
 <div class="modal-body">
-	<label>Do you really want to delete these {{count}} files?</label>
+	<label>{{i18n.file_multi_delete_confirm}} {{count}}?</label>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>
-	<button type="button" class="btn btn-default" id="buttonNo">No</button>
+	<button type="button" class="btn btn-danger" id="buttonYes">{{i18n.yes}}</button>
+	<button type="button" class="btn btn-default" id="buttonNo">{{i18n.cancel}}</button>
 </div>
 </form>
 
@@ -456,17 +458,17 @@ f00bar;
 <form id="formRemoteUpload">
 <div class="modal-body">
 	<fieldset>
-		<label>Remote upload URL</label><br>
+		<label>{{i18n.upload_remote_url}}</label><br>
 		<input class="form-control" type="text" id="url" name="url" required><br>
-		<label>Filename (required)</label>
+		<label>{{i18n.filename}}</label>
 		<input class="form-control" type="text" id="filename" name="filename" required><br>
-		<label>Method</label>
+		<label>{{i18n.method}}</label>
 		<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonUpload">Upload</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button type="button" class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
@@ -475,10 +477,10 @@ f00bar;
 <div class="modal-body">
 <form id="formRenameFile">
 	<fieldset>
-		<label>Rename {{filename}} to:</label>
+		<label>{{i18n.rename_filename}} {{filename}}:</label>
 		<input class="form-control" type="text" name="newname" /><br>
-		<button class="btn btn-default" id="buttonRename">Rename</button>
-		<button class="btn btn-default" id="buttonCancel">Cancel</button>
+		<button class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
+		<button class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
 	</fieldset>
 </form>
 </div>
@@ -488,7 +490,7 @@ f00bar;
 <form id="searchForm">
 <div class="modal-body">
 	<fieldset>
-		<label>Pattern:</label>
+		<label>{{i18n.search_pattern}}:</label>
 		<input type="text" class="form-control" id="searchPattern" name="pattern" value="{{lastSearch}}"><br>
 		<table id="searchResults" class="table">
 		</table>
@@ -515,20 +517,137 @@ f00bar;
 <form id="formUploadFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Upload file</label><br>
+		<label>{{i18n.upload_file}}</label><br>
 		<input class="file" type="file" name="files" multiple><br>
-		<label>new filename</label>
+		<label>{{i18n.filename_new}}</label>
 		<input class="form-control" type="text" name="newfilename"><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button class="btn btn-default" id="buttonUpload">Upload</button>
-	<button class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
 f00bar;
 		$this->templates = $templates;
+
+		$i18n = array();
+		$i18n['en'] = <<<'f00bar'
+{
+    "ajax_request": "AJAX Request",
+    "cancel": "Cancel",
+    "close": "Close",
+    "copy": "Copy",
+    "data": "Data",
+    "delete": "Delete",
+    "directoryname": "Directory Name",
+    "editor_options": "Editor Options",
+    "extract": "Extract",
+    "extract_filename": "Extract file - ",
+    "file_delete_confirm": "Do you really want to delete the following file -",
+    "file_edit_success": "File successfully edited / created.",
+    "file_multi_delete_confirm": "Do you really want to delete these files -",
+    "file_new": "New File",
+    "file_save_confirm": "Do you want to save the following file -",
+    "filename": "Filename",
+    "filename_new": "New Filename",
+    "folder_new": "New Folder",
+    "footer": "IFM - improved file manager | ifm.php hidden |",
+    "github": "Visit the project on GitHub",
+    "group": "Group",
+    "last_modified": "Last Modified",
+    "login": "Login",
+    "logout": "Log Off",
+    "method": "Method",
+    "move": "Move",
+    "options": "Options",
+    "owner": "Owner",
+    "password": "Password",
+    "path_content": "Content of",
+    "permissions": "Permissions",
+    "refresh": "Refresh",
+    "rename": "Rename",
+    "rename_filename": "Rename file -",
+    "request": "Request",
+    "response": "Response",
+    "save": "Save",
+    "save_wo_close": "Save w/o Close",
+    "search_pattern": "Pattern",
+    "select_destination": "Select Destination",
+    "size": "Size",
+    "soft_tabs": "Soft Tabs",
+    "tab_size": "Tab Size",
+    "tasks": "Tasks",
+    "toggle_nav": "Toggle navigation",
+    "upload": "Upload",
+    "upload_drop": "Drop files to upload",
+    "upload_file": "Upload File",
+    "upload_remote": "Remote Upload",
+    "upload_remote_url": "Remote Upload URL",
+    "username": "username",
+    "word_wrap": "Word Wrap"
+}
+f00bar;
+		$i18n['en'] = json_decode($i18n['en'], true);
+		$i18n['de'] = <<<'f00bar'
+{
+    "ajax_request": "AJAX Request",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "copy": "Kopieren",
+    "data": "Daten",
+    "delete": "Löschen",
+    "directoryname": "Ordner Name",
+    "editor_options": "Editor Optionen",
+    "extract": "Auspacken",
+    "extract_filename": "Folgende Datei auspacken -",
+    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden -",
+    "file_edit_success": "Datei erfolgreich geändert / angelegt.",
+    "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden -",
+    "file_new": "Neue Datei",
+    "file_save_confirm": "Soll diese Datei wirklich gelöscht werden -",
+    "filename": "Dateiname",
+    "filename_new": "Neuer Dateiname",
+    "folder_new": "Neue Ordner",
+    "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
+    "github": "Besuche das Projekt auf GitHub",
+    "group": "Gruppe",
+    "last_modified": "Zuletzt geändert",
+    "login": "Anmeldung",
+    "logout": "Abmelden",
+    "method": "Methode",
+    "move": "Verschieben",
+    "options": "Optionen",
+    "owner": "Besitzer",
+    "password": "Passwort",
+    "path_content": "Inhalt von",
+    "permissions": "Berechtigungen",
+    "refresh": "Auffrischen",
+    "rename": "Umbenennen",
+    "rename_filename": "Folgende Datei umbenennen -",
+    "request": "Anfrage",
+    "response": "Antwort",
+    "save": "Speichen",
+    "save_wo_close": "Speichen ohne Schließen",
+    "search_pattern": "Muster",
+    "select_destination": "Zielort auswählen",
+    "size": "Größe",
+    "soft_tabs": "Leichte Tabulatoren",
+    "tab_size": "Tabulatoren Größe",
+    "tasks": "Aufgaben",
+    "toggle_nav": "Navigation umschalten",
+    "upload": "Hochladen",
+    "upload_drop": "Dateien zum hochladen hier hinziehen",
+    "upload_file": "Datei hochladen",
+    "upload_remote": "Hochladen von ausserhalb",
+    "upload_remote_url": "Entfernte URL zum hochladen",
+    "username": "Benutzername",
+    "word_wrap": "Zeilenumbruch"
+}
+f00bar;
+		$i18n['de'] = json_decode($i18n['de'], true);
+		$this->i18n = $i18n;
 	}
 
 	/**
@@ -1248,7 +1367,7 @@ function IFM( params ) {
 	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
+		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
 		var form = $('#formFile');
 		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
 		form.find('#buttonSave').on( 'click', function() {
@@ -1312,7 +1431,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -1353,7 +1472,7 @@ function IFM( params ) {
 	 * Shows the create directory dialog
 	 */
 	this.showCreateDirDialog = function() {
-		self.showModal( self.templates.createdir );
+		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
 		var form = $( '#formCreateDir' );
 		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonSave' ).on( 'click', function() {
@@ -1400,7 +1519,8 @@ function IFM( params ) {
 		self.showModal(	Mustache.render( self.templates.deletefile, {
 			multiple: Array.isArray( items ),
 			count: items.length,
-			filename: ( Array.isArray( items ) ? items[0].name : items.name )
+			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
+			i18n: self.i18n
 		}));
 		var form = document.getElementById('formDeleteFiles');
 		document.getElementById( 'buttonYes' ).onclick = function() {
@@ -1447,7 +1567,7 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showRenameFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
 		var form = $( '#formRenameFile' );
 		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonRename' ).on( 'click', function() {
@@ -1493,7 +1613,7 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showCopyMoveDialog = function( items ) {
-		self.showModal( self.templates.copymove );
+		self.showModal( Mustache.render( self.templates.copymove, { i18n: self.i18n } ) );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1593,7 +1713,7 @@ function IFM( params ) {
 		if( filename.lastIndexOf( '.' ) > 1 )
 			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
 		else targetDirSuggestion = filename;
-		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
 		var form = $('#formExtractFile');
 		form.find('#buttonExtract').on( 'click', function() {
 			var t = form.find('input[name=extractTargetLocation]:checked').val();
@@ -1644,7 +1764,7 @@ function IFM( params ) {
 	 * Shows the upload file dialog
 	 */
 	this.showUploadFileDialog = function() {
-		self.showModal( self.templates.uploadfile );
+		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
 		var form = $('#formUploadFile');
 		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
 		form.find( 'input[name=files]' ).on( 'change', function( e ) {
@@ -1741,7 +1861,7 @@ function IFM( params ) {
 	 * Show the remote upload dialog
 	 */
 	this.showRemoteUploadDialog = function() {
-		self.showModal( self.templates.remoteupload );
+		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
 		var form = $('#formRemoteUpload');
 		form.find( '#url' )
 			.on( 'keypress', self.preventEnter )
@@ -1795,7 +1915,7 @@ function IFM( params ) {
 	 * Shows the ajax request dialog
 	 */
 	this.showAjaxRequestDialog = function() {
-		self.showModal( self.templates.ajaxrequest );
+		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
 		var form = $('#formAjaxRequest');
 		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
 		form.find( '#buttonRequest' ).on( 'click', function() {
@@ -1821,7 +1941,6 @@ function IFM( params ) {
 			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
 		});
 	};
-
 
 	/**
 	 * Deletes multiple files
@@ -2329,10 +2448,30 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
+			}
+		});
+	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
 			}
 		});
 	};
@@ -2343,6 +2482,7 @@ function IFM( params ) {
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
@@ -2459,6 +2599,8 @@ function IFM( params ) {
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			echo json_encode( $this->templates );
+		} elseif( $_REQUEST["api"] == "getI18N" ) {
+			echo json_encode( $this->i18n[$this->config['language']] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
@@ -3176,7 +3318,11 @@ function IFM( params ) {
 		if( $loginFailed ) 
 			$err = '<div class="alert alert-danger">Login failed.</div>';
 		$this->getHTMLHeader();
-		print str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{i18n.username}}", $this->i18n[$this->config['language']]['username'], $html );
+		$html = str_replace( "{{i18n.password}}", $this->i18n[$this->config['language']]['password'], $html );
+		$html = str_replace( "{{i18n.login}}", $this->i18n[$this->config['language']]['login'], $html );
+		print $html;
 		$this->getHTMLFooter();
 	}
 
