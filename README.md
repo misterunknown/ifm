@@ -123,6 +123,7 @@ listed below:
 | `showhtdocs`       | `IFM_GUI_SHOWHTDOCS`       |
 | `showhiddenfiles`  | `IFM_GUI_SHOWHIDDENFILES`  |
 | `showpath`         | `IFM_GUI_SHOWPATH`         |
+| `contextmenu`      | `IFM_GUI_CONTEXTMENU`      |
 
 ## screenshots
 <a href="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png"><img src="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png" height="300px"></a>
