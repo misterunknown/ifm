@@ -64,33 +64,34 @@ class IFM {
 		$this->config = $this->defaultconfig;
 
 		// load config from environment variables
-		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? getenv('IFM_AUTH') : $this->config['auth'] ;
+		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? intval( getenv('IFM_AUTH') ) : $this->config['auth'] ;
 		$this->config['auth_source'] =  getenv('IFM_AUTH_SOURCE') !== false ? getenv('IFM_AUTH_SOURCE') : $this->config['auth_source'] ;
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
-		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? getenv('IFM_API_AJAXREQUEST') : $this->config['ajaxrequest'] ;
-		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? getenv('IFM_API_CHMOD') : $this->config['chmod'] ;
-		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? getenv('IFM_API_COPYMOVE') : $this->config['copymove'] ;
-		$this->config['createdir'] =  getenv('IFM_API_CREATEDIR') !== false ? getenv('IFM_API_CREATEDIR') : $this->config['createdir'] ;
-		$this->config['createfile'] =  getenv('IFM_API_CREATEFILE') !== false ? getenv('IFM_API_CREATEFILE') : $this->config['createfile'] ;
-		$this->config['edit'] =  getenv('IFM_API_EDIT') !== false ? getenv('IFM_API_EDIT') : $this->config['edit'] ;
-		$this->config['delete'] =  getenv('IFM_API_DELETE') !== false ? getenv('IFM_API_DELETE') : $this->config['delete'] ;
-		$this->config['download'] =  getenv('IFM_API_DOWNLOAD') !== false ? getenv('IFM_API_DOWNLOAD') : $this->config['download'] ;
-		$this->config['extract'] =  getenv('IFM_API_EXTRACT') !== false ? getenv('IFM_API_EXTRACT') : $this->config['extract'] ;
-		$this->config['upload'] =  getenv('IFM_API_UPLOAD') !== false ? getenv('IFM_API_UPLOAD') : $this->config['upload'] ;
-		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? getenv('IFM_API_REMOTEUPLOAD') : $this->config['remoteupload'] ;
-		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? getenv('IFM_API_RENAME') : $this->config['rename'] ;
-		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? getenv('IFM_API_ZIPNLOAD') : $this->config['zipnload'] ;
-		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? getenv('IFM_GUI_SHOWLASTMODIFIED') : $this->config['showlastmodified'] ;
-		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? getenv('IFM_GUI_SHOWFILESIZE') : $this->config['showfilesize'] ;
-		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? getenv('IFM_GUI_SHOWOWNER') : $this->config['showowner'] ;
-		$this->config['showgroup'] =  getenv('IFM_GUI_SHOWGROUP') !== false ? getenv('IFM_GUI_SHOWGROUP') : $this->config['showgroup'] ;
-		$this->config['showpermissions'] =  getenv('IFM_GUI_SHOWPERMISSIONS') !== false ? getenv('IFM_GUI_SHOWPERMISSIONS') : $this->config['showpermissions'] ;
-		$this->config['showhtdocs'] =  getenv('IFM_GUI_SHOWHTDOCS') !== false ? getenv('IFM_GUI_SHOWHTDOCS') : $this->config['showhtdocs'] ;
-		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? getenv('IFM_GUI_SHOWHIDDENFILES') : $this->config['showhiddenfiles'] ;
-		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? getenv('IFM_GUI_SHOWPATH') : $this->config['showpath'] ;
+		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? intval( getenv('IFM_API_AJAXREQUEST') ) : $this->config['ajaxrequest'] ;
+		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? intval( getenv('IFM_API_CHMOD') ) : $this->config['chmod'] ;
+		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? intval( getenv('IFM_API_COPYMOVE') ) : $this->config['copymove'] ;
+		$this->config['createdir'] =  getenv('IFM_API_CREATEDIR') !== false ? intval( getenv('IFM_API_CREATEDIR') ) : $this->config['createdir'] ;
+		$this->config['createfile'] =  getenv('IFM_API_CREATEFILE') !== false ? intval( getenv('IFM_API_CREATEFILE') ) : $this->config['createfile'] ;
+		$this->config['edit'] =  getenv('IFM_API_EDIT') !== false ? intval( getenv('IFM_API_EDIT') ) : $this->config['edit'] ;
+		$this->config['delete'] =  getenv('IFM_API_DELETE') !== false ? intval( getenv('IFM_API_DELETE') ) : $this->config['delete'] ;
+		$this->config['download'] =  getenv('IFM_API_DOWNLOAD') !== false ? intval( getenv('IFM_API_DOWNLOAD') ) : $this->config['download'] ;
+		$this->config['extract'] =  getenv('IFM_API_EXTRACT') !== false ? intval( getenv('IFM_API_EXTRACT') ) : $this->config['extract'] ;
+		$this->config['upload'] =  getenv('IFM_API_UPLOAD') !== false ? intval( getenv('IFM_API_UPLOAD') ) : $this->config['upload'] ;
+		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? intval( getenv('IFM_API_REMOTEUPLOAD') ) : $this->config['remoteupload'] ;
+		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? intval( getenv('IFM_API_RENAME') ) : $this->config['rename'] ;
+		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? intval( getenv('IFM_API_ZIPNLOAD') ) : $this->config['zipnload'] ;
+		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? intval( getenv('IFM_GUI_SHOWLASTMODIFIED') ) : $this->config['showlastmodified'] ;
+		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? intval( getenv('IFM_GUI_SHOWFILESIZE') ) : $this->config['showfilesize'] ;
+		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? intval( getenv('IFM_GUI_SHOWOWNER') ) : $this->config['showowner'] ;
+		$this->config['showgroup'] =  getenv('IFM_GUI_SHOWGROUP') !== false ? intval( getenv('IFM_GUI_SHOWGROUP') ) : $this->config['showgroup'] ;
+		$this->config['showpermissions'] =  getenv('IFM_GUI_SHOWPERMISSIONS') !== false ? intval( getenv('IFM_GUI_SHOWPERMISSIONS') ) : $this->config['showpermissions'] ;
+		$this->config['showhtdocs'] =  getenv('IFM_GUI_SHOWHTDOCS') !== false ? intval( getenv('IFM_GUI_SHOWHTDOCS') ) : $this->config['showhtdocs'] ;
+		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
+		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
+		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
 
 		// load config from passed array
 		$this->config = array_merge( $this->config, $config );
@@ -241,7 +242,7 @@ f00bar;
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
 					case "saveFile": $this->saveFile( $_REQUEST ); break;
 					case "getContent": $this->getContent( $_REQUEST ); break;
-					case "delete": $this->deleteFile( $_REQUEST ); break;
+					case "delete": $this->deleteFiles( $_REQUEST ); break;
 					case "rename": $this->renameFile( $_REQUEST ); break;
 					case "download": $this->downloadFile( $_REQUEST ); break;
 					case "extract": $this->extractFile( $_REQUEST ); break;
@@ -250,7 +251,6 @@ f00bar;
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
-					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					default:
@@ -387,7 +387,7 @@ f00bar;
 					array(
 						0 => array(
 							"text" => "/ [root]",
-							"dataAttributes" => array( "path" => $this->getRootDir() )
+							"dataAttr" => array( "path" => $this->getRootDir() )
 						)
 					),
 					$ret
@@ -475,7 +475,7 @@ f00bar;
 			exit( 1 );
 		}
 		if( $d['action'] == "copy" ) {
-			if( $this->copyr( $d['filename'], $d['destination'] ) ) {
+			if( $this->xcopy( $d['filename'], $d['destination'] ) ) {
 				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
 				exit( 0 );
 			} else {
@@ -554,38 +554,15 @@ f00bar;
 		}
 	}
 
-	// deletes a file or a directory (recursive!)
-	private function deleteFile( array $d ) {
-		if( $this->config['delete'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
-		elseif( ! $this->isFilenameAllowed( $d['filename'] ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
-		else {
-			$this->chDirIfNecessary( $d['dir'] );
-			if( is_dir( $d['filename'] ) ) {
-				$res = $this->rec_rmdir( $d['filename'] );
-				if( $res != 0 )
-					echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
-				else
-				   echo json_encode( array( "status" => "OK", "message" => "Directoy successful deleted" ) );
-			} else {
-				if( @unlink( $d['filename'] ) )
-					echo json_encode( array( "status" => "OK", "message" => "File successful deleted" ) );
-				else
-					echo json_encode( array( "status"=>"ERROR", "message" => "File could not be deleted" ) );
-			}
-		}
-	}
-
 	// deletes a bunch of files or directories
-	private function deleteMultipleFiles( array $d ) {
-		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
+	private function deleteFiles( array $d ) {
+		if( $this->config['delete'] != 1 ) $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
 			foreach( $d['filenames'] as $file ) {
 				if( $this->isFilenameAllowed( $file ) ) {
-					if( is_dir($file) ) {
+					if( is_dir( $file ) ) {
 						$res = $this->rec_rmdir( $file );
 						if( $res != 0 )
 							array_push( $err, $file );
@@ -842,7 +819,7 @@ f00bar;
 	 */
 
 	private function log( $d ) {
-		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) : $d ), FILE_APPEND );
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) . "\n" : $d . "\n" ), FILE_APPEND );
 	}
 
 	private function jsonResponse( $array ) {
@@ -929,10 +906,13 @@ f00bar;
 				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
+				$this->log( "srcopt: $srcopt" );
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
+					$this->log( "file exists" );
 					$htpasswd = new Htpasswd( $srcopt );
 					return $htpasswd->verify( $user, $pass );
 				} else {
+					trigger_error( "IFM: Fatal: Credential file does not exist or is not readable" );
 					return false;
 				}
 				break;
@@ -1096,50 +1076,18 @@ f00bar;
 		return 0;
 	}
 
-	/**
-	 * Copy a file, or recursively copy a folder and its contents
-	 *
-	 * @author      Aidan Lister <aidan@php.net>
-	 * @version     1.0.1
-	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
-	 * @param       string   $source    Source path
-	 * @param       string   $dest      Destination path
-	 * @return      bool     Returns TRUE on success, FALSE on failure
-	 */
-	private function copyr( $source, $dest )
-	{
-		// Check for symlinks
-		if (is_link($source)) {
-			return symlink(readlink($source), $dest);
-		}
-
-		// Simple copy for a file
-		if (is_file($source)) {
-			$dest = ( is_dir( $dest ) ) ? $this->pathCombine( $dest, basename( $source ) ) : $dest;
-			return copy($source, $dest);
-		} else {
+	private function xcopy( $source, $dest ) {
+		if( is_dir( $source ) )
 			$dest = $this->pathCombine( $dest, basename( $source ) );
+		$this->log( "source: $source, dest: $dest\n\n");
+		if( ! is_dir( $dest ) )
+			mkdir($dest, 0777, true);
+		if( is_file( $source ) )
+			return copy( $source, $this->pathCombine( $dest, basename( $source ) ) );
+
+		foreach( glob( $this->pathCombine( $source, '*') ) as $item ) {
+			$this->xcopy( $item, $dest );
 		}
-
-		// Make destination directory
-		if (!is_dir($dest)) {
-			mkdir($dest);
-		}
-
-		// Loop through the folder
-		$dir = dir($source);
-		while (false !== $entry = $dir->read()) {
-			// Skip pointers
-			if ($entry == '.' || $entry == '..') {
-				continue;
-			}
-
-			// Deep copy directories
-			$this->copyr("$source/$entry", "$dest/$entry");
-		}
-
-		// Clean up
-		$dir->close();
 		return true;
 	}
 
