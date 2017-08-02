@@ -1,6 +1,11 @@
-<form id="formDeleteFile">
+<form id="formDeleteFiles">
 <div class="modal-body">
-	<label>Do you really want to delete the file {{filename}}?
+	{{#multiple}}
+	<label>Do you really want to delete these <code>{{count}}</code> files?</label>
+	{{/multiple}}
+	{{^multiple}}
+	<label>Do you really want to delete <code>{{filename}}</code>?</label>
+	{{/multiple}}
 </div>
 <div class="modal-footer">
 	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>

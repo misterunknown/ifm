@@ -1,4 +1,3 @@
-<tbody>
 {{#items}}
 <tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
 	<td>
@@ -42,11 +41,10 @@
 	{{/config.showgroup}}
 	<td>
 		{{#button}}
-		<a tabindex="0" name="do-{{action}}" data-name="{{name}}">
+		<a tabindex="0" name="do-{{action}}" data-id="{{guid}}">
 			<span class="{{icon}}" title="{{title}}"</span>
 		</a>
 		{{/button}}
 	</td>
 </tr>
 {{/items}}
-</tbody>

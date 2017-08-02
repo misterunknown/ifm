@@ -40,21 +40,12 @@ function IFM( params ) {
 		modalDialog.appendChild( modalContent );
 		modal.appendChild( modalDialog );
 		document.body.appendChild( modal );
-		modal.addEventListener( 'hide.bs.modal', function( e ) { console.log( e ); $(this).remove(); });
-		modal.addEventListener( 'shown.bs.modal', function( e ) {
-			console.log( e );
-			var formElements = $(this).find('input, button');
-			if( formElements.length > 0 ) {
-				formElements.first().focus();
-			}
-		});
 
-		// For this we have to use jquery, because bootstrap modals depend on them. Even the bs.modal
-		// events require jquery, as they cannot be recognized by addEventListener()
+		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
+		// events require jquery, as they cannot be handled by addEventListener()
 		$(modal)
 			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
 			.on( 'shown.bs.modal', function( e ) {
-				console.log( e );
 				var formElements = $(this).find('input, button');
 				if( formElements.length > 0 ) {
 					formElements.first().focus();
@@ -118,15 +109,19 @@ function IFM( params ) {
 				item.button = [];
 			}
 			if( item.type == "dir" ) {
-				item.download.action = "zipnload";
-				item.download.icon = "icon icon-download-cloud";
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "zipnload";
+					item.download.icon = "icon icon-download-cloud";
+				}
 				item.rowclasses = "isDir";
 			} else {
-				item.download.action = "download";
-				item.download.icon = "icon icon-download";
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "download";
+					item.download.icon = "icon icon-download";
+				}
 				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
 					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.HTMLEncode( self.pathCombine( self.currentDir, item.name ) ) + '\' class=\'imgpreview\'>"';
-				if( self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
+				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
 					item.button.push({
 						action: "extract",
@@ -166,10 +161,49 @@ function IFM( params ) {
 		self.fileCache = data;
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
 		var filetable = document.getElementById( 'filetable' );
-		filetable.innerHTML = newTBody;
-		$( '.clickable-row' ).click( function( event ) {
-			if( event.ctrlKey ) {
-				$( this ).toggleClass( 'selectedItem' );
+		filetable.tBodies[0].innerHTML = newTBody;
+		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
+				self.changePermissions( e.target.dataset.filename, e.target.value );
+		});
+		filetable.tBodies[0].addEventListener( 'click', function( e ) {
+			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
+				e.target.parentElement.classList.toggle( 'selectedItem' );
+			else if( e.target.classList.contains( 'ifmitem' ) ) {
+				e.stopPropagation();
+				e.preventDefault();
+				if( e.target.dataset.type == "dir" )
+					self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+				else
+					if( self.config.isDocroot )
+						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, e.target.parentElement.parentElement.dataset.filename ) );
+					else
+						document.forms["d_"+e.target.id].submit();
+			} else if( e.target.parentElement.name == 'start_download' ) {
+				e.stopPropagation();
+				e.preventDefault();
+				document.forms["d_"+e.target.parentElement.dataset.guid].submit();
+			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
+				e.stopPropagation();
+				e.preventDefault();
+				var item = self.fileCache.find( x =>  x.guid === e.target.parentElement.dataset.id );
+				switch( e.target.parentElement.name.substr( 3 ) ) {
+					case "rename":
+						self.showRenameFileDialog( item.name );
+						break;
+					case "extract":
+						self.showExtractFileDialog( item.name );
+						break;
+					case "edit":
+						self.editFile( item.name );
+						break;
+					case "delete":
+						self.showDeleteDialog( item );
+						break;
+					case "copymove":
+						self.showCopyMoveDialog( item );
+						break;
+				}
 			}
 		});
 		$( 'a[data-toggle="tooltip"]' ).tooltip({
@@ -177,62 +211,13 @@ function IFM( params ) {
 			placement: 'right',
 			html: true
 		});
-		$( 'a.ifmitem' ).each( function() {
-			if( $(this).data( "type" ) == "dir" ) {
-				$(this).on( 'click', function( e ) {
-					e.stopPropagation();
-					self.changeDirectory( $(this).parent().parent().data( 'filename' ) );
-					return false;
-				});
-			} else {
-				if( self.config.isDocroot )
-					$(this).attr( "href", self.hrefEncode( self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) ) );
-				else
-					$(this).on( 'click', function() {
-						$( '#d_' + this.id ).submit();
-						return false;
-					});
-			}
-		});
-		$( 'a[name="start_download"]' ).on( 'click', function(e) {
-			e.stopPropagation();
-			$( '#d_' + $(this).data( 'guid' ) ).submit();
-			return false;
-		});
-		$( 'input[name="newpermissions"]' ).on( 'keypress', function( e ) {
-			if( e.key == "Enter" ) {
-				e.stopPropagation();
-				self.changePermissions( $( this ).data( 'filename' ), $( this ).val() );
-				return false;
-			}
-		});
-		$( 'a[name^="do-"]' ).on( 'click', function() {
-			var action = this.name.substr( this.name.indexOf( '-' ) + 1 );
-			switch( action ) {
-				case "rename":
-					self.showRenameFileDialog( $(this).data( 'name' ) );
-					break;
-				case "extract":
-					self.showExtractFileDialog( $(this).data( 'name' ) );
-					break;
-				case "edit":
-					self.editFile( $(this).data( 'name' ) );
-					break;
-				case "delete":
-					self.showDeleteFileDialog( $(this).data( 'name' ) );
-					break;
-				case "copymove":
-					self.showCopyMoveDialog( $(this).data( 'name' ) );
-					break;
-			}
-		});
-		if( self.config.contextmenu ) {
+		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
 				fetchElementData: function( row ) {
 					var data = {};
 					data.selected =
 						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
-						.map( function(e){ return ifm.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
+						.map( function(e){ return self.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
 					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
 					return data;
 				},
@@ -249,7 +234,7 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-pencil",
 						isShown: function( data ) {
-							return ( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
+							return !!( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
 						}
 					},
 					extract: {
@@ -259,7 +244,7 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-archive",
 						isShown: function( data ) {
-							return ( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
 						}
 					},
 					rename: {
@@ -268,7 +253,7 @@ function IFM( params ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
 						iconClass: "icon icon-terminal",
-						isShown: function( data ) { return ( self.config.rename && !data.selected.length ); }
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -284,7 +269,7 @@ function IFM( params ) {
 								self.showCopyMoveDialog( data.clicked );
 						},
 						iconClass: "icon icon-folder-empty",
-						isShown: function() { return self.config.copymove; }
+						isShown: function() { return !!self.config.copymove; }
 					},
 					download: {
 						name: function( data ) {
@@ -294,23 +279,29 @@ function IFM( params ) {
 								return 'download';
 						},
 						onClick: function( data ) {
-							console.log( data );
+							if( data.selected.length > 0 )
+								self.showMessage( "At the moment it is not possible to download a set of files." );
+							else
+								document.forms["d_"+data.clicked.guid].submit();
 						},
 						iconClass: "icon icon-download",
-						isShown: function() { return self.config.download; }
+						isShown: function() { return !!self.config.download; }
 					},
-					delete: {
+					'delete': {
 						name: function( data ) {
 							if( data.selected.length > 0 )
 								return 'delete <span class="badge">'+data.selected.length+'</span>';
 							else
 								return 'delete';
 						},
-						onClick: function( item ) {
-							console.log( item );
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showDeleteDialog( data.selected );
+							else
+								self.showDeleteDialog( data.clicked );
 						},
 						iconClass: "icon icon-trash",
-						isShown: function() { return self.config.delete; }
+						isShown: function() { return !!self.config.delete; }
 					}
 				}
 			});
@@ -497,48 +488,51 @@ function IFM( params ) {
 		});
 	};
 
-
 	/**
-	 * Shows the delete file dialog
-	 *
-	 * @param string name - name of the file
+	 * Shows the delete dialog
 	 */
-	this.showDeleteFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
-		var form = $( '#formDeleteFile' );
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.deleteFile( filename );
+	this.showDeleteDialog = function( items ) {
+		self.showModal(	Mustache.render( self.templates.deletefile, {
+			multiple: Array.isArray( items ),
+			count: items.length,
+			filename: ( Array.isArray( items ) ? items[0].name : items.name )
+		}));
+		var form = document.getElementById('formDeleteFiles');
+		document.getElementById( 'buttonYes' ).onclick = function() {
+			self.deleteFiles( items );
 			self.hideModal();
 			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
+		};
+		document.getElementById( 'buttonNo' ).onclick = function() {
 			self.hideModal();
 			return false;
-		});
+		};
 	};
 
 	/**
-	 * Deletes a file
+	 * Deletes files
 	 *
-	 * @params string name - name of the file
+	 * @params {array} items - array with objects from the fileCache
 	 */
-	this.deleteFile = function( filename ) {
+	this.deleteFiles = function( items ) {
+		if( ! Array.isArray( items ) )
+			items = [items];
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "delete",
 				dir: self.currentDir,
-				filename: filename
+				filenames: items.map( function( e ){ return e.name; } )
 			}),
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully deleted", "s");
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File(s) successfully deleted", "s" );
 							self.refreshFileTable();
-						} else self.showMessage("File could not be deleted", "e");
+						} else self.showMessage( "File(s) could not be deleted", "e" );
 					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			error: function() { self.showMessage( "General error occured", "e" ); }
 		});
 	};
 
@@ -923,22 +917,6 @@ function IFM( params ) {
 		});
 	};
 
-	/**
-	 * Shows the delete dialog for multiple files
-	 */
-	this.showMultiDeleteDialog = function() {
-		self.showModal( Mustache.render( self.templates.multidelete, { count: $('#filetable tr.selectedItem').length } ) );
-		var form = $('#formDeleteFiles');
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.multiDelete();
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-	};
 
 	/**
 	 * Deletes multiple files
@@ -946,7 +924,7 @@ function IFM( params ) {
 	this.multiDelete = function() {
 		var elements = $('#filetable tr.selectedItem');
 		var filenames = [];
-		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
+		for( var i=0; typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1001,14 +979,12 @@ function IFM( params ) {
 			}
 		});
 		$( document ).on( 'click', 'a.searchitem', function( e ) {
-			console.log( e );
 			e.preventDefault();
 			e.stopPropagation();
 			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
 			self.hideModal();
 		});
 		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
-			console.log( e );
 			e.preventDefault();
 			if( e.key == "Enter" )
 				e.target.click();
@@ -1163,7 +1139,7 @@ function IFM( params ) {
 	 *
 	 * @param object el - element object
 	 */
-	this.isElementInViewport = function (el) {
+	this.isElementInViewport = function( el ) {
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
 		}
@@ -1171,8 +1147,8 @@ function IFM( params ) {
 		return (
 				rect.top >= 60 &&
 				rect.left >= 0 &&
-				rect.bottom <= ( (window.innerHeight || document.documentElement.clientHeight) ) &&
-				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+				rect.bottom <= ( ( window.innerHeight || document.documentElement.clientHeight ) ) &&
+				rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
 			   );
 	}
 
@@ -1182,15 +1158,15 @@ function IFM( params ) {
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
-		for(j=0; j<20; j++) {
-			i = Math.floor(Math.random()*16).toString(16).toUpperCase();
+		for( j = 0; j < 20; j++ ) {
+			i = Math.floor( Math.random() * 16 ).toString( 16 ).toUpperCase();
 			result = result + i;
 		}
 		return result;
 	};
 
 	/**
-	 * Logs a message if debug mode is on
+	 * Logs a message if debug mode is active
 	 *
 	 * @param string m - message text
 	 */
@@ -1337,79 +1313,81 @@ function IFM( params ) {
 
 		// key events which need a highlighted item
 		var element = document.getElementsByClassName( 'highlightedItem' )[0];
-		if( ! element )
-			return;
-		item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
-
-		switch( e.key ) {
-			case 'l':
-			case 'ArrowRight':
-				e.preventDefault();
-				if( item.type == "dir" )
-					self.changeDirectory( item.name );
-				return;
-				break;
-			case 'Escape':
-				if( element.children[0].children[0] == document.activeElement ) {
-					e.preventDefault();
-					element.classList.toggle( 'highlightedItem' );
-				}
-				return;
-				break;
-			case ' ': // todo: make it work only when noting other is focused
-			case 'Enter':
-				if( element.children[0].children[0] == document.activeElement ) { 
-					if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
-						e.preventDefault();
-						e.stopPropagation();
-						self.changeDirectory( item.name );
-					} else if( e.key == ' ' && item.name != ".." ) {
-						e.preventDefault();
-						e.stopPropagation();
-						element.classList.toggle( 'selectedItem' );
-					}
-				}
-				return;
-				break;
-		}
+		if( element )
+			item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
+		else
+			item = false;
 
 		// Some operations do not work if the highlighted item is the parent
 		// directory. In these cases the keybindings are ignored.
-		if( item.name == ".." )
-			return;
-
 		var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
-				.map( function( e ) { return self.fileCache[e.children[0].children[0].id] } );
+			.map( function( e ) { return self.fileCache.find( x => x.guid === e.children[0].children[0].id ) } );
 
 		switch( e.key ) {
 			case 'Delete':
-				if( self.config.delete ) {
+				if( self.config.delete )
 					if( selectedItems.length > 0 ) {
 						e.preventDefault();
-						self.showMultiDeleteDialog();
-					} else
-						self.showDeleteFileDialog( item.name );
-				}
+						self.showDeleteDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showDeleteDialog( item );
 				return;
 				break;
 			case 'c':
 			case 'm':
 				if( self.config.copymove ) {
-					self.showCopyMoveDialog( selectedItems );
-				}
-				return;
-				break;
-			case 'e':
-				if( self.config.edit && item.eaction == "edit" ) {
-					e.preventDefault();
-					self.editFile( item.name );
-				} else if( self.config.extract && item.eaction == "extract" ) {
-					e.preventDefault();
-					self.showExtractFileDialog( item.name );
+					if( selectedItems.length > 0 ) {
+						e.preventDefault();
+						self.showCopyMoveDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showCopyMoveDialog( item );
 				}
 				return;
 				break;
 		}
+
+		if( item )
+			switch( e.key ) {
+				case 'l':
+				case 'ArrowRight':
+					e.preventDefault();
+					if( item.type == "dir" )
+						self.changeDirectory( item.name );
+					return;
+					break;
+				case 'Escape':
+					if( element.children[0].children[0] == document.activeElement ) {
+						e.preventDefault();
+						element.classList.toggle( 'highlightedItem' );
+					}
+					return;
+					break;
+				case ' ': // todo: make it work only when noting other is focused
+				case 'Enter':
+					if( element.children[0].children[0] == document.activeElement ) { 
+						if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
+							e.preventDefault();
+							e.stopPropagation();
+							self.changeDirectory( item.name );
+						} else if( e.key == ' ' && item.name != ".." ) {
+							e.preventDefault();
+							e.stopPropagation();
+							element.classList.toggle( 'selectedItem' );
+						}
+					}
+					return;
+					break;
+				case 'e':
+					if( self.config.edit && item.eaction == "edit" ) {
+						e.preventDefault();
+						self.editFile( item.name );
+					} else if( self.config.extract && item.eaction == "extract" ) {
+						e.preventDefault();
+						self.showExtractFileDialog( item.name );
+					}
+					return;
+					break;
+			}
 	}
 
 	/**
@@ -1465,56 +1443,60 @@ function IFM( params ) {
 					}
 				});
 		// bind static buttons
-		$("#refresh").click(function(){
-			self.refreshFileTable();
-		});
-		$("#createFile").click(function(){
-			self.showFileDialog();
-		});
-		$("#createDir").click(function(){
-			self.showCreateDirDialog();
-		});
-		$("#upload").click(function(){
-			self.showUploadFileDialog();
-		});
-		$('#currentDir').on( 'keypress', function (event) {
-			if( event.keyCode == 13 ) {
-				event.preventDefault();
-				self.changeDirectory( $(this).val(), { absolute: true } );
+		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if( self.config.createFile )
+			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
+		if( self.config.createDir )
+			document.getElementById( 'createDir' ).onclick = function() { self.showCreateDirDialog(); };
+		if( self.config.upload )
+			document.getElementById( 'upload' ).onclick = function() { self.showUploadFileDialog(); };
+		document.getElementById( 'currentDir' ).onkeypress = function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				self.changeDirectory( e.target.value, { absolute: true } );
 			}
-		});
-		$('#buttonRemoteUpload').on( 'click', function() {
-			self.showRemoteUploadDialog();
-			return false;
-		});
-		$('#buttonAjaxRequest').on( 'click', function() {
-			self.showAjaxRequestDialog();
-			return false;
-		});
-		$(document).on( 'dragover', function( e ) {
-			e.preventDefault();
-			e.stopPropagation();
-			$('#filedropoverlay').css( 'display', 'block' );
-		});
-		$( '#filedropoverlay' )
-			.on( 'drop', function( e ) {
+		};
+		if( self.config.remoteupload )
+			document.getElementById( 'buttonRemoteUpload' ).onclick = function() { self.showRemoteUploadDialog(); };
+		if( self.config.ajaxrequest )
+			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
+		if( self.config.upload )
+			document.addEventListener( 'dragover', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				var files = e.originalEvent.dataTransfer.files;
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-				$('#filedropoverlay').css( 'display', 'none' );
-			})
-			.on( 'dragleave', function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				$('#filedropoverlay').css( 'display', 'none' );
+				var div = document.getElementById( 'filedropoverlay' );
+				div.style.display = 'block';
+				div.ondrop = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					var files = e.dataTransfer.files;
+					for( var i = 0; i < files.length; i++ ) {
+						self.uploadFile( files[i] );
+					}
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
+				div.ondragleave = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
 			});
+		
 		// handle keystrokes
 		document.onkeydown = self.handleKeystrokes;
+
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
+
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
