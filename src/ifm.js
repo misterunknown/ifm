@@ -161,6 +161,8 @@ function IFM( params ) {
 		self.fileCache = data;
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
 		var filetable = document.getElementById( 'filetable' );
+		filetable.tBodies[0].remove();
+		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
 		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
 			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
@@ -253,7 +255,7 @@ function IFM( params ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
 						iconClass: "icon icon-terminal",
-						isShown: function( data ) { return !!( self.config.rename && !data.selected.length ); }
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -950,7 +952,7 @@ function IFM( params ) {
 	};
 
 	this.showSearchDialog = function() {
-		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
 		$( '#searchResults tbody' ).remove();
 		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
 		$( '#searchPattern' ).on( 'keypress', function( e ) {
@@ -1466,9 +1468,9 @@ function IFM( params ) {
 		// bind static buttons
 		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
 		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
-		if( self.config.createFile )
+		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
-		if( self.config.createDir )
+		if( self.config.createdir )
 			document.getElementById( 'createDir' ).onclick = function() { self.showCreateDirDialog(); };
 		if( self.config.upload )
 			document.getElementById( 'upload' ).onclick = function() { self.showUploadFileDialog(); };

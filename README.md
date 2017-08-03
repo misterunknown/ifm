@@ -89,6 +89,8 @@ listed below:
 | `root_dir`         | `IFM_ROOT_DIR`             |
 | `tmp_dir`          | `IFM_TMP_DIR`              |
 | `defaulttimezone`  | `IFM_DEFAULTTIMEZONE`      |
+| `forbiddenchars`   | `IFM_FORBIDDENCHARS`       |
+| `language`         | `IFM_LANGUAGE`             |
 | `ajaxrequest`      | `IFM_API_AJAXREQUEST`      |
 | `chmod`            | `IFM_API_CHMOD`            |
 | `copymove`         | `IFM_API_COPYMOVE`         |

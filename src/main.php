@@ -72,6 +72,7 @@ class IFM {
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
+		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? intval( getenv('IFM_API_AJAXREQUEST') ) : $this->config['ajaxrequest'] ;
 		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? intval( getenv('IFM_API_CHMOD') ) : $this->config['chmod'] ;
 		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? intval( getenv('IFM_API_COPYMOVE') ) : $this->config['copymove'] ;
@@ -131,9 +132,6 @@ f00bar;
 f00bar;
 		$templates['file'] = <<<'f00bar'
 @@@file:src/templates/modal.file.html@@@
-f00bar;
-		$templates['multidelete'] = <<<'f00bar'
-@@@file:src/templates/modal.multidelete.html@@@
 f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
 @@@file:src/templates/modal.remoteupload.html@@@

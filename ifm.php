@@ -71,6 +71,7 @@ class IFM {
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
+		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? intval( getenv('IFM_API_AJAXREQUEST') ) : $this->config['ajaxrequest'] ;
 		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? intval( getenv('IFM_API_CHMOD') ) : $this->config['chmod'] ;
 		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? intval( getenv('IFM_API_COPYMOVE') ) : $this->config['copymove'] ;
@@ -442,18 +443,6 @@ f00bar;
 </form>
 
 f00bar;
-		$templates['multidelete'] = <<<'f00bar'
-<form id="formDeleteFiles">
-<div class="modal-body">
-	<label>{{i18n.file_multi_delete_confirm}} {{count}}?</label>
-</div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">{{i18n.yes}}</button>
-	<button type="button" class="btn btn-default" id="buttonNo">{{i18n.cancel}}</button>
-</div>
-</form>
-
-f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
 <form id="formRemoteUpload">
 <div class="modal-body">
@@ -630,6 +619,7 @@ f00bar;
     "response": "Antwort",
     "save": "Speichen",
     "save_wo_close": "Speichen ohne Schließen",
+    "search": "Suchen",
     "search_pattern": "Muster",
     "select_destination": "Zielort auswählen",
     "size": "Größe",
@@ -645,6 +635,7 @@ f00bar;
     "username": "Benutzername",
     "word_wrap": "Zeilenumbruch"
 }
+
 f00bar;
 		$i18n['de'] = json_decode($i18n['de'], true);
 		$this->i18n = $i18n;
@@ -1185,6 +1176,8 @@ function IFM( params ) {
 		self.fileCache = data;
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
 		var filetable = document.getElementById( 'filetable' );
+		filetable.tBodies[0].remove();
+		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
 		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
 			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
@@ -1277,7 +1270,7 @@ function IFM( params ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
 						iconClass: "icon icon-terminal",
-						isShown: function( data ) { return !!( self.config.rename && !data.selected.length ); }
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -1974,7 +1967,7 @@ function IFM( params ) {
 	};
 
 	this.showSearchDialog = function() {
-		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
 		$( '#searchResults tbody' ).remove();
 		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
 		$( '#searchPattern' ).on( 'keypress', function( e ) {
@@ -2490,9 +2483,9 @@ function IFM( params ) {
 		// bind static buttons
 		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
 		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
-		if( self.config.createFile )
+		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
-		if( self.config.createDir )
+		if( self.config.createdir )
 			document.getElementById( 'createDir' ).onclick = function() { self.showCreateDirDialog(); };
 		if( self.config.upload )
 			document.getElementById( 'upload' ).onclick = function() { self.showUploadFileDialog(); };
