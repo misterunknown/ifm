@@ -2575,6 +2575,7 @@ function IFM( params ) {
 			if( e.keyCode == 13 ) {
 				e.preventDefault();
 				self.changeDirectory( e.target.value, { absolute: true } );
+				e.target.blur();
 			}
 		};
 		if( self.config.remoteupload )
