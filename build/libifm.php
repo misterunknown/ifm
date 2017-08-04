@@ -395,8 +395,8 @@ f00bar;
 f00bar;
 		$templates['extractfile'] = <<<'f00bar'
 <form id="formExtractFile">
-<fieldset>
-	<div class="modal-body">
+<div class="modal-body">
+	<fieldset>
 		<label>{{i18n.extract_filename}} {{filename}}:</label>
 		<div class="input-group">
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
@@ -410,12 +410,12 @@ f00bar;
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>
 			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 		</div>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
-		<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
-	</div>
-</fieldset>
+	</fieldset>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
+</div>
 </form>
 
 f00bar;
@@ -427,12 +427,6 @@ f00bar;
 		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
 		<div id="content" name="content"></div><br>
 		<button type="button" class="btn btn-default" id="editoroptions">{{i18n.editor_options}}</button>
-		<div class="hide" id="editoroptions-head">{{i18n.options}}</div>
-		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> {{i18n.word_wrap}}</input><br>
-			<input type="checkbox" id="editor-softtabs"> {{i18n.soft_tabs}}</input>
-			<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}"></div>
-		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
@@ -441,6 +435,20 @@ f00bar;
 	<button type="button" id="buttonClose" class="btn btn-default">{{i18n.close}}</button>
 </div>
 </form>
+
+f00bar;
+		$templates['file_editoroptions'] = <<<'f00bar'
+<input type="checkbox" id="editor-wordwrap"
+	{{#wordwrap}}
+	checked="checked"
+ 	{{/wordwrap}}
+> {{i18n.word_wrap}}</input><br>
+<input type="checkbox" id="editor-softtabs"
+	{{#softtabs}}
+	checked="checked"
+ 	{{/softtabs}}
+> {{i18n.soft_tabs}}</input>
+<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
 
 f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
@@ -463,16 +471,18 @@ f00bar;
 
 f00bar;
 		$templates['renamefile'] = <<<'f00bar'
-<div class="modal-body">
 <form id="formRenameFile">
+<div class="modal-body">
 	<fieldset>
 		<label>{{i18n.rename_filename}} {{filename}}:</label>
-		<input class="form-control" type="text" name="newname" /><br>
-		<button class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
-		<button class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
+		<input class="form-control" type="text" name="newname" value="" /><br>
 	</fieldset>
-</form>
 </div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
+</div>
+</form>
 
 f00bar;
 		$templates['search'] = <<<'f00bar'
@@ -489,7 +499,6 @@ f00bar;
 
 f00bar;
 		$templates['searchresults'] = <<<'f00bar'
-<tbody>
 {{#items}}
 <tr class="{{rowclasses}}" data-filename="{{name}}">
 	<td>
@@ -499,7 +508,13 @@ f00bar;
 	</td>
 </tr>
 {{/items}}
-</tbody>
+{{^items}}
+<tr>
+	<td>
+		No results found.
+	</td>
+</tr>
+{{/items}}
 
 f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
@@ -893,6 +908,7 @@ f00bar;
 }
 
 a { cursor: pointer !important; }
+a.ifmitem:focus { outline: 0 }
 
 img.imgpreview { max-width: 100%; }
 
@@ -1022,8 +1038,8 @@ function IFM( params ) {
 	// reference to ourself, because "this" does not work within callbacks
 	var self = this;
 
-	// set the backend for the application
 	params = params || {};
+	// set the backend for the application
 	self.api = params.api || window.location.pathname;
 
 	this.editor = null;		// global ace editor
@@ -1036,8 +1052,8 @@ function IFM( params ) {
 	/**
 	 * Shows a bootstrap modal
 	 *
-	 * @param {string} content - content of the modal
-	 * @param {object} options - options for the modal
+	 * @param {string} content - HTML content of the modal
+	 * @param {object} options - options for the modal ({ large: false })
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
@@ -1070,7 +1086,7 @@ function IFM( params ) {
 	};
 
 	/**
-	 * Hides a bootstrap modal
+	 * Hides a the current bootstrap modal
 	 */
 	this.hideModal = function() {
 		// Hide the modal via jquery to get the hide.bs.modal event triggered
@@ -1078,11 +1094,11 @@ function IFM( params ) {
 	};
 
 	/**
-	 * Reloads the file table
+	 * Refreshes the file table
 	 */
 	this.refreshFileTable = function () {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: "Refresh" } );
+		var taskid = self.generateGuid();
+		self.task_add( { id: taskid, name: "Refresh" } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1092,8 +1108,8 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
-			complete: function() { self.task_done( id ); }
+			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			complete: function() { self.task_done( taskid ); }
 		});
 	};
 
@@ -1115,7 +1131,6 @@ function IFM( params ) {
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
-			item.download.allowed = self.config.download;
 			item.download.currentDir = self.currentDir;
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
@@ -1143,7 +1158,7 @@ function IFM( params ) {
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1) {
+				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1 && ! self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
@@ -1173,12 +1188,18 @@ function IFM( params ) {
 					});
 			}
 		});
+
+		// save items to file cache
 		self.fileCache = data;
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
+
+		// build new tbody and replace the old one with the new
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
 		var filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
+
+		// add event listeners
 		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
 			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
 				self.changePermissions( e.target.dataset.filename, e.target.value );
@@ -1223,12 +1244,15 @@ function IFM( params ) {
 				}
 			}
 		});
+		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="tooltip"]' ).tooltip({
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
+
 		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
+			// create the context menu, this also uses jquery, AFAIK
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
 				fetchElementData: function( row ) {
 					var data = {};
@@ -1240,8 +1264,7 @@ function IFM( params ) {
 				},
 				actionsGroups:[
 					['edit', 'extract', 'rename'],
-					['copymove', 'download'],
-					['delete']
+					['copymove', 'download', 'delete']
 				],
 				actions: {
 					edit: {
@@ -1286,7 +1309,7 @@ function IFM( params ) {
 								self.showCopyMoveDialog( data.clicked );
 						},
 						iconClass: "icon icon-folder-empty",
-						isShown: function() { return !!self.config.copymove; }
+						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
 					},
 					download: {
 						name: function( data ) {
@@ -1318,7 +1341,7 @@ function IFM( params ) {
 								self.showDeleteDialog( data.clicked );
 						},
 						iconClass: "icon icon-trash",
-						isShown: function() { return !!self.config.delete; }
+						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
 					}
 				}
 			});
@@ -1361,51 +1384,71 @@ function IFM( params ) {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
 		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
-		var form = $('#formFile');
-		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
-		form.find('#buttonSave').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			self.hideModal();
-			return false;
+
+		var form = document.getElementById( 'formFile' );
+		form.addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'filename' && e.key == 'Enter' )
+				e.preventDefault();
 		});
-		form.find('#buttonSaveNotClose').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == "buttonSave" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+				self.hideModal();
+			} else if( e.target.id == "buttonSaveNotClose" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+			} else if( e.target.id == "buttonClose" ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonClose').on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-		form.find('#editoroptions').popover({
+
+		$('#editoroptions').popover({
 			html: true,
-			title: function() { return $('#editoroptions-head').html(); },
+			title: self.i18n.options,
 			content: function() {
-				var content = $('#editoroptions-content').clone()
+				// see https://github.com/twbs/bootstrap/issues/12571
+				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+
 				var aceSession = self.editor.getSession();
-				content.removeClass( 'hide' );
-				content.find( '#editor-wordwrap' )
-					.prop( 'checked', ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ) )
-					.on( 'change', function() { self.editor.setOption( 'wrap', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-softtabs' )
-					.prop( 'checked', aceSession.getOption( 'useSoftTabs' ) )
-					.on( 'change', function() { self.editor.setOption( 'useSoftTabs', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-tabsize' )
-					.val( aceSession.getOption( 'tabSize' ) )
-					.on( 'keydown', function( e ) { if( e.key == 'Enter' ) { self.editor.setOption( 'tabSize', $( this ).val() ); } });
+				var template = document.createElement( 'template');
+				template.innerHTML = Mustache.render( self.templates.file_editoroptions, {
+					wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
+					softtabs: aceSession.getOption( 'useSoftTabs' ),
+					tabsize: aceSession.getOption( 'tabSize' ),
+					i18n: self.i18n
+				});
+				var content = template.content.childNodes;
+				content.forEach( function( el ) {
+					if( el.id == "editor-wordwrap" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'wrap', e.srcElement.checked );
+						});
+					else if( el.id == "editor-softtabs" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
+						});
+					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
+						el.lastChild.addEventListener( 'keydown', function( e ) {
+							if( e.key == 'Enter' ) {
+								e.preventDefault();
+								self.editor.setOption( 'tabSize', e.srcElement.value );
+							}
+						});
+				});
+				console.log( content );
 				return content;
 			}
 		});
-		form.on( 'remove', function () { self.editor = null; self.fileChanged = false; });
+
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
-		// word wrap checkbox
-		$('#aceWordWrap').on( 'change', function (event) {
-			self.editor.getSession().setUseWrapMode( $(this).is(':checked') );
-		});
 	};
 
 	/**
@@ -1466,17 +1509,24 @@ function IFM( params ) {
 	 */
 	this.showCreateDirDialog = function() {
 		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
-		var form = $( '#formCreateDir' );
-		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonSave' ).on( 'click', function() {
-			self.createDir( form.find( 'input[name=dirname] ').val() );
-			self.hideModal();
-			return false;
+		var form = document.forms.formCreateDir;
+		form.elements.dirname.addEventListener( 'keypress', function( e ) {
+			if(e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createDir( e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createDir( form.elements.dirname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
 	};
 
 	/**
@@ -1510,21 +1560,22 @@ function IFM( params ) {
 	 */
 	this.showDeleteDialog = function( items ) {
 		self.showModal(	Mustache.render( self.templates.deletefile, {
-			multiple: Array.isArray( items ),
+			multiple: ( items.length > 1 ),
 			count: items.length,
 			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
 			i18n: self.i18n
 		}));
-		var form = document.getElementById('formDeleteFiles');
-		document.getElementById( 'buttonYes' ).onclick = function() {
-			self.deleteFiles( items );
-			self.hideModal();
-			return false;
-		};
-		document.getElementById( 'buttonNo' ).onclick = function() {
-			self.hideModal();
-			return false;
-		};
+		var form = document.forms.formDeleteFiles;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonYes' ) {
+				e.preventDefault();
+				self.deleteFiles( items );
+				self.hideModal();
+			} else if( e.target.id == 'buttonNo' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		});
 	};
 
 	/**
@@ -1561,16 +1612,23 @@ function IFM( params ) {
 	 */
 	this.showRenameFileDialog = function( filename ) {
 		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
-		var form = $( '#formRenameFile' );
-		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRename' ).on( 'click', function() {
-			self.renameFile( filename, form.find( 'input[name=newname]' ).val() );
-			self.hideModal();
-			return false;
+		var form = document.forms.formRenameFile;
+		form.elements.newname.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.renameFile( filename, e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRename' ) {
+				e.preventDefault();
+				self.renameFile( filename, form.elements.newname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -1638,19 +1696,20 @@ function IFM( params ) {
 			},
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
-		$( '#copyButton' ).on( 'click', function() {
-			self.copyMove( items, $('#copyMoveTree .node-selected').data('path'), 'copy' );
-			self.hideModal();
-			return false;
-		});
-		$( '#moveButton' ).on( 'click', function() {
-			self.copyMove( items, $('#copyMoveTree .node-selected').data('path'), 'move' );
-			self.hideModal();
-			return false;
-		});
-		$( '#cancelButton' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		var form = document.forms.formCopyMove;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'copyButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
+				self.hideModal();
+			} else if( e.target.id == 'moveButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
+				self.hideModal();
+			} else if( e.target.id == 'cancelButton' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -1702,28 +1761,31 @@ function IFM( params ) {
 	 * @param {string} filename - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
-		var targetDirSuggestion = '';
-		if( filename.lastIndexOf( '.' ) > 1 )
-			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
-		else targetDirSuggestion = filename;
+		var targetDirSuggestion = ( filename.lastIndexOf( '.' ) > 1 ) ? filename.substr( 0, filename.lastIndexOf( '.' ) ) : filename;
 		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
-		var form = $('#formExtractFile');
-		form.find('#buttonExtract').on( 'click', function() {
-			var t = form.find('input[name=extractTargetLocation]:checked').val();
-			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
-			self.extractFile( filename, t );
-			self.hideModal();
-			return false;
+		var form = document.forms.formExtractFile;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonExtract' ) {
+				e.preventDefault();
+				var loc = form.elements.extractTargetLocation.value;
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonCancel').on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.elements.extractCustomLocation.addEventListener( 'keypress', function( e ) {
+			var loc = form.elements.extractTargetLocation.value;
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) );
+				self.hideModal();
+			}
 		});
-		form.find('#extractCustomLocation')
-			.on( 'click', function(e) {
-				$(e.target).prev().children().first().prop( 'checked', true );
-			})
-			.on( 'keypress', self.preventEnter );
+		form.elements.extractCustomLocation.addEventListener( 'focus', function( e ) {
+			form.elements.extractTargetLocation.value = 'custom';
+		});
 	};
 
 	/**
@@ -1758,29 +1820,28 @@ function IFM( params ) {
 	 */
 	this.showUploadFileDialog = function() {
 		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
-		var form = $('#formUploadFile');
-		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
-		form.find( 'input[name=files]' ).on( 'change', function( e ) {
+		var form = document.forms.formUploadFile;
+		form.elements.files.addEventListener( 'change', function( e ) {
 			if( e.target.files.length > 1 )
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', true );
+				form.elements.newfilename.readOnly = true;
 			else 
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', false );
+				form.elements.newfilename.readOnly = false;
 		});
-		form.find( '#buttonUpload' ).on( 'click', function( e ) {
-			e.preventDefault();
-			var files = form.find( 'input[name=files]' )[0].files;
-			if( files.length > 1 )
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-			else
-				self.uploadFile( files[0], form.find( 'input[name=newfilename]' ).val() );
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				var files = Array.prototype.slice.call( form.elements.files.files );
+				if( files.length > 1 )
+					files.forEach( function( file ) {
+						self.uploadFile( file );
+					});
+				else
+					self.uploadFile( files[0], form.elements.newfilename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -1826,7 +1887,7 @@ function IFM( params ) {
 	 * @params object e - event object
 	 * @params string name - name of the file
 	 */
-	this.changePermissions = function( filename, newperms) {
+	this.changePermissions = function( filename, newperms ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1855,31 +1916,34 @@ function IFM( params ) {
 	 */
 	this.showRemoteUploadDialog = function() {
 		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
-		var form = $('#formRemoteUpload');
-		form.find( '#url' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'change keyup', function() {
-				$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
-			});
-		form.find( '#filename' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'keyup', function() { $("#url").off( 'change keyup' ); });
-		form.find( '#buttonUpload' ).on( 'click', function() {
-			self.remoteUpload();
-			self.hideModal();
-			return false;
+		var form = document.forms.formRemoteUpload;
+		var urlChangeHandler = function( e ) {
+			form.elements.filename.value = e.target.value.substr( e.target.value.lastIndexOf( '/' ) + 1 );
+		};
+		form.elements.url.addEventListener( 'keypress', self.preventEnter );
+		form.elements.url.addEventListener( 'change', urlChangeHandler );
+		form.elements.url.addEventListener( 'keyup', urlChangeHandler );
+		form.elements.filename.addEventListener( 'keypress', self.preventEnter );
+		form.elements.filename.addEventListener( 'keyup', function( e ) {
+			form.elements.url.removeEventListener( 'change', urlChangeHandler );
+			form.elements.url.removeEventListener( 'keyup', urlChangeHandler );
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				self.remoteUpload( form.elements.url.value, form.elements.filename.value, form.elements.method.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Remote uploads a file
 	 */
-	this.remoteUpload = function() {
-		var filename = $("#formRemoteUpload #filename").val();
+	this.remoteUpload = function( url, filename, method ) {
 		var id = ifm.generateGuid();
 		$.ajax({
 			url: ifm.api,
@@ -1888,20 +1952,21 @@ function IFM( params ) {
 				api: "remoteUpload",
 				dir: ifm.currentDir,
 				filename: filename,
-				method: $("#formRemoteUpload input[name=method]:checked").val(),
-				url: encodeURI($("#url").val())
+				method: method,
+				url: encodeURI( url )
 			}),
 			dataType: "json",
 			success: function(data) {
-						if(data.status == "OK") {
-							ifm.showMessage("File successfully uploaded", "s");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be uploaded:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); },
-			complete: function() { ifm.task_done(id); }
+				if(data.status == "OK") {
+					self.showMessage( "File successfully uploaded", "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+			},
+			error: function() { self.showMessage("General error occured", "e"); },
+			complete: function() { self.task_done(id); }
 		});
-		ifm.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: "Remote upload: "+filename } );
 	};
 
 	/**
@@ -1909,71 +1974,68 @@ function IFM( params ) {
 	 */
 	this.showAjaxRequestDialog = function() {
 		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
-		var form = $('#formAjaxRequest');
-		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRequest' ).on( 'click', function() {
-			self.ajaxRequest();
-			return false;
-		});
-		form.find( '#buttonClose' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		var form = document.forms.formAjaxRequest;
+		form.elements.ajaxurl.addEventListener( 'keypress', self.preventEnter );
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRequest' ) {
+				e.preventDefault();
+				self.ajaxRequest( form.elements.ajaxurl.value, form.elements.ajaxdata.value.replace( /\n/g, '&' ), form.elements.arMethod.value );
+			} else if( e.target.id == 'buttonClose' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Performs an ajax request
 	 */
-	this.ajaxRequest = function() {
+	this.ajaxRequest = function( url, data, method ) {
 		$.ajax({
-			url		: $("#ajaxurl").val(),
+			url	: url,
 			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
+			data	: data,
+			type    : method,
+			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
 			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
 		});
 	};
 
 	/**
-	 * Deletes multiple files
+	 * Shows the search dialog
 	 */
-	this.multiDelete = function() {
-		var elements = $('#filetable tr.selectedItem');
-		var filenames = [];
-		for( var i=0; typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: ({
-				api: "multidelete",
-				dir: self.currentDir,
-				filenames: filenames
-			}),
-			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							if(data.errflag == 1)
-								ifm.showMessage("All files successfully deleted.", "s");
-							else if(data.errflag == 0)
-								ifm.showMessage("Some files successfully deleted. "+data.message);
-							else
-								ifm.showMessage("Files could not be deleted. "+data.message, "e");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("Files could not be deleted:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
-		});
-	};
-
 	this.showSearchDialog = function() {
 		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
-		$( '#searchResults tbody' ).remove();
-		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
-		$( '#searchPattern' ).on( 'keypress', function( e ) {
-			if( e.keyCode == 13 ) {
+
+		var updateResults = function( data ) {
+			console.log( 'update results' );
+			self.search.data = data;
+			var searchresults = document.getElementById( 'searchResults' );
+			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
+			searchresults.appendChild( document.createElement( 'tbody' ) );
+			searchresults.tBodies[0].innerHTML = Mustache.render( self.templates.searchresults, { items: self.search.data } );
+			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+					self.hideModal();
+				}
+			});
+			searchresults.tBodies[0].addEventListener( 'keypress', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					e.target.click();
+				}
+			});
+		};
+
+		updateResults( self.search.data );
+
+		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				e.stopPropagation();
+				console.log( e );
+				if( e.target.value.trim() === '' ) return;
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -1989,24 +2051,12 @@ function IFM( params ) {
 							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
 							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 						});
-						self.search.data = data;
-						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+						updateResults( data );
 					}
 				});
 			}
 		});
-		$( document ).on( 'click', 'a.searchitem', function( e ) {
-			e.preventDefault();
-			e.stopPropagation();
-			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
-			self.hideModal();
-		});
-		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
-			e.preventDefault();
-			if( e.key == "Enter" )
-				e.target.click();
-		});
-	}
+	};
 
 	// --------------------
 	// helper functions
@@ -2019,26 +2069,32 @@ function IFM( params ) {
 	 * @param string t - message type (e: error, s: success)
 	 */
 	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		var msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
 		var element = ( self.config.inline ) ? self.rootElement : "body";
 		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+			{ message: m },
+			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
 		);
 	};
 
 	/**
 	 * Combines two path components
 	 *
-	 * @param string a - component 1
-	 * @param string b - component 2
+	 * @param {string} a - component 1
+	 * @param {string} b - component 2
+	 * @returns {string} - combined path
 	 */
 	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
+		if ( a == "" && b == "" )
+			return "";
+		if( b[0] == "/" )
+			b = b.substring(1);
+		if( a == "" )
+			return b;
+		if( a[a.length-1] == "/" )
+			a = a.substring(0, a.length-1);
+		if( b == "" )
+			return a;
 		return a+"/"+b;
 	};
 
@@ -2048,18 +2104,28 @@ function IFM( params ) {
 	 * @param object e - click event
 	 */
 	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
+		if( e.key == 'Enter' )
+			e.preventDefault();
+	};
 
 	/**
 	 * Checks if an element is part of an array
 	 *
-	 * @param obj needle - search item
-	 * @param array haystack - array to search
+	 * @param {object} needle - search item
+	 * @param {array} haystack - array to search
+	 * @returns {boolean}
 	 */
 	this.inArray = function(needle, haystack) {
-		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
+		for( var i = 0; i < haystack.length; i++ )
+			if( haystack[i] == needle )
+				return true;
+		return false;
+	};
+
+	this.getNodesFromString = function( s ) {
+		var template = document.createElement( 'template');
+		template.innerHTML = s;
+		return template.content.childNodes[0];
 	};
 
 	/**
@@ -2073,24 +2139,26 @@ function IFM( params ) {
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
-			$( document.body ).append( Mustache.render( self.templates.footer ) );
-			$( 'a[name=showAll]' ).on( 'click', function( e ) {
-				var f = $( 'footer' );
-				if( f.css( 'maxHeight' ) == '80%' ) {
-					f.css( 'maxHeight', '6em' );
-					f.css( 'overflow', 'hidden' );
-				} else {
-					f.css( 'maxHeight', '80%' );
-					f.css( 'overflow', 'scroll' );
+			var newFooter = self.getNodesFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
+			newFooter.addEventListener( 'click', function( e ) {
+				if( e.target.name == 'showAll' ) {
+					if( newFooter.style.maxHeight == '80%' ) {
+						newFooter.style.maxHeight = '6em';
+						newFooter.style.overflow = 'hidden';
+					} else {
+						newFooter.style.maxHeight = '80%';
+						newFooter.style.overflow = 'scroll';
+					}
 				}
 			});
-			$(document.body).css( 'padding-bottom', '6em' );
+			document.body.appendChild( newFooter );
+			document.body.style.paddingBottom = '6em';
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
-		var wq = $( "#waitqueue" );
-		wq.prepend( Mustache.render( self.templates.task, task ) );
-		$( 'span[name=taskCount]' ).text( wq.find( '>div' ).length );
+		var wq = document.getElementById( 'waitqueue' );
+		wq.prepend( self.getNodesFromString( Mustache.render( self.templates.task, task ) ) );
+		document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 	};
 
 	/**
@@ -2099,12 +2167,14 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_done = function( id ) {
-		$( '#wq-'+id ).remove();
-		if( $( '#waitqueue>div' ).length == 0) {
-			$( 'footer' ).remove();
-			$( document.body ).css( 'padding-bottom', '0' );
+		document.getElementById( 'wq-' + id ).remove();
+		var wq = document.getElementById( 'waitqueue' );
+		if( wq.children.length == 0 ) {
+			document.getElementsByTagName( 'footer' )[0].remove();
+			document.body.style.paddingBottom = 0;
+		} else {
+			document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 		}
-		$( 'span[name=taskCount]' ).text( $('#waitqueue>div').length );
 	};
 
 	/**
@@ -2114,7 +2184,9 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_update = function( progress, id ) {
-		$('#wq-'+id+' .progress-bar').css( 'width', progress+'%' ).attr( 'aria-valuenow', progress );
+		var progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
+		progbar.style.width = progress+'%';
+		progbar.setAttribute( 'aria-valuenow', progress );
 	};
 
 	/**
@@ -2122,32 +2194,31 @@ function IFM( params ) {
 	 *
 	 * @param object param - either an element id or a jQuery object
 	 */
-	this.highlightItem = function( param ) {
+	this.highlightItem = function( direction ) {
 		var highlight = function( el ) {
-			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
-			el.find( 'a' ).first().focus();
+			[].slice.call( el.parentElement.children ).forEach( function( e ) {
+				e.classList.remove( 'highlightedItem' );
+			});
+			el.classList.add( 'highlightedItem' );
+			el.firstElementChild.firstElementChild.focus();
 			if( ! self.isElementInViewport( el ) ) {
 				var scrollOffset =  0;
-				if( param=="prev" )
+				if( direction=="prev" )
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
 					scrollOffset = el.offset().top - 55;
 				$('html, body').animate( { scrollTop: scrollOffset }, 200 );
 			}
 		};
-		if( param.jquery ) {
-			highlight( param );
-		} else {
-			var highlightedItem = $('.highlightedItem');
-			if( ! highlightedItem.length ) {
-				highlight( $('#filetable tbody tr:first-child') );
-			} else  {
-				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
-				if( newItem.is( 'tr' ) ) {
-					highlight( newItem );
-				}
-			}
+
+		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( ! highlightedItem ) {
+			highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
+		} else  {
+			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
+			if( newItem != null )
+				highlight( newItem );
 		}
 	};
 
@@ -2157,17 +2228,14 @@ function IFM( params ) {
 	 * @param object el - element object
 	 */
 	this.isElementInViewport = function( el ) {
-		if (typeof jQuery === "function" && el instanceof jQuery) {
-			el = el[0];
-		}
 		var rect = el.getBoundingClientRect();
 		return (
-				rect.top >= 60 &&
+				rect.top >= 80 &&
 				rect.left >= 0 &&
 				rect.bottom <= ( ( window.innerHeight || document.documentElement.clientHeight ) ) &&
 				rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
 			   );
-	}
+	};
 
 	/**
 	 * Generates a GUID
@@ -2200,7 +2268,7 @@ function IFM( params ) {
 	 */
 	this.HTMLEncode = function( s ) {
 		return s.replace( /'/g, '&#39;').replace( /"/g, '&#43;');
-	}
+	};
 
 	/**
 	 * Encodes a string for use in the href attribute of an anchor.
@@ -2232,17 +2300,17 @@ function IFM( params ) {
 			.replace( '`', '%60' )
 			.replace( '\\', '%5C' )
 		;
-	}
+	};
 
 	/**
 	 * Handles the javascript pop states
 	 *
 	 * @param object event - event object
 	 */
-	this.historyPopstateHandler = function(event) {
+	this.historyPopstateHandler = function( e ) {
 		var dir = "";
-		if( event.state && event.state.dir )
-			dir = event.state.dir;
+		if( e.state && e.state.dir )
+			dir = e.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
 
@@ -2252,9 +2320,16 @@ function IFM( params ) {
 	 * @param object e - event object
 	 */
 	this.handleKeystrokes = function( e ) {
-		// bind 'del' key
-		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
-			return;
+		var isFormElement = function( el ) {
+			do {
+				if( self.inArray( el.tagName, ['INPUT', 'TEXTAREA'] ) ) {
+					return true;
+				}
+			} while( ( el == el.parentElement ) !== false );
+			return false;
+		}
+
+		if( isFormElement( e.target ) ) return;
 
 		// global key events
 		switch( e.key ) {
@@ -2379,7 +2454,7 @@ function IFM( params ) {
 					}
 					return;
 					break;
-				case ' ': // todo: make it work only when noting other is focused
+				case ' ':
 				case 'Enter':
 					if( element.children[0].children[0] == document.activeElement ) { 
 						if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
@@ -2404,8 +2479,15 @@ function IFM( params ) {
 					}
 					return;
 					break;
+				case 'n':
+					e.preventDefault();
+					if( self.config.rename ) {
+						self.showRenameFileDialog( item.name );
+					}
+					return;
+					break;
 			}
-	}
+	};
 
 	/**
 	 * Initializes the application
@@ -2575,9 +2657,9 @@ function IFM( params ) {
 	private function handleRequest() {
 		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
-				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
+				echo $this->jsonResponse( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
-				echo json_encode( array( "realpath" => "" ) );
+				echo $this->jsonResponse( array( "realpath" => "" ) );
 		}
 		elseif( $_REQUEST["api"] == "getFiles" ) {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) )
@@ -2591,9 +2673,9 @@ function IFM( params ) {
 		elseif( $_REQUEST["api"] == "getFolders" ) {
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
-			echo json_encode( $this->templates );
+			echo $this->jsonResponse( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
-			echo json_encode( $this->i18n[$this->config['language']] );
+			echo $this->jsonResponse( $this->i18n[$this->config['language']] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
@@ -2617,11 +2699,11 @@ function IFM( params ) {
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					default:
-						echo json_encode( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
 				}
 			} else {
-				print json_encode( array( "status" => "ERROR", "message" => "Invalid working directory" ) );
+				print $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid working directory" ) );
 			}
 		}
 		exit( 0 );
@@ -2727,7 +2809,7 @@ function IFM( params ) {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
-		echo json_encode( $ret );
+		echo $this->jsonResponse( $ret );
 	}
 
 	private function getFolders( $d ) {
@@ -2755,7 +2837,7 @@ function IFM( params ) {
 					),
 					$ret
 				);
-			echo json_encode( $ret );
+			echo $this->jsonResponse( $ret );
 		}
 	}
 
@@ -2767,9 +2849,9 @@ function IFM( params ) {
 		}
 		try {
 			$results = $this->searchItemsRecursive( $d['pattern'] );
-			echo json_encode( $results );
+			echo $this->jsonResponse( $results );
 		} catch( Exception $e ) {
-			echo json_encode( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
 		}
 	}
 
@@ -2786,7 +2868,7 @@ function IFM( params ) {
 	}
 
 	private function getFolderTree( $d ) {
-		echo json_encode(
+		echo $this->jsonResponse(
 			array_merge(
 				array(
 					0 => array(
@@ -2825,38 +2907,38 @@ function IFM( params ) {
 
 	private function copyMove( $d ) {
 		if( $this->config['copymove'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
 			exit( 1 );
 		}
 		$this->chDirIfNecessary( $d['dir'] );
 		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid destination directory given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid destination directory given." ) );
 			exit( 1 );
 		}
 		if( ! file_exists( $d['filename'] ) || $d['filename'] == ".." ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given." ) );
 			exit( 1 );
 		}
 		if( $d['action'] == "copy" ) {
 			if( $this->xcopy( $d['filename'], $d['destination'] ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
 				exit( 0 );
 			} else {
 				$err = error_get_last();
-				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
 				exit( 1 );
 			}
 		} elseif( $d['action'] == "move" ) {
 			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
 				exit( 0 );
 			} else {
 				$err = error_get_last();
-				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
 				exit( 1 );
 			}
 		} else {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid action given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid action given." ) );
 			exit( 1 );
 		}
 	}
@@ -2864,26 +2946,26 @@ function IFM( params ) {
 	// creates a directory
 	private function createDir($w, $dn) {
 		if( $this->config['createdir'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create directories.") );
 			exit( 1 );
 		}
 		if( $dn == "" )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid directory name") );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name") );
 		elseif( ! $this->isFilenameValid( $dn ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid directory name" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name" ) );
 		else {
 			$this->chDirIfNecessary( $w );
 			if( @mkdir( $dn ) )
-				echo json_encode( array( "status" => "OK", "message" => "Directory successful created" ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "Directory successful created" ) );
 			else
-				echo json_encode( array( "status" => "ERROR", "message" => "Could not create directory" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create directory" ) );
 		}
 	}
 
 	// save a file
 	private function saveFile( $d ) {
 		if( ( file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['edit'] != 1 ) || ( ! file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['createfile'] != 1 ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
 			exit( 1 );
 		}
 		if( isset( $d['filename'] ) && $this->isFilenameValid( $d['filename'] ) ) {
@@ -2892,28 +2974,28 @@ function IFM( params ) {
 				// work around magic quotes
 				$content = get_magic_quotes_gpc() == 1 ? stripslashes( $d['content'] ) : $d['content'];
 				if( @file_put_contents( $d['filename'], $content ) !== false ) {
-					echo json_encode( array( "status" => "OK", "message" => "File successfully saved" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully saved" ) );
 				} else
-					echo json_encode( array( "status" => "ERROR", "message" => "Could not write content" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not write content" ) );
 			} else
-				echo json_encode( array( "status" => "ERROR", "message" => "Got no content" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Got no content" ) );
 		} else
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
 	}
 
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
 		if( $this->config['edit'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( isset( $d['filename'] ) && $this->isFilenameAllowed( $d['filename'] ) && file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
 					$content = utf8_encode( $content );
-				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
-			} else echo json_encode( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
+				echo $this->jsonResponse( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
+			} else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
 		}
 	}
 
@@ -2942,14 +3024,14 @@ function IFM( params ) {
 				}
 			}
 			if( empty( $err ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "Files deleted successfully", "errflag" => "1" ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "Files deleted successfully", "errflag" => "1" ) );
 			}
 			else {
 				$errmsg = "The following files could not be deleted:<ul>";
 				foreach($err as $item)
 					$errmsg .= "<li>".$item."</li>";
 				$errmsg .= "</ul>";
-				echo json_encode( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
 			}
 		}
 	}
@@ -2957,22 +3039,22 @@ function IFM( params ) {
 	// renames a file
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
 		} elseif( ! $this->isFilenameValid( $d['filename'] ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
-				echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
 			elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
 			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
 			else {
 				if( @rename( $d['filename'], $d['newname'] ) )
-					echo json_encode( array( "status" => "OK", "message" => "File successful renamed" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successful renamed" ) );
 				else
-					echo json_encode( array( "status" => "ERROR", "message" => "File could not be renamed" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be renamed" ) );
 			}
 		}
 	}
@@ -2980,11 +3062,11 @@ function IFM( params ) {
 	// provides a file for downloading
 	private function downloadFile( array $d ) {
 		if( $this->config['download'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
-			echo json_encode( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
 			$this->fileDownload( $d['filename'] );
@@ -2994,34 +3076,34 @@ function IFM( params ) {
 	// extracts a zip-archive
 	private function extractFile( array $d ) {
 		if( $this->config['extract'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "No valid archive found" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "No valid archive found" ) );
 				exit( 1 );
 			}
 			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
 				$d['targetdir'] = "./";
 			if( ! $this->isPathValid( $d['targetdir'] ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
 				exit( 1 );
 			}
 			if( ! is_dir( $d['targetdir'] ) && ! mkdir( $d['targetdir'], 0777, true ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Could not create target directory." ) );
 				exit( 1 );
 			}
 			if( substr( strtolower( $d['filename'] ), -4 ) == ".zip" ) {
 				if( ! IFMArchive::extractZip( $d['filename'], $d['targetdir'] ) ) {
-					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
 				} else {
-					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
 				}
 			} else {
 				if( ! IFMArchive::extractTar( $d['filename'], $d['targetdir'] ) ) {
-					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
 				} else {
-					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
 				}
 			} 
 		}
@@ -3030,35 +3112,35 @@ function IFM( params ) {
 	// uploads a file
 	private function uploadFile( array $d ) {
 		if( $this->config['upload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
 		elseif( !isset( $_FILES['file'] ) )
-			echo json_encode( array( "file" => $_FILE,"files" => $_FILES ) );
+			echo $this->jsonResponse( array( "file" => $_FILE,"files" => $_FILES ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
 			if( ! $this->isFilenameValid( $newfilename ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
 			else {
 				if( $_FILES['file']['tmp_name'] ) {
 					if( is_writable( getcwd( ) ) ) {
 						if( move_uploaded_file( $_FILES['file']['tmp_name'], $newfilename ) )
-							echo json_encode( array( "status" => "OK", "message" => "The file ".$_FILES['file']['name']." was uploaded successfully", "cd" => $d['dir'] ) );
+							echo $this->jsonResponse( array( "status" => "OK", "message" => "The file ".$_FILES['file']['name']." was uploaded successfully", "cd" => $d['dir'] ) );
 						else
-							echo json_encode( array( "status" => "ERROR", "message" => "File could not be uploaded" ) );
+							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded" ) );
 					}
 					else
-						echo json_encode( array( "status" => "ERROR", "message" => "File could not be uploaded since it has no permissions to write in this directory" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded since it has no permissions to write in this directory" ) );
 				} else
-					echo json_encode( array( "status" => "ERROR", "message" => "No file found" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No file found" ) );
 			}
 		}
 	}
 
 	// change permissions of a file
 	private function changePermissions( array $d ) {
-		if( $this->config['chmod'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
-		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo json_encode( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
-		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
+		if( $this->config['chmod'] != 1 ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
+		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
+		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
 		else {
 			$this->chDirIfNecessary( $d['dir'] ); $chmod = $d["chmod"]; $cmi = true;
 			if( ! is_numeric( $chmod ) ) {
@@ -3083,12 +3165,12 @@ function IFM( params ) {
 			if( $cmi ) {
 				try {
 					chmod( $d["filename"], (int)octdec( $chmod ) );
-					echo json_encode( array( "status" => "OK", "message" => "Permissions changed successfully" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "Permissions changed successfully" ) );
 				} catch ( Exception $e ) {
-					echo json_encode( array( "status" => "ERROR", "message" => "Error while changing permissions" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Error while changing permissions" ) );
 				}
 			}
-			else echo json_encode( array( "status" => "ERROR", "message" => "Could not determine permission format" ) );
+			else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not determine permission format" ) );
 		}
 	}
 
@@ -3096,13 +3178,13 @@ function IFM( params ) {
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload( array $d ) {
 		if( $this->config['zipnload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Directory not found" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Directory not found" ) );
 			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Filename not valid" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Filename not valid" ) );
 			else {
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
@@ -3127,54 +3209,54 @@ function IFM( params ) {
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload( array $d ) {
 		if( $this->config['remoteupload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
 		elseif( !isset( $d['method'] ) || !in_array( $d['method'], array( "curl", "file" ) ) )
-			echo json_encode( array( "status" => "error", "message" => "Invalid method given. Valid methods: ['curl', 'file']" ) );
+			echo $this->jsonResponse( array( "status" => "error", "message" => "Invalid method given. Valid methods: ['curl', 'file']" ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == false )
-			echo json_encode( array( "status" => "ERROR", "message" => "cURL extention not installed. Please install the cURL extention to use remote file upload." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "cURL extention not installed. Please install the cURL extention to use remote file upload." ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == true ) {
 			$filename = ( isset( $d['filename'] )&&$d['filename']!="" )?$d['filename']:"curl_".uniqid( );
 			$this->chDirIfNecessary( $d['dir'] );
 			$ch = curl_init( );
 			if( $ch ) {
 				if( $this->isFilenameValid( $filename ) == false )
-					echo json_encode( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
 				elseif( filter_var( $d['url'], FILTER_VALIDATE_URL ) === false )
-					echo json_encode( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
 				else {
 					$fp = fopen( $filename, "w" );
 					if( $fp ) {
 						if( !curl_setopt( $ch, CURLOPT_URL, $d['url'] ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
-							echo json_encode( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
+							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
 						else {
-							echo json_encode( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
+							echo $this->jsonResponse( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
 						}
 						curl_close( $ch );
 						fclose( $fp );
 					} else {
-						echo json_encode( array( "status" => "ERROR", "message" => "Failed to open file" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to open file" ) );
 					}
 				}
 			} else {
-				echo json_encode( array( "status" => "ERROR", "message" => "Failed to init cURL." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to init cURL." ) );
 			}
 		}
 		elseif( $d['method']=='file' ) {
 			$filename = ( isset( $d['filename'] ) && $d['filename']!="" ) ? $d['filename'] : "curl_".uniqid( );
 			if( $this->isFilenameValid( $filename ) == false )
-				echo json_encode( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
 			else {
 				$this->chDirIfNecessary( $d['dir'] );
 				try {
 					file_put_contents( $filename, file_get_contents( $d['url'] ) );
-					echo json_encode( array( "status" => "OK", "message" => "File successfully uploaded" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully uploaded" ) );
 				} catch( Exception $e ) {
-					echo json_encode( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
 				}
 			}
 		}
 		else
-			echo json_encode( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+			echo $this->jsonResponse( array( "status" => "error", "message" => "Corrupt parameter data" ) );
 	}
 
 	/*
@@ -3248,9 +3330,9 @@ function IFM( params ) {
 			} else {
 				if( isset( $_POST["api"] ) ) {
 					if( $login_failed === true )
-						echo json_encode( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
+						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
 					else
-						echo json_encode( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
+						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
 				} else {
 					$this->loginForm($login_failed);
 				}

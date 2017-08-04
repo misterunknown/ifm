@@ -1,6 +1,6 @@
 <form id="formExtractFile">
-<fieldset>
-	<div class="modal-body">
+<div class="modal-body">
+	<fieldset>
 		<label>{{i18n.extract_filename}} {{filename}}:</label>
 		<div class="input-group">
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
@@ -14,10 +14,10 @@
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>
 			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 		</div>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
-		<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
-	</div>
-</fieldset>
+	</fieldset>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
+</div>
 </form>

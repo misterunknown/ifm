@@ -21,6 +21,7 @@ body {
 }
 
 a { cursor: pointer !important; }
+a.ifmitem:focus { outline: 0 }
 
 img.imgpreview { max-width: 100%; }
 
