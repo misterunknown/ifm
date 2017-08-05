@@ -3528,7 +3528,6 @@ function IFM( params ) {
 	private function xcopy( $source, $dest ) {
 		if( is_dir( $source ) )
 			$dest = $this->pathCombine( $dest, basename( $source ) );
-		$this->log( "source: $source, dest: $dest\n\n");
 		if( ! is_dir( $dest ) )
 			mkdir($dest, 0777, true);
 		if( is_file( $source ) )
