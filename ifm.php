@@ -3526,16 +3526,19 @@ function IFM( params ) {
 	}
 
 	private function xcopy( $source, $dest ) {
-		if( is_dir( $source ) )
+		$isDir = is_dir( $source );
+		if( $isDir )
 			$dest = $this->pathCombine( $dest, basename( $source ) );
 		if( ! is_dir( $dest ) )
 			mkdir($dest, 0777, true);
 		if( is_file( $source ) )
 			return copy( $source, $this->pathCombine( $dest, basename( $source ) ) );
 
-		foreach( glob( $this->pathCombine( $source, '*') ) as $item ) {
+		chdir( $source );
+		foreach( glob( '*' ) as $item ) {
 			$this->xcopy( $item, $dest );
 		}
+		chdir( '..' );
 		return true;
 	}
 
