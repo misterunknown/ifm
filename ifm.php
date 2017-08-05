@@ -252,7 +252,7 @@ f00bar;
 {{#items}}
 <tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
 	<td>
-		<a tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+		<a {{{href}}} tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
 			{{linkname}}
 		</a>
@@ -1132,6 +1132,8 @@ function IFM( params ) {
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.download.currentDir = self.currentDir;
+			if( self.config.isDocroot )
+				item.href = 'href="'+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) )+'"';
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
@@ -1209,6 +1211,7 @@ function IFM( params ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
 			else if( e.target.classList.contains( 'ifmitem' ) ) {
+				console.log( "clicked" );
 				e.stopPropagation();
 				e.preventDefault();
 				if( e.target.dataset.type == "dir" )
