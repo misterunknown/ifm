@@ -773,6 +773,8 @@ function IFM( params ) {
 	 * @param string destination - name of the target directory
 	 */
 	this.extractFile = function( filename, destination ) {
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "extract "+filename } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -789,7 +791,8 @@ function IFM( params ) {
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( "General error occured", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 

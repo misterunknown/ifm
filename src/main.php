@@ -269,6 +269,7 @@ f00bar;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
+					case "createArchive": $this->createArchive( $_REQUEST ); break;
 					default:
 						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
@@ -828,6 +829,17 @@ f00bar;
 		}
 		else
 			echo $this->jsonResponse( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+	}
+
+	private function createArchive( $d ) {
+//		if( $config['createarchive'] != 1 ) {
+//			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
+//			return false;
+//		}
+//		$this->chDirIfNecessary( $d['dir'] );
+//		switch( $d['format'] ) {
+//			case "zip":
+//				
 	}
 
 	/*

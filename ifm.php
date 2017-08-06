@@ -1211,7 +1211,6 @@ function IFM( params ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
 			else if( e.target.classList.contains( 'ifmitem' ) ) {
-				console.log( "clicked" );
 				e.stopPropagation();
 				e.preventDefault();
 				if( e.target.dataset.type == "dir" )
@@ -1449,7 +1448,6 @@ function IFM( params ) {
 							}
 						});
 				});
-				console.log( content );
 				return content;
 			}
 		});
@@ -1806,6 +1804,8 @@ function IFM( params ) {
 	 * @param string destination - name of the target directory
 	 */
 	this.extractFile = function( filename, destination ) {
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "extract "+filename } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1822,7 +1822,8 @@ function IFM( params ) {
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( "General error occured", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
@@ -1877,7 +1878,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
+				xhr.upload.onload = function(){ self.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -2008,7 +2009,7 @@ function IFM( params ) {
 			data	: data,
 			type    : method,
 			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+			error	: function(e) { self.showMessage("Error: "+e, "e"); self.log(e); }
 		});
 	};
 
@@ -2019,7 +2020,7 @@ function IFM( params ) {
 		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
 
 		var updateResults = function( data ) {
-			console.log( 'update results' );
+			self.log( 'updated search results' );
 			self.search.data = data;
 			var searchresults = document.getElementById( 'searchResults' );
 			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
@@ -2045,7 +2046,6 @@ function IFM( params ) {
 		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				console.log( e );
 				if( e.target.value.trim() === '' ) return;
 				self.search.lastSearch = e.target.value;
 				$.ajax({
@@ -2146,7 +2146,7 @@ function IFM( params ) {
 	 */
 	this.task_add = function( task ) {
 		if( ! task.id ) {
-			console.log( "Error: No task id given.");
+			self.log( "Error: No task id given.");
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
@@ -2701,6 +2701,7 @@ function IFM( params ) {
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
+					case "createArchive": $this->createArchive( $_REQUEST ); break;
 					default:
 						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
@@ -3260,6 +3261,17 @@ function IFM( params ) {
 		}
 		else
 			echo $this->jsonResponse( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+	}
+
+	private function createArchive( $d ) {
+//		if( $config['createarchive'] != 1 ) {
+//			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
+//			return false;
+//		}
+//		$this->chDirIfNecessary( $d['dir'] );
+//		switch( $d['format'] ) {
+//			case "zip":
+//				
 	}
 
 	/*
