@@ -180,7 +180,6 @@ function IFM( params ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
 			else if( e.target.classList.contains( 'ifmitem' ) ) {
-				console.log( "clicked" );
 				e.stopPropagation();
 				e.preventDefault();
 				if( e.target.dataset.type == "dir" )
@@ -418,7 +417,6 @@ function IFM( params ) {
 							}
 						});
 				});
-				console.log( content );
 				return content;
 			}
 		});
@@ -846,7 +844,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
+				xhr.upload.onload = function(){ self.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -977,7 +975,7 @@ function IFM( params ) {
 			data	: data,
 			type    : method,
 			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+			error	: function(e) { self.showMessage("Error: "+e, "e"); self.log(e); }
 		});
 	};
 
@@ -988,7 +986,7 @@ function IFM( params ) {
 		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
 
 		var updateResults = function( data ) {
-			console.log( 'update results' );
+			self.log( 'updated search results' );
 			self.search.data = data;
 			var searchresults = document.getElementById( 'searchResults' );
 			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
@@ -1014,7 +1012,6 @@ function IFM( params ) {
 		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				console.log( e );
 				if( e.target.value.trim() === '' ) return;
 				self.search.lastSearch = e.target.value;
 				$.ajax({
@@ -1115,7 +1112,7 @@ function IFM( params ) {
 	 */
 	this.task_add = function( task ) {
 		if( ! task.id ) {
-			console.log( "Error: No task id given.");
+			self.log( "Error: No task id given.");
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
