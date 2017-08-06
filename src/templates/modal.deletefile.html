@@ -1,9 +1,14 @@
-<form id="formDeleteFile">
+<form id="formDeleteFiles">
 <div class="modal-body">
-	<label>Do you really want to delete the file {{filename}}?
+	{{#multiple}}
+	<label>{{i18n.file_delete_confirm}} <code>{{count}}</code>?</label>
+	{{/multiple}}
+	{{^multiple}}
+	<label>{{i18n.file_delete_confirm}} <code>{{filename}}</code>?</label>
+	{{/multiple}}
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>
-	<button type="button" class="btn btn-default" id="buttonNo">No</button>
+	<button type="button" class="btn btn-danger" id="buttonYes">{{i18n.delete}}</button>
+	<button type="button" class="btn btn-default" id="buttonNo">{{i18n.cancel}}</button>
 </div>
 </form>

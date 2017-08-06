@@ -4,63 +4,70 @@
  * @param object params - object with some configuration values, currently you only can set the api url
  */
 function IFM( params ) {
-	var self = this; // reference to ourself, because "this" does not work within callbacks
+	// reference to ourself, because "this" does not work within callbacks
+	var self = this;
 
-	// set the backend for the application
 	params = params || {};
+	// set the backend for the application
 	self.api = params.api || window.location.pathname;
 
-	this.editor = null; // global ace editor
-	this.fileChanged = false; // flag for check if file was changed already
-	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
-	this.rootElement = "";
-	this.search = {};
+	this.editor = null;		// global ace editor
+	this.fileChanged = false;	// flag for check if file was changed already
+	this.currentDir = "";		// this is the global variable for the current directory; it is used for AJAX requests
+	this.rootElement = "";		// global root element, currently not used
+	this.fileCache = [];		// holds the current set of files
+	this.search = {};		// holds the last search query, as well as the search results
 
 	/**
 	 * Shows a bootstrap modal
 	 *
-	 * @param string content - content of the modal
-	 * @param object options - options for the modal
+	 * @param {string} content - HTML content of the modal
+	 * @param {object} options - options for the modal ({ large: false })
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
-		var modal = $( document.createElement( 'div' ) )
-			.addClass( "modal fade" )
-			.attr( 'id', 'ifmmodal' )
-			.attr( 'role', 'dialog' );
-		var modalDialog = $( document.createElement( 'div' ) )
-			.addClass( "modal-dialog" )
-			.attr( 'role', 'document' );
-		if( options.large == true ) modalDialog.addClass( 'modal-lg' );
-		var modalContent = $(document.createElement('div'))
-			.addClass("modal-content")
-			.append( content );
-		modalDialog.append( modalContent );
-		modal.append( modalDialog );
-		$( document.body ).append( modal );
-		modal.on('hide.bs.modal', function () { $(this).remove(); });
-		modal.on('shown.bs.modal', function () {
-			var formElements = $(this).find('input, button');
-			if( formElements.length > 0 ) {
-				formElements.first().focus();
-			}
-		});
-		modal.modal('show');
+		var modal = document.createElement( 'div' );
+		modal.classList.add( 'modal', 'fade' );
+		modal.id = 'ifmmodal';
+		modal.attributes.role = 'dialog';
+		var modalDialog = document.createElement( 'div' );
+		modalDialog.classList.add( 'modal-dialog' );
+		modalDialog.attributes.role = 'document';
+		if( options.large == true ) modalDialog.classList.add( 'modal-lg' );
+		var modalContent = document.createElement('div');
+		modalContent.classList.add( 'modal-content' );
+		modalContent.innerHTML = content;
+		modalDialog.appendChild( modalContent );
+		modal.appendChild( modalDialog );
+		document.body.appendChild( modal );
+
+		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
+		// events require jquery, as they cannot be handled by addEventListener()
+		$(modal)
+			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
+			.on( 'shown.bs.modal', function( e ) {
+				var formElements = $(this).find('input, button');
+				if( formElements.length > 0 ) {
+					formElements.first().focus();
+				}
+			})
+			.modal('show');
 	};
 
 	/**
-	 * Hides a bootstrap modal
+	 * Hides a the current bootstrap modal
 	 */
 	this.hideModal = function() {
+		// Hide the modal via jquery to get the hide.bs.modal event triggered
 		$('#ifmmodal').modal('hide');
 	};
 
 	/**
-	 * Reloads the file table
+	 * Refreshes the file table
 	 */
 	this.refreshFileTable = function () {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: "Refresh" } );
+		var taskid = self.generateGuid();
+		self.task_add( { id: taskid, name: "Refresh" } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -70,8 +77,8 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
-			complete: function() { self.task_done( id ); }
+			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			complete: function() { self.task_done( taskid ); }
 		});
 	};
 
@@ -93,8 +100,9 @@ function IFM( params ) {
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
-			item.download.allowed = self.config.download;
 			item.download.currentDir = self.currentDir;
+			if( self.config.isDocroot )
+				item.href = 'href="'+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) )+'"';
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
@@ -102,22 +110,27 @@ function IFM( params ) {
 				item.button = [];
 			}
 			if( item.type == "dir" ) {
-				item.download.action = "zipnload";
-				item.download.icon = "icon icon-download-cloud";
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "zipnload";
+					item.download.icon = "icon icon-download-cloud";
+				}
 				item.rowclasses = "isDir";
 			} else {
-				item.download.action = "download";
-				item.download.icon = "icon icon-download";
-				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
-					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.HTMLEncode( self.pathCombine( self.currentDir, item.name ) ) + '\' class=\'imgpreview\'>"';
-				if( self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "download";
+					item.download.icon = "icon icon-download";
+				}
+				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot ) {
+					item.tooltip = 'data-toggle="tooltip"';
+				}
+				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1) {
+				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1 && ! self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
@@ -147,84 +160,169 @@ function IFM( params ) {
 					});
 			}
 		});
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
-		$( "#filetable tbody" ).remove();
-		$( "#filetable" ).append( $(newTBody) );
-		$( '.clickable-row' ).click( function( event ) {
-			if( event.ctrlKey ) {
-				$( this ).toggleClass( 'selectedItem' );
+
+		// save items to file cache
+		self.fileCache = data;
+
+		// build new tbody and replace the old one with the new
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
+		var filetable = document.getElementById( 'filetable' );
+		filetable.tBodies[0].remove();
+		filetable.append( document.createElement( 'tbody' ) );
+		filetable.tBodies[0].innerHTML = newTBody;
+
+		// add event listeners
+		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
+				self.changePermissions( e.target.dataset.filename, e.target.value );
+		});
+		filetable.tBodies[0].addEventListener( 'click', function( e ) {
+			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
+				e.target.parentElement.classList.toggle( 'selectedItem' );
+			else if( e.target.classList.contains( 'ifmitem' ) ) {
+				e.stopPropagation();
+				e.preventDefault();
+				if( e.target.dataset.type == "dir" )
+					self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+				else
+					if( self.config.isDocroot )
+						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, e.target.parentElement.parentElement.dataset.filename ) );
+					else
+						document.forms["d_"+e.target.id].submit();
+			} else if( e.target.parentElement.name == 'start_download' ) {
+				e.stopPropagation();
+				e.preventDefault();
+				document.forms["d_"+e.target.parentElement.dataset.guid].submit();
+			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
+				e.stopPropagation();
+				e.preventDefault();
+				var item = self.fileCache.find( x =>  x.guid === e.target.parentElement.dataset.id );
+				switch( e.target.parentElement.name.substr( 3 ) ) {
+					case "rename":
+						self.showRenameFileDialog( item.name );
+						break;
+					case "extract":
+						self.showExtractFileDialog( item.name );
+						break;
+					case "edit":
+						self.editFile( item.name );
+						break;
+					case "delete":
+						self.showDeleteDialog( item );
+						break;
+					case "copymove":
+						self.showCopyMoveDialog( item );
+						break;
+				}
 			}
 		});
+		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="tooltip"]' ).tooltip({
+			title: function() {
+				var item = self.fileCache.find( x => x.guid == $(this).attr('id') );
+				var tooltip = document.createElement( 'img' );
+				tooltip.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+				tooltip.classList.add( 'imgpreview' );
+				return tooltip;
+			},
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
-		$( 'a.ifmitem' ).each( function() {
-			if( $(this).data( "type" ) == "dir" ) {
-				$(this).on( 'click', function( e ) {
-					e.stopPropagation();
-					self.changeDirectory( $(this).parent().parent().data( 'filename' ) );
-					return false;
-				});
-			} else {
-				if( self.config.isDocroot )
-					$(this).attr( "href", self.hrefEncode( self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) ) );
-				else
-					$(this).on( 'click', function() {
-						$( '#d_' + this.id ).submit();
-						return false;
-					});
-			}
-		});
-		$( 'a[name="start_download"]' ).on( 'click', function(e) {
-			e.stopPropagation();
-			$( '#d_' + $(this).data( 'guid' ) ).submit();
-			return false;
-		});
-		$( 'input[name="newpermissions"]' ).on( 'keypress', function( e ) {
-			if( e.key == "Enter" ) {
-				e.stopPropagation();
-				self.changePermissions( $( this ).data( 'filename' ), $( this ).val() );
-				return false;
-			}
-		});
-		$( 'a[name^="do-"]' ).on( 'click', function() {
-			var action = this.name.substr( this.name.indexOf( '-' ) + 1 );
-			switch( action ) {
-				case "rename":
-					self.showRenameFileDialog( $(this).data( 'name' ) );
-					break;
-				case "extract":
-					self.showExtractFileDialog( $(this).data( 'name' ) );
-					break;
-				case "edit":
-					self.editFile( $(this).data( 'name' ) );
-					break;
-				case "delete":
-					self.showDeleteFileDialog( $(this).data( 'name' ) );
-					break;
-				case "copymove":
-					self.showCopyMoveDialog( $(this).data( 'name' ) );
-					break;
-			}
-		});
-		if( self.config.contextmenu ) {
+
+		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
+			// create the context menu, this also uses jquery, AFAIK
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
-				fetchElementData: function( $rowElem ) {
-					var data = $rowElem.data();
-					data.isDir = $rowElem.hasClass( 'isDir' );
-					data.element = $rowElem[0];
+				fetchElementData: function( row ) {
+					var data = {};
+					data.selected =
+						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+						.map( function(e){ return self.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
+					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
 					return data;
 				},
-				actions: [{
-					name: 'download',
-					onClick: function( item ) {
-						console.log( item );
-						$( '#d_' + item.element.children[0].children[0].id ).submit();
+				actionsGroups:[
+					['edit', 'extract', 'rename'],
+					['copymove', 'download', 'delete']
+				],
+				actions: {
+					edit: {
+						name: "edit",
+						onClick: function( data ) {
+							self.editFile( data.clicked.name );
+						},
+						iconClass: "icon icon-pencil",
+						isShown: function( data ) {
+							return !!( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
+						}
 					},
-					iconClass: "icon icon-cloud"
-				}]
+					extract: {
+						name: "extract",
+						onClick: function( data ) {
+							self.showExtractFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) {
+							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+						}
+					},
+					rename: {
+						name: "rename",
+						onClick: function( data ) {
+							self.showRenameFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-terminal",
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
+					},
+					copymove: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'copy/move';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCopyMoveDialog( data.selected );
+							else
+								self.showCopyMoveDialog( data.clicked );
+						},
+						iconClass: "icon icon-folder-empty",
+						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
+					},
+					download: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'download <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'download';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showMessage( "At the moment it is not possible to download a set of files." );
+							else
+								document.forms["d_"+data.clicked.guid].submit();
+						},
+						iconClass: "icon icon-download",
+						isShown: function() { return !!self.config.download; }
+					},
+					'delete': {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'delete <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'delete';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showDeleteDialog( data.selected );
+							else
+								self.showDeleteDialog( data.clicked );
+						},
+						iconClass: "icon icon-trash",
+						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
+					}
+				}
 			});
 		}
 	};
@@ -264,52 +362,71 @@ function IFM( params ) {
 	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
-		var form = $('#formFile');
-		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
-		form.find('#buttonSave').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
+
+		var form = document.getElementById( 'formFile' );
+		form.addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'filename' && e.key == 'Enter' )
+				e.preventDefault();
 		});
-		form.find('#buttonSaveNotClose').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == "buttonSave" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+				self.hideModal();
+			} else if( e.target.id == "buttonSaveNotClose" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+			} else if( e.target.id == "buttonClose" ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonClose').on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-		form.find('#editoroptions').popover({
+
+		$('#editoroptions').popover({
 			html: true,
-			title: function() { return $('#editoroptions-head').html(); },
+			title: self.i18n.options,
 			content: function() {
-				var content = $('#editoroptions-content').clone()
+				// see https://github.com/twbs/bootstrap/issues/12571
+				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+
 				var aceSession = self.editor.getSession();
-				content.removeClass( 'hide' );
-				content.find( '#editor-wordwrap' )
-					.prop( 'checked', ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ) )
-					.on( 'change', function() { self.editor.setOption( 'wrap', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-softtabs' )
-					.prop( 'checked', aceSession.getOption( 'useSoftTabs' ) )
-					.on( 'change', function() { self.editor.setOption( 'useSoftTabs', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-tabsize' )
-					.val( aceSession.getOption( 'tabSize' ) )
-					.on( 'keydown', function( e ) { if( e.key == 'Enter' ) { self.editor.setOption( 'tabSize', $( this ).val() ); } });
+				var template = document.createElement( 'template');
+				template.innerHTML = Mustache.render( self.templates.file_editoroptions, {
+					wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
+					softtabs: aceSession.getOption( 'useSoftTabs' ),
+					tabsize: aceSession.getOption( 'tabSize' ),
+					i18n: self.i18n
+				});
+				var content = template.content.childNodes;
+				content.forEach( function( el ) {
+					if( el.id == "editor-wordwrap" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'wrap', e.srcElement.checked );
+						});
+					else if( el.id == "editor-softtabs" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
+						});
+					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
+						el.lastChild.addEventListener( 'keydown', function( e ) {
+							if( e.key == 'Enter' ) {
+								e.preventDefault();
+								self.editor.setOption( 'tabSize', e.srcElement.value );
+							}
+						});
+				});
 				return content;
 			}
 		});
-		form.on( 'remove', function () { self.editor = null; self.fileChanged = false; });
+
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
-		// word wrap checkbox
-		$('#aceWordWrap').on( 'change', function (event) {
-			self.editor.getSession().setUseWrapMode( $(this).is(':checked') );
-		});
 	};
 
 	/**
@@ -328,7 +445,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -342,7 +459,7 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.editFile = function( name ) {
+	this.editFile = function( filename ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -350,7 +467,7 @@ function IFM( params ) {
 			data: ({
 				api: "getContent",
 				dir: self.currentDir,
-				filename: name
+				filename: filename
 			}),
 			success: function( data ) {
 						if( data.status == "OK" && data.data.content != null ) {
@@ -369,18 +486,25 @@ function IFM( params ) {
 	 * Shows the create directory dialog
 	 */
 	this.showCreateDirDialog = function() {
-		self.showModal( self.templates.createdir );
-		var form = $( '#formCreateDir' );
-		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonSave' ).on( 'click', function() {
-			self.createDir( form.find( 'input[name=dirname] ').val() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
+		var form = document.forms.formCreateDir;
+		form.elements.dirname.addEventListener( 'keypress', function( e ) {
+			if(e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createDir( e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createDir( form.elements.dirname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
 	};
 
 	/**
@@ -409,48 +533,53 @@ function IFM( params ) {
 		});
 	};
 
-
 	/**
-	 * Shows the delete file dialog
-	 *
-	 * @param string name - name of the file
+	 * Shows the delete dialog
 	 */
-	this.showDeleteFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
-		var form = $( '#formDeleteFile' );
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.deleteFile( filename );
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+	this.showDeleteDialog = function( items ) {
+		self.showModal(	Mustache.render( self.templates.deletefile, {
+			multiple: ( items.length > 1 ),
+			count: items.length,
+			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
+			i18n: self.i18n
+		}));
+		var form = document.forms.formDeleteFiles;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonYes' ) {
+				e.preventDefault();
+				self.deleteFiles( items );
+				self.hideModal();
+			} else if( e.target.id == 'buttonNo' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
-	 * Deletes a file
+	 * Deletes files
 	 *
-	 * @params string name - name of the file
+	 * @params {array} items - array with objects from the fileCache
 	 */
-	this.deleteFile = function( filename ) {
+	this.deleteFiles = function( items ) {
+		if( ! Array.isArray( items ) )
+			items = [items];
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "delete",
 				dir: self.currentDir,
-				filename: filename
+				filenames: items.map( function( e ){ return e.name; } )
 			}),
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully deleted", "s");
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File(s) successfully deleted", "s" );
 							self.refreshFileTable();
-						} else self.showMessage("File could not be deleted", "e");
+						} else self.showMessage( "File(s) could not be deleted", "e" );
 					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			error: function() { self.showMessage( "General error occured", "e" ); }
 		});
 	};
 
@@ -460,17 +589,24 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showRenameFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
-		var form = $( '#formRenameFile' );
-		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRename' ).on( 'click', function() {
-			self.renameFile( filename, form.find( 'input[name=newname]' ).val() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
+		var form = document.forms.formRenameFile;
+		form.elements.newname.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.renameFile( filename, e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRename' ) {
+				e.preventDefault();
+				self.renameFile( filename, form.elements.newname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -505,8 +641,8 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.showCopyMoveDialog = function( name ) {
-		self.showModal( self.templates.copymove );
+	this.showCopyMoveDialog = function( items ) {
+		self.showModal( Mustache.render( self.templates.copymove, { i18n: self.i18n } ) );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -538,83 +674,95 @@ function IFM( params ) {
 			},
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
-		$( '#copyButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
-			self.hideModal();
-			return false;
-		});
-		$( '#moveButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
-			self.hideModal();
-			return false;
-		});
-		$( '#cancelButton' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		var form = document.forms.formCopyMove;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'copyButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
+				self.hideModal();
+			} else if( e.target.id == 'moveButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
+				self.hideModal();
+			} else if( e.target.id == 'cancelButton' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Copy or moves a file
 	 * 
-	 * @params string name - name of the file
+	 * @params {string} source - name of the file
+	 * @params {string} destination - target directory
+	 * @params {string} action - action (copy|move)
 	 */
-	this.copyMove = function( source, destination, action ) {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination } );
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: {
-				dir: self.currentDir,
-				api: "copyMove",
-				action: action,
-				filename: source,
-				destination: destination
-			},
-			dataType: "json",
-			success: function(data) {
-				if( data.status == "OK" ) {
-					self.showMessage( data.message, "s" );
-				} else {
-					self.showMessage( data.message, "e" );
+	this.copyMove = function( sources, destination, action ) {
+		if( ! Array.isArray( sources ) )
+			sources = [sources];
+		sources.forEach( function( source ) {
+			var id = self.generateGuid();
+			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
+			$.ajax({
+				url: self.api,
+				type: "POST",
+				data: {
+					dir: self.currentDir,
+					api: "copyMove",
+					action: action,
+					filename: source.name,
+					destination: destination
+				},
+				dataType: "json",
+				success: function( data ) {
+					if( data.status == "OK" ) {
+						self.showMessage( data.message, "s" );
+					} else {
+						self.showMessage( data.message, "e" );
+					}
+					self.refreshFileTable();
+				},
+				error: function() {
+					self.showMessage( "General error occured.", "e" );
+				},
+				complete: function() {
+					self.task_done( id );
 				}
-				self.refreshFileTable();
-			},
-			error: function() {
-				self.showMessage( "General error occured.", "e" );
-			},
-			complete: function() {
-				self.task_done( id );
-			}
+			});
 		});
 	};
 
 	/**
 	 * Shows the extract file dialog
 	 *
-	 * @param string name - name of the file
+	 * @param {string} filename - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
-		var targetDirSuggestion = '';
-		if( filename.lastIndexOf( '.' ) > 1 )
-			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
-		else targetDirSuggestion = filename;
-		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
-		var form = $('#formExtractFile');
-		form.find('#buttonExtract').on( 'click', function() {
-			var t = form.find('input[name=extractTargetLocation]:checked').val();
-			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
-			self.extractFile( filename, t );
-			self.hideModal();
-			return false;
+		var targetDirSuggestion = ( filename.lastIndexOf( '.' ) > 1 ) ? filename.substr( 0, filename.lastIndexOf( '.' ) ) : filename;
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
+		var form = document.forms.formExtractFile;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonExtract' ) {
+				e.preventDefault();
+				var loc = form.elements.extractTargetLocation.value;
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonCancel').on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.elements.extractCustomLocation.addEventListener( 'keypress', function( e ) {
+			var loc = form.elements.extractTargetLocation.value;
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) );
+				self.hideModal();
+			}
 		});
-		form.find('#extractCustomLocation').on( 'click', function(e) {
-			$(e.target).prev().children().first().prop( 'checked', true );
+		form.elements.extractCustomLocation.addEventListener( 'focus', function( e ) {
+			form.elements.extractTargetLocation.value = 'custom';
 		});
 	};
 
@@ -625,6 +773,8 @@ function IFM( params ) {
 	 * @param string destination - name of the target directory
 	 */
 	this.extractFile = function( filename, destination ) {
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "extract "+filename } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -641,7 +791,8 @@ function IFM( params ) {
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( "General error occured", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
@@ -649,30 +800,29 @@ function IFM( params ) {
 	 * Shows the upload file dialog
 	 */
 	this.showUploadFileDialog = function() {
-		self.showModal( self.templates.uploadfile );
-		var form = $('#formUploadFile');
-		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
-		form.find( 'input[name=files]' ).on( 'change', function( e ) {
+		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
+		var form = document.forms.formUploadFile;
+		form.elements.files.addEventListener( 'change', function( e ) {
 			if( e.target.files.length > 1 )
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', true );
+				form.elements.newfilename.readOnly = true;
 			else 
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', false );
+				form.elements.newfilename.readOnly = false;
 		});
-		form.find( '#buttonUpload' ).on( 'click', function( e ) {
-			e.preventDefault();
-			var files = form.find( 'input[name=files]' )[0].files;
-			if( files.length > 1 )
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-			else
-				self.uploadFile( files[0], form.find( 'input[name=newfilename]' ).val() );
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				var files = Array.prototype.slice.call( form.elements.files.files );
+				if( files.length > 1 )
+					files.forEach( function( file ) {
+						self.uploadFile( file );
+					});
+				else
+					self.uploadFile( files[0], form.elements.newfilename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -697,7 +847,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
+				xhr.upload.onload = function(){ self.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -718,7 +868,7 @@ function IFM( params ) {
 	 * @params object e - event object
 	 * @params string name - name of the file
 	 */
-	this.changePermissions = function( filename, newperms) {
+	this.changePermissions = function( filename, newperms ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -746,32 +896,35 @@ function IFM( params ) {
 	 * Show the remote upload dialog
 	 */
 	this.showRemoteUploadDialog = function() {
-		self.showModal( self.templates.remoteupload );
-		var form = $('#formRemoteUpload');
-		form.find( '#url' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'change keyup', function() {
-				$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
-			});
-		form.find( '#filename' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'keyup', function() { $("#url").off( 'change keyup' ); });
-		form.find( '#buttonUpload' ).on( 'click', function() {
-			self.remoteUpload();
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
+		var form = document.forms.formRemoteUpload;
+		var urlChangeHandler = function( e ) {
+			form.elements.filename.value = e.target.value.substr( e.target.value.lastIndexOf( '/' ) + 1 );
+		};
+		form.elements.url.addEventListener( 'keypress', self.preventEnter );
+		form.elements.url.addEventListener( 'change', urlChangeHandler );
+		form.elements.url.addEventListener( 'keyup', urlChangeHandler );
+		form.elements.filename.addEventListener( 'keypress', self.preventEnter );
+		form.elements.filename.addEventListener( 'keyup', function( e ) {
+			form.elements.url.removeEventListener( 'change', urlChangeHandler );
+			form.elements.url.removeEventListener( 'keyup', urlChangeHandler );
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				self.remoteUpload( form.elements.url.value, form.elements.filename.value, form.elements.method.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Remote uploads a file
 	 */
-	this.remoteUpload = function() {
-		var filename = $("#formRemoteUpload #filename").val();
+	this.remoteUpload = function( url, filename, method ) {
 		var id = ifm.generateGuid();
 		$.ajax({
 			url: ifm.api,
@@ -780,109 +933,89 @@ function IFM( params ) {
 				api: "remoteUpload",
 				dir: ifm.currentDir,
 				filename: filename,
-				method: $("#formRemoteUpload input[name=method]:checked").val(),
-				url: encodeURI($("#url").val())
+				method: method,
+				url: encodeURI( url )
 			}),
 			dataType: "json",
 			success: function(data) {
-						if(data.status == "OK") {
-							ifm.showMessage("File successfully uploaded", "s");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be uploaded:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); },
-			complete: function() { ifm.task_done(id); }
+				if(data.status == "OK") {
+					self.showMessage( "File successfully uploaded", "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+			},
+			error: function() { self.showMessage("General error occured", "e"); },
+			complete: function() { self.task_done(id); }
 		});
-		ifm.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: "Remote upload: "+filename } );
 	};
 
 	/**
 	 * Shows the ajax request dialog
 	 */
 	this.showAjaxRequestDialog = function() {
-		self.showModal( self.templates.ajaxrequest );
-		var form = $('#formAjaxRequest');
-		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRequest' ).on( 'click', function() {
-			self.ajaxRequest();
-			return false;
-		});
-		form.find( '#buttonClose' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
+		var form = document.forms.formAjaxRequest;
+		form.elements.ajaxurl.addEventListener( 'keypress', self.preventEnter );
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRequest' ) {
+				e.preventDefault();
+				self.ajaxRequest( form.elements.ajaxurl.value, form.elements.ajaxdata.value.replace( /\n/g, '&' ), form.elements.arMethod.value );
+			} else if( e.target.id == 'buttonClose' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Performs an ajax request
 	 */
-	this.ajaxRequest = function() {
+	this.ajaxRequest = function( url, data, method ) {
 		$.ajax({
-			url		: $("#ajaxurl").val(),
+			url	: url,
 			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+			data	: data,
+			type    : method,
+			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
+			error	: function(e) { self.showMessage("Error: "+e, "e"); self.log(e); }
 		});
 	};
 
 	/**
-	 * Shows the delete dialog for multiple files
+	 * Shows the search dialog
 	 */
-	this.showMultiDeleteDialog = function() {
-		self.showModal( Mustache.render( self.templates.multidelete, { count: $('#filetable tr.selectedItem').length } ) );
-		var form = $('#formDeleteFiles');
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.multiDelete();
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-	};
-
-	/**
-	 * Deletes multiple files
-	 */
-	this.multiDelete = function() {
-		var elements = $('#filetable tr.selectedItem');
-		var filenames = [];
-		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: ({
-				api: "multidelete",
-				dir: self.currentDir,
-				filenames: filenames
-			}),
-			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							if(data.errflag == 1)
-								ifm.showMessage("All files successfully deleted.", "s");
-							else if(data.errflag == 0)
-								ifm.showMessage("Some files successfully deleted. "+data.message);
-							else
-								ifm.showMessage("Files could not be deleted. "+data.message, "e");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("Files could not be deleted:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
-		});
-	};
-
 	this.showSearchDialog = function() {
-		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
-		$( '#searchResults tbody' ).remove();
-		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
-		$( '#searchPattern' ).on( 'keypress', function( e ) {
-			if( e.keyCode == 13 ) {
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
+
+		var updateResults = function( data ) {
+			self.log( 'updated search results' );
+			self.search.data = data;
+			var searchresults = document.getElementById( 'searchResults' );
+			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
+			searchresults.appendChild( document.createElement( 'tbody' ) );
+			searchresults.tBodies[0].innerHTML = Mustache.render( self.templates.searchresults, { items: self.search.data } );
+			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+					self.hideModal();
+				}
+			});
+			searchresults.tBodies[0].addEventListener( 'keypress', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					e.target.click();
+				}
+			});
+		};
+
+		updateResults( self.search.data );
+
+		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				e.stopPropagation();
+				if( e.target.value.trim() === '' ) return;
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -898,26 +1031,12 @@ function IFM( params ) {
 							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
 							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 						});
-						self.search.data = data;
-						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+						updateResults( data );
 					}
 				});
 			}
 		});
-		$( document ).on( 'click', 'a.searchitem', function( e ) {
-			console.log( e );
-			e.preventDefault();
-			e.stopPropagation();
-			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
-			self.hideModal();
-		});
-		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
-			console.log( e );
-			e.preventDefault();
-			if( e.key == "Enter" )
-				e.target.click();
-		});
-	}
+	};
 
 	// --------------------
 	// helper functions
@@ -930,26 +1049,32 @@ function IFM( params ) {
 	 * @param string t - message type (e: error, s: success)
 	 */
 	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		var msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
 		var element = ( self.config.inline ) ? self.rootElement : "body";
 		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+			{ message: m },
+			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
 		);
 	};
 
 	/**
 	 * Combines two path components
 	 *
-	 * @param string a - component 1
-	 * @param string b - component 2
+	 * @param {string} a - component 1
+	 * @param {string} b - component 2
+	 * @returns {string} - combined path
 	 */
 	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
+		if ( a == "" && b == "" )
+			return "";
+		if( b[0] == "/" )
+			b = b.substring(1);
+		if( a == "" )
+			return b;
+		if( a[a.length-1] == "/" )
+			a = a.substring(0, a.length-1);
+		if( b == "" )
+			return a;
 		return a+"/"+b;
 	};
 
@@ -959,18 +1084,28 @@ function IFM( params ) {
 	 * @param object e - click event
 	 */
 	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
+		if( e.key == 'Enter' )
+			e.preventDefault();
+	};
 
 	/**
 	 * Checks if an element is part of an array
 	 *
-	 * @param obj needle - search item
-	 * @param array haystack - array to search
+	 * @param {object} needle - search item
+	 * @param {array} haystack - array to search
+	 * @returns {boolean}
 	 */
 	this.inArray = function(needle, haystack) {
-		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
+		for( var i = 0; i < haystack.length; i++ )
+			if( haystack[i] == needle )
+				return true;
+		return false;
+	};
+
+	this.getNodesFromString = function( s ) {
+		var template = document.createElement( 'template');
+		template.innerHTML = s;
+		return template.content.childNodes[0];
 	};
 
 	/**
@@ -980,28 +1115,30 @@ function IFM( params ) {
 	 */
 	this.task_add = function( task ) {
 		if( ! task.id ) {
-			console.log( "Error: No task id given.");
+			self.log( "Error: No task id given.");
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
-			$( document.body ).append( Mustache.render( self.templates.footer ) );
-			$( 'a[name=showAll]' ).on( 'click', function( e ) {
-				var f = $( 'footer' );
-				if( f.css( 'maxHeight' ) == '80%' ) {
-					f.css( 'maxHeight', '6em' );
-					f.css( 'overflow', 'hidden' );
-				} else {
-					f.css( 'maxHeight', '80%' );
-					f.css( 'overflow', 'scroll' );
+			var newFooter = self.getNodesFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
+			newFooter.addEventListener( 'click', function( e ) {
+				if( e.target.name == 'showAll' ) {
+					if( newFooter.style.maxHeight == '80%' ) {
+						newFooter.style.maxHeight = '6em';
+						newFooter.style.overflow = 'hidden';
+					} else {
+						newFooter.style.maxHeight = '80%';
+						newFooter.style.overflow = 'scroll';
+					}
 				}
 			});
-			$(document.body).css( 'padding-bottom', '6em' );
+			document.body.appendChild( newFooter );
+			document.body.style.paddingBottom = '6em';
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
-		var wq = $( "#waitqueue" );
-		wq.prepend( Mustache.render( self.templates.task, task ) );
-		$( 'span[name=taskCount]' ).text( wq.find( '>div' ).length );
+		var wq = document.getElementById( 'waitqueue' );
+		wq.prepend( self.getNodesFromString( Mustache.render( self.templates.task, task ) ) );
+		document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 	};
 
 	/**
@@ -1010,12 +1147,14 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_done = function( id ) {
-		$( '#wq-'+id ).remove();
-		if( $( '#waitqueue>div' ).length == 0) {
-			$( 'footer' ).remove();
-			$( document.body ).css( 'padding-bottom', '0' );
+		document.getElementById( 'wq-' + id ).remove();
+		var wq = document.getElementById( 'waitqueue' );
+		if( wq.children.length == 0 ) {
+			document.getElementsByTagName( 'footer' )[0].remove();
+			document.body.style.paddingBottom = 0;
+		} else {
+			document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 		}
-		$( 'span[name=taskCount]' ).text( $('#waitqueue>div').length );
 	};
 
 	/**
@@ -1025,7 +1164,9 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_update = function( progress, id ) {
-		$('#wq-'+id+' .progress-bar').css( 'width', progress+'%' ).attr( 'aria-valuenow', progress );
+		var progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
+		progbar.style.width = progress+'%';
+		progbar.setAttribute( 'aria-valuenow', progress );
 	};
 
 	/**
@@ -1033,32 +1174,31 @@ function IFM( params ) {
 	 *
 	 * @param object param - either an element id or a jQuery object
 	 */
-	this.highlightItem = function( param ) {
+	this.highlightItem = function( direction ) {
 		var highlight = function( el ) {
-			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
-			el.find( 'a' ).first().focus();
+			[].slice.call( el.parentElement.children ).forEach( function( e ) {
+				e.classList.remove( 'highlightedItem' );
+			});
+			el.classList.add( 'highlightedItem' );
+			el.firstElementChild.firstElementChild.focus();
 			if( ! self.isElementInViewport( el ) ) {
 				var scrollOffset =  0;
-				if( param=="prev" )
+				if( direction=="prev" )
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
 					scrollOffset = el.offset().top - 55;
 				$('html, body').animate( { scrollTop: scrollOffset }, 200 );
 			}
 		};
-		if( param.jquery ) {
-			highlight( param );
-		} else {
-			var highlightedItem = $('.highlightedItem');
-			if( ! highlightedItem.length ) {
-				highlight( $('#filetable tbody tr:first-child') );
-			} else  {
-				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
-				if( newItem.is( 'tr' ) ) {
-					highlight( newItem );
-				}
-			}
+
+		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( ! highlightedItem ) {
+			highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
+		} else  {
+			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
+			if( newItem != null )
+				highlight( newItem );
 		}
 	};
 
@@ -1067,18 +1207,15 @@ function IFM( params ) {
 	 *
 	 * @param object el - element object
 	 */
-	this.isElementInViewport = function (el) {
-		if (typeof jQuery === "function" && el instanceof jQuery) {
-			el = el[0];
-		}
+	this.isElementInViewport = function( el ) {
 		var rect = el.getBoundingClientRect();
 		return (
-				rect.top >= 60 &&
+				rect.top >= 80 &&
 				rect.left >= 0 &&
-				rect.bottom <= ( (window.innerHeight || document.documentElement.clientHeight) ) &&
-				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+				rect.bottom <= ( ( window.innerHeight || document.documentElement.clientHeight ) ) &&
+				rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
 			   );
-	}
+	};
 
 	/**
 	 * Generates a GUID
@@ -1086,15 +1223,15 @@ function IFM( params ) {
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
-		for(j=0; j<20; j++) {
-			i = Math.floor(Math.random()*16).toString(16).toUpperCase();
+		for( j = 0; j < 20; j++ ) {
+			i = Math.floor( Math.random() * 16 ).toString( 16 ).toUpperCase();
 			result = result + i;
 		}
 		return result;
 	};
 
 	/**
-	 * Logs a message if debug mode is on
+	 * Logs a message if debug mode is active
 	 *
 	 * @param string m - message text
 	 */
@@ -1103,15 +1240,6 @@ function IFM( params ) {
 			console.log( "IFM (debug): " + m );
 		}
 	};
-
-	/**
-	 * Encodes a string to use in HTML attributes
-	 *
-	 * @param string s - decoded string
-	 */
-	this.HTMLEncode = function( s ) {
-		return s.replace( /'/g, '&#39;').replace( /"/g, '&#43;');
-	}
 
 	/**
 	 * Encodes a string for use in the href attribute of an anchor.
@@ -1143,17 +1271,17 @@ function IFM( params ) {
 			.replace( '`', '%60' )
 			.replace( '\\', '%5C' )
 		;
-	}
+	};
 
 	/**
 	 * Handles the javascript pop states
 	 *
 	 * @param object event - event object
 	 */
-	this.historyPopstateHandler = function(event) {
+	this.historyPopstateHandler = function( e ) {
 		var dir = "";
-		if( event.state && event.state.dir )
-			dir = event.state.dir;
+		if( e.state && e.state.dir )
+			dir = e.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
 
@@ -1163,10 +1291,18 @@ function IFM( params ) {
 	 * @param object e - event object
 	 */
 	this.handleKeystrokes = function( e ) {
-		// bind 'del' key
-		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
-			return;
+		var isFormElement = function( el ) {
+			do {
+				if( self.inArray( el.tagName, ['INPUT', 'TEXTAREA'] ) ) {
+					return true;
+				}
+			} while( ( el == el.parentElement ) !== false );
+			return false;
+		}
 
+		if( isFormElement( e.target ) ) return;
+
+		// global key events
 		switch( e.key ) {
 			case '/':
 				e.preventDefault();
@@ -1224,14 +1360,6 @@ function IFM( params ) {
 				self.changeDirectory( '..' );
 				return;
 				break;
-			case 'l':
-			case 'ArrowRight':
-				e.preventDefault();
-				var item = $('.highlightedItem');
-				if( item.hasClass('isDir') )
-					self.changeDirectory( item.data( 'filename' ) );
-				return;
-				break;
 			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
@@ -1244,84 +1372,93 @@ function IFM( params ) {
 				self.highlightItem('prev');
 				return;
 				break;
-			case 'Escape':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
-					e.preventDefault();
-					$('.highlightedItem').removeClass( 'highlightedItem' );
-				}
-				return;
-				break;
-			case ' ': // todo: make it work only when noting other is focused
-			case 'Enter':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) { 
-					var trParent = $(':focus').parent().parent();
-					if( e.key == 'Enter' && trParent.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						e.stopPropagation();
-						self.changeDirectory( trParent.data( 'filename' ) );
-					} else if( e.key == ' ' && ! trParent.is( ':first-child' ) ) {
-						e.preventDefault();
-						e.stopPropagation();
-						var item = $('.highlightedItem');
-						if( item.is( 'tr' ) )
-							item.toggleClass( 'selectedItem' );
-					}
-				}
-				return;
-				break;
 		}
 
-		/**
-		 * Some operations do not work if the highlighted item is the parent
-		 * directory. In these cases the keybindings are ignored.
-		 */
-		if( $('.highlightedItem').data( 'filename' ) == ".." )
-			return;
+		// key events which need a highlighted item
+		var element = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( element )
+			item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
+		else
+			item = false;
+
+		// Some operations do not work if the highlighted item is the parent
+		// directory. In these cases the keybindings are ignored.
+		var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+			.map( function( e ) { return self.fileCache.find( x => x.guid === e.children[0].children[0].id ) } );
 
 		switch( e.key ) {
 			case 'Delete':
-				if( self.config.delete ) {
-					if( $('#filetable tr.selectedItem').length > 0 ) {
+				if( self.config.delete )
+					if( selectedItems.length > 0 ) {
 						e.preventDefault();
-						self.showMultiDeleteDialog();
-					} else {
-						var item = $('.highlightedItem');
-						if( item.length )
-							self.showDeleteFileDialog( item.data( 'filename' ) );
-					}
-				}
+						self.showDeleteDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showDeleteDialog( item );
 				return;
 				break;
 			case 'c':
 			case 'm':
 				if( self.config.copymove ) {
-					var item = $('.highlightedItem');
-					if( item.length ) {
+					if( selectedItems.length > 0 ) {
 						e.preventDefault();
-						self.showCopyMoveDialog( item.data( 'filename' ) );
-					}
-				}
-				return;
-				break;
-			case 'e':
-				if( self.config.edit ) {
-					var item = $('.highlightedItem');
-					if( item.length && ! item.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						var action = item.data( 'eaction' );
-						switch( action ) {
-							case 'extract':
-								self.showExtractFileDialog( item.data( 'filename' ) );
-								break;
-							case 'edit':
-								self.editFile( item.data( 'filename' ) );
-						}
-					}
+						self.showCopyMoveDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showCopyMoveDialog( item );
 				}
 				return;
 				break;
 		}
-	}
+
+		if( item )
+			switch( e.key ) {
+				case 'l':
+				case 'ArrowRight':
+					e.preventDefault();
+					if( item.type == "dir" )
+						self.changeDirectory( item.name );
+					return;
+					break;
+				case 'Escape':
+					if( element.children[0].children[0] == document.activeElement ) {
+						e.preventDefault();
+						element.classList.toggle( 'highlightedItem' );
+					}
+					return;
+					break;
+				case ' ':
+				case 'Enter':
+					if( element.children[0].children[0] == document.activeElement ) { 
+						if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
+							e.preventDefault();
+							e.stopPropagation();
+							self.changeDirectory( item.name );
+						} else if( e.key == ' ' && item.name != ".." ) {
+							e.preventDefault();
+							e.stopPropagation();
+							element.classList.toggle( 'selectedItem' );
+						}
+					}
+					return;
+					break;
+				case 'e':
+					if( self.config.edit && item.eaction == "edit" ) {
+						e.preventDefault();
+						self.editFile( item.name );
+					} else if( self.config.extract && item.eaction == "extract" ) {
+						e.preventDefault();
+						self.showExtractFileDialog( item.name );
+					}
+					return;
+					break;
+				case 'n':
+					e.preventDefault();
+					if( self.config.rename ) {
+						self.showRenameFileDialog( item.name );
+					}
+					return;
+					break;
+			}
+	};
 
 	/**
 	 * Initializes the application
@@ -1357,78 +1494,101 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
 			}
 		});
 	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
+			}
+		});
+	};
 	
 	this.initApplication = function() {
-		self.rootElement.html(
-			Mustache.render(
+		self.rootElement.innerHTML = Mustache.render(
 				self.templates.app,
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
-				}
-			)
-		);
+				});
 		// bind static buttons
-		$("#refresh").click(function(){
-			self.refreshFileTable();
-		});
-		$("#createFile").click(function(){
-			self.showFileDialog();
-		});
-		$("#createDir").click(function(){
-			self.showCreateDirDialog();
-		});
-		$("#upload").click(function(){
-			self.showUploadFileDialog();
-		});
-		$('#currentDir').on( 'keypress', function (event) {
-			if( event.keyCode == 13 ) {
-				event.preventDefault();
-				self.changeDirectory( $(this).val(), { absolute: true } );
+		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if( self.config.createfile )
+			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
+		if( self.config.createdir )
+			document.getElementById( 'createDir' ).onclick = function() { self.showCreateDirDialog(); };
+		if( self.config.upload )
+			document.getElementById( 'upload' ).onclick = function() { self.showUploadFileDialog(); };
+		document.getElementById( 'currentDir' ).onkeypress = function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				self.changeDirectory( e.target.value, { absolute: true } );
+				e.target.blur();
 			}
-		});
-		$('#buttonRemoteUpload').on( 'click', function() {
-			self.showRemoteUploadDialog();
-			return false;
-		});
-		$('#buttonAjaxRequest').on( 'click', function() {
-			self.showAjaxRequestDialog();
-			return false;
-		});
-		$(document).on( 'dragover', function( e ) {
-			e.preventDefault();
-			e.stopPropagation();
-			$('#filedropoverlay').css( 'display', 'block' );
-		});
-		$( '#filedropoverlay' )
-			.on( 'drop', function( e ) {
+		};
+		if( self.config.remoteupload )
+			document.getElementById( 'buttonRemoteUpload' ).onclick = function() { self.showRemoteUploadDialog(); };
+		if( self.config.ajaxrequest )
+			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
+		if( self.config.upload )
+			document.addEventListener( 'dragover', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				var files = e.originalEvent.dataTransfer.files;
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-				$('#filedropoverlay').css( 'display', 'none' );
-			})
-			.on( 'dragleave', function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				$('#filedropoverlay').css( 'display', 'none' );
+				var div = document.getElementById( 'filedropoverlay' );
+				div.style.display = 'block';
+				div.ondrop = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					var files = e.dataTransfer.files;
+					for( var i = 0; i < files.length; i++ ) {
+						self.uploadFile( files[i] );
+					}
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
+				div.ondragleave = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
 			});
+		
 		// handle keystrokes
-		$(document).on( 'keydown', self.handleKeystrokes );
+		document.onkeydown = self.handleKeystrokes;
+
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
+
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
@@ -1438,7 +1598,7 @@ function IFM( params ) {
 	};
 
 	this.init = function( id ) {
-		self.rootElement = $('#'+id);
+		self.rootElement = document.getElementById( id );
 		this.initLoadConfig();
 	};
 }

@@ -1,0 +1,11 @@
+<input type="checkbox" id="editor-wordwrap"
+	{{#wordwrap}}
+	checked="checked"
+ 	{{/wordwrap}}
+> {{i18n.word_wrap}}</input><br>
+<input type="checkbox" id="editor-softtabs"
+	{{#softtabs}}
+	checked="checked"
+ 	{{/softtabs}}
+> {{i18n.soft_tabs}}</input>
+<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>

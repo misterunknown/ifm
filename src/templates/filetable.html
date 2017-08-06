@@ -1,8 +1,7 @@
-<tbody>
 {{#items}}
 <tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
 	<td>
-		<a tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+		<a {{{href}}} tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
 			{{linkname}}
 		</a>
@@ -42,11 +41,10 @@
 	{{/config.showgroup}}
 	<td>
 		{{#button}}
-		<a tabindex="0" name="do-{{action}}" data-name="{{name}}">
+		<a tabindex="0" name="do-{{action}}" data-id="{{guid}}">
 			<span class="{{icon}}" title="{{title}}"</span>
 		</a>
 		{{/button}}
 	</td>
 </tr>
 {{/items}}
-</tbody>

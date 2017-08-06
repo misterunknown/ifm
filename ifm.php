@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
+		"language" => "en",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -53,6 +54,7 @@ class IFM {
 
 	private $config = array();
 	private $templates = array();
+	private $i18n = array();
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
@@ -63,33 +65,35 @@ class IFM {
 		$this->config = $this->defaultconfig;
 
 		// load config from environment variables
-		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? getenv('IFM_AUTH') : $this->config['auth'] ;
+		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? intval( getenv('IFM_AUTH') ) : $this->config['auth'] ;
 		$this->config['auth_source'] =  getenv('IFM_AUTH_SOURCE') !== false ? getenv('IFM_AUTH_SOURCE') : $this->config['auth_source'] ;
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
-		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? getenv('IFM_API_AJAXREQUEST') : $this->config['ajaxrequest'] ;
-		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? getenv('IFM_API_CHMOD') : $this->config['chmod'] ;
-		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? getenv('IFM_API_COPYMOVE') : $this->config['copymove'] ;
-		$this->config['createdir'] =  getenv('IFM_API_CREATEDIR') !== false ? getenv('IFM_API_CREATEDIR') : $this->config['createdir'] ;
-		$this->config['createfile'] =  getenv('IFM_API_CREATEFILE') !== false ? getenv('IFM_API_CREATEFILE') : $this->config['createfile'] ;
-		$this->config['edit'] =  getenv('IFM_API_EDIT') !== false ? getenv('IFM_API_EDIT') : $this->config['edit'] ;
-		$this->config['delete'] =  getenv('IFM_API_DELETE') !== false ? getenv('IFM_API_DELETE') : $this->config['delete'] ;
-		$this->config['download'] =  getenv('IFM_API_DOWNLOAD') !== false ? getenv('IFM_API_DOWNLOAD') : $this->config['download'] ;
-		$this->config['extract'] =  getenv('IFM_API_EXTRACT') !== false ? getenv('IFM_API_EXTRACT') : $this->config['extract'] ;
-		$this->config['upload'] =  getenv('IFM_API_UPLOAD') !== false ? getenv('IFM_API_UPLOAD') : $this->config['upload'] ;
-		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? getenv('IFM_API_REMOTEUPLOAD') : $this->config['remoteupload'] ;
-		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? getenv('IFM_API_RENAME') : $this->config['rename'] ;
-		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? getenv('IFM_API_ZIPNLOAD') : $this->config['zipnload'] ;
-		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? getenv('IFM_GUI_SHOWLASTMODIFIED') : $this->config['showlastmodified'] ;
-		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? getenv('IFM_GUI_SHOWFILESIZE') : $this->config['showfilesize'] ;
-		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? getenv('IFM_GUI_SHOWOWNER') : $this->config['showowner'] ;
-		$this->config['showgroup'] =  getenv('IFM_GUI_SHOWGROUP') !== false ? getenv('IFM_GUI_SHOWGROUP') : $this->config['showgroup'] ;
-		$this->config['showpermissions'] =  getenv('IFM_GUI_SHOWPERMISSIONS') !== false ? getenv('IFM_GUI_SHOWPERMISSIONS') : $this->config['showpermissions'] ;
-		$this->config['showhtdocs'] =  getenv('IFM_GUI_SHOWHTDOCS') !== false ? getenv('IFM_GUI_SHOWHTDOCS') : $this->config['showhtdocs'] ;
-		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? getenv('IFM_GUI_SHOWHIDDENFILES') : $this->config['showhiddenfiles'] ;
-		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? getenv('IFM_GUI_SHOWPATH') : $this->config['showpath'] ;
+		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
+		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? intval( getenv('IFM_API_AJAXREQUEST') ) : $this->config['ajaxrequest'] ;
+		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? intval( getenv('IFM_API_CHMOD') ) : $this->config['chmod'] ;
+		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? intval( getenv('IFM_API_COPYMOVE') ) : $this->config['copymove'] ;
+		$this->config['createdir'] =  getenv('IFM_API_CREATEDIR') !== false ? intval( getenv('IFM_API_CREATEDIR') ) : $this->config['createdir'] ;
+		$this->config['createfile'] =  getenv('IFM_API_CREATEFILE') !== false ? intval( getenv('IFM_API_CREATEFILE') ) : $this->config['createfile'] ;
+		$this->config['edit'] =  getenv('IFM_API_EDIT') !== false ? intval( getenv('IFM_API_EDIT') ) : $this->config['edit'] ;
+		$this->config['delete'] =  getenv('IFM_API_DELETE') !== false ? intval( getenv('IFM_API_DELETE') ) : $this->config['delete'] ;
+		$this->config['download'] =  getenv('IFM_API_DOWNLOAD') !== false ? intval( getenv('IFM_API_DOWNLOAD') ) : $this->config['download'] ;
+		$this->config['extract'] =  getenv('IFM_API_EXTRACT') !== false ? intval( getenv('IFM_API_EXTRACT') ) : $this->config['extract'] ;
+		$this->config['upload'] =  getenv('IFM_API_UPLOAD') !== false ? intval( getenv('IFM_API_UPLOAD') ) : $this->config['upload'] ;
+		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? intval( getenv('IFM_API_REMOTEUPLOAD') ) : $this->config['remoteupload'] ;
+		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? intval( getenv('IFM_API_RENAME') ) : $this->config['rename'] ;
+		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? intval( getenv('IFM_API_ZIPNLOAD') ) : $this->config['zipnload'] ;
+		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? intval( getenv('IFM_GUI_SHOWLASTMODIFIED') ) : $this->config['showlastmodified'] ;
+		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? intval( getenv('IFM_GUI_SHOWFILESIZE') ) : $this->config['showfilesize'] ;
+		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? intval( getenv('IFM_GUI_SHOWOWNER') ) : $this->config['showowner'] ;
+		$this->config['showgroup'] =  getenv('IFM_GUI_SHOWGROUP') !== false ? intval( getenv('IFM_GUI_SHOWGROUP') ) : $this->config['showgroup'] ;
+		$this->config['showpermissions'] =  getenv('IFM_GUI_SHOWPERMISSIONS') !== false ? intval( getenv('IFM_GUI_SHOWPERMISSIONS') ) : $this->config['showpermissions'] ;
+		$this->config['showhtdocs'] =  getenv('IFM_GUI_SHOWHTDOCS') !== false ? intval( getenv('IFM_GUI_SHOWHTDOCS') ) : $this->config['showhtdocs'] ;
+		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
+		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
+		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
 
 		// load config from passed array
 		$this->config = array_merge( $this->config, $config );
@@ -105,7 +109,7 @@ class IFM {
 				<div class="navbar-header">
 					<a class="navbar-brand">IFM</a>
 					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-						<span class="sr-only">Toggle navigation</span>
+						<span class="sr-only">{{i18n.toggle_nav}}</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -115,32 +119,33 @@ class IFM {
 					<form class="navbar-form navbar-left">
 						<div class="form-group">
 							<div class="input-group">
-								<span class="input-group-addon" id="currentDirLabel">Content of <span id="docroot">{{showpath}}</span></span>
+								<span class="input-group-addon" id="currentDirLabel">{{i18n.path_content}} <span id="docroot">{{showpath}}</span></span>
 								<input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 							</div>
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a id="refresh"><span title="refresh" class="icon icon-arrows-cw"></span> <span class="visible-xs">refresh</span></a></li>
+						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
+						<li><a id="search"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="visible-xs">{{i18n.search}}</span></a></li>
 						{{#config.upload}}
-						<li><a id="upload"><span title="upload" class="icon icon-upload"></span> <span class="visible-xs">upload</span></a></li>
+						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
 						{{#config.createfile}}
-						<li><a id="createFile"><span title="new file" class="icon icon-doc-inv"></span> <span class="visible-xs">new file</span></a></li>
+						<li><a id="createFile"><span title="{{i18n.file_new}}" class="icon icon-doc-inv"></span> <span class="visible-xs">{{i18n.file_new}}</span></a></li>
 						{{/config.createfile}}
 						{{#config.createdir}}
-						<li><a id="createDir"><span title="new folder" class="icon icon-folder"></span> <span class="visible-xs">new folder</span></a></li>
+						<li><a id="createDir"><span title="{{i18n.folder_new}}" class="icon icon-folder"></span> <span class="visible-xs">{{i18n.folder_new}}</span></a></li>
 						{{/config.createdir}}
 						<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="icon icon-down-open"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								{{#config.remoteupload}}
-								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> remote upload</a></li>
+								<li><a id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a></li>
 								{{/config.remoteupload}}
 								{{#config.ajaxrequest}}
-								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> ajax request</a></li>
+								<li><a id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a></li>
 								{{/config.ajaxrequest}}
 								{{#config.auth}}
-								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> logout</a></li>
+								<li><a id="buttonLogout" href="?api=logout"><span class="icon icon-logout"></span> {{i18n.logout}}</a></li>
 								{{/config.auth}}
 							</ul>
 						</li>
@@ -149,30 +154,30 @@ class IFM {
 			</div>
 		</nav>
 		<div id="filedropoverlay">
-			<div>Drop files to upload</div>
+			<div>{{i18n.upload_drop}}</div>
 		</div>
 		<div class="container">
 			<table id="filetable" class="table">
 				<thead>
 					<tr>
-						<th>Filename</th>
+						<th>{{i18n.filename}}</th>
 						{{#config.download}}
 						<th><!-- column for download link --></th>
 						{{/config.download}}
 						{{#config.showlastmodified}}
-						<th>last modified</th>
+						<th>{{i18n.last_modified}}</th>
 						{{/config.showlastmodified}}
 						{{#config.showfilesize}}
-						<th>size</th>
+						<th>{{i18n.size}}</th>
 						{{/config.showfilesize}}
 						{{#config.showpermissions}}
-						<th class="hidden-xs">permissions</th>
+						<th class="hidden-xs">{{i18n.permissions}}</th>
 						{{/config.showpermissions}}
 						{{#config.showowner}}
-						<th class="hidden-xs hidden-sm">owner</th>
+						<th class="hidden-xs hidden-sm">{{i18n.owner}}</th>
 						{{/config.showowner}}
 						{{#config.showgroup}}
-						<th class="hidden-xs hidden-sm hidden-md">group</th>
+						<th class="hidden-xs hidden-sm hidden-md">{{i18n.group}}</th>
 						{{/config.showgroup}}
 						<th class="buttons"><!-- column for buttons --></th>
 					</tr>
@@ -182,7 +187,7 @@ class IFM {
 			</table>
 		</div>
 		<div class="container">
-			<div class="panel panel-default ifminfo"><div class="panel-body">IFM - improved file manager | ifm.php hidden | <a href="http://github.com/misterunknown/ifm">Visit the project on GitHub</a></div></div>
+			<div class="panel panel-default ifminfo"><div class="panel-body">{{i18n.footer}} <a href="http://github.com/misterunknown/ifm">{{i18n.github}}</a></div></div>
 		</div>
 
 f00bar;
@@ -232,23 +237,22 @@ body {
 
 <div class="container">
 	<form action="" method="post" class="form-signin">
-		<h2 class="form-signin-heading text-center">IFM Login</h2>
+		<h2 class="form-signin-heading text-center">IFM {{i18n.login}}</h2>
 		{{error}}
-		<label for="inputEmail" class="sr-only">Username</label>
-		<input type="text" id="user" name="user" class="form-control" placeholder="Username" required autofocus>
-		<label for="inputPassword" class="sr-only">Password</label>
-		<input type="password" id="pass" name="pass" class="form-control" placeholder="Password" required>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+		<label for="inputEmail" class="sr-only">{{i18n.username}}</label>
+		<input type="text" id="user" name="user" class="form-control" placeholder="{{i18n.username}}" required autofocus>
+		<label for="inputPassword" class="sr-only">{{i18n.password}}</label>
+		<input type="password" id="pass" name="pass" class="form-control" placeholder="{{i18n.password}}" required>
+		<button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
 	</form>
 </div> <!-- /container -->
 
 f00bar;
 		$templates['filetable'] = <<<'f00bar'
-<tbody>
 {{#items}}
 <tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
 	<td>
-		<a tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+		<a {{{href}}} tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
 			{{linkname}}
 		</a>
@@ -288,14 +292,13 @@ f00bar;
 	{{/config.showgroup}}
 	<td>
 		{{#button}}
-		<a tabindex="0" name="do-{{action}}" data-name="{{name}}">
+		<a tabindex="0" name="do-{{action}}" data-id="{{guid}}">
 			<span class="{{icon}}" title="{{title}}"</span>
 		</a>
 		{{/button}}
 	</td>
 </tr>
 {{/items}}
-</tbody>
 
 f00bar;
 		$templates['footer'] = <<<'f00bar'
@@ -303,7 +306,7 @@ f00bar;
 <div class="container">
 	<div class="row">
 		<div class="col-xs-1">
-			<a name="showAll">Tasks <span class="badge" name="taskCount">1</span></a>
+			<a name="showAll">{{i18n.tasks}} <span class="badge" name="taskCount">1</span></a>
 		</div>
 		<div id="waitqueue" class="col-xs-11">
 		</div>
@@ -329,13 +332,13 @@ f00bar;
 	<fieldset>
 		<label>URL</label><br>
 		<input class="form-control" type="text" id="ajaxurl" required><br>
-		<label>Data</label><br>
+		<label>{{i18n.data}}</label><br>
 		<textarea class="form-control" id="ajaxdata"></textarea><br>
-		<label>Method</label><br>
+		<label>{{i18n.method}}</label><br>
 		<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>
-		<button type="button" class="btn btn-success" id="buttonRequest">Request</button>
-		<button type="button" class="btn btn-default" id="buttonClose">Close</button><br>
-		<label>Response</label><br>
+		<button type="button" class="btn btn-success" id="buttonRequest">{{i18n.request}}</button>
+		<button type="button" class="btn btn-default" id="buttonClose">{{i18n.cancel}}</button><br>
+		<label>{{i18n.response}}</label><br>
 		<textarea class="form-control" id="ajaxresponse"></textarea>
 	</fieldset>
 </form>
@@ -346,13 +349,13 @@ f00bar;
 <form id="formCopyMove">
 <fieldset>
 	<div class="modal-body">
-		<label>Select destination:</label>
+		<label>{{i18n.select_destination}}:</label>
 		<div id="copyMoveTree"><div class="text-center"><span class="icon icon-spin5 animate-spin"></span></div></div>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="copyButton">copy</button>
-		<button type="button" class="btn btn-default" id="moveButton">move</button>
-		<button type="button" class="btn btn-default" id="cancelButton">cancel</button>
+		<button type="button" class="btn btn-default" id="copyButton">{{i18n.copy}}</button>
+		<button type="button" class="btn btn-default" id="moveButton">{{i18n.move}}</button>
+		<button type="button" class="btn btn-default" id="cancelButton">{{i18n.cancel}}</button>
 	</div>
 </fieldset>
 </form>
@@ -362,34 +365,39 @@ f00bar;
 <form id="formCreateDir">
 <div class="modal-body">
 	<fieldset>
-		<label>Directoy name:</label>
+		<label>{{i18n.directoryname}}:</label>
 		<input class="form-control" type="text" name="dirname" value="" />
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonSave">Save</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button type="button" class="btn btn-default" id="buttonSave">{{i18n.save}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
 f00bar;
 		$templates['deletefile'] = <<<'f00bar'
-<form id="formDeleteFile">
+<form id="formDeleteFiles">
 <div class="modal-body">
-	<label>Do you really want to delete the file {{filename}}?
+	{{#multiple}}
+	<label>{{i18n.file_delete_confirm}} <code>{{count}}</code>?</label>
+	{{/multiple}}
+	{{^multiple}}
+	<label>{{i18n.file_delete_confirm}} <code>{{filename}}</code>?</label>
+	{{/multiple}}
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>
-	<button type="button" class="btn btn-default" id="buttonNo">No</button>
+	<button type="button" class="btn btn-danger" id="buttonYes">{{i18n.delete}}</button>
+	<button type="button" class="btn btn-default" id="buttonNo">{{i18n.cancel}}</button>
 </div>
 </form>
 
 f00bar;
 		$templates['extractfile'] = <<<'f00bar'
 <form id="formExtractFile">
-<fieldset>
-	<div class="modal-body">
-		<label>Extract {{filename}} to:</label>
+<div class="modal-body">
+	<fieldset>
+		<label>{{i18n.extract_filename}} {{filename}}:</label>
 		<div class="input-group">
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
 			<span class="form-control">./</span>
@@ -402,12 +410,12 @@ f00bar;
 			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>
 			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 		</div>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn btn-default" id="buttonExtract">extract</button>
-		<button type="button" class="btn btn-default" id="buttonCancel">cancel</button>
-	</div>
-</fieldset>
+	</fieldset>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
+</div>
 </form>
 
 f00bar;
@@ -415,75 +423,73 @@ f00bar;
 <form id="formFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Filename:</label>
+		<label>{{i18n.filename}}:</label>
 		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
 		<div id="content" name="content"></div><br>
-		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
-		<div class="hide" id="editoroptions-head">options</div>
-		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>
-			<input type="checkbox" id="editor-softtabs"> use soft tabs</input>
-			<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>
-		</div>
+		<button type="button" class="btn btn-default" id="editoroptions">{{i18n.editor_options}}</button>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
-	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
-	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
+	<button type="button" id="buttonSave" class="btn btn-default">{{i18n.save}}</button>
+	<button type="button" id="buttonSaveNotClose" class="btn btn-default">{{i18n.save_wo_close}}</button>
+	<button type="button" id="buttonClose" class="btn btn-default">{{i18n.close}}</button>
 </div>
 </form>
 
 f00bar;
-		$templates['multidelete'] = <<<'f00bar'
-<form id="formDeleteFiles">
-<div class="modal-body">
-	<label>Do you really want to delete these {{count}} files?</label>
-</div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-danger" id="buttonYes">Yes</button>
-	<button type="button" class="btn btn-default" id="buttonNo">No</button>
-</div>
-</form>
+		$templates['file_editoroptions'] = <<<'f00bar'
+<input type="checkbox" id="editor-wordwrap"
+	{{#wordwrap}}
+	checked="checked"
+ 	{{/wordwrap}}
+> {{i18n.word_wrap}}</input><br>
+<input type="checkbox" id="editor-softtabs"
+	{{#softtabs}}
+	checked="checked"
+ 	{{/softtabs}}
+> {{i18n.soft_tabs}}</input>
+<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
 
 f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
 <form id="formRemoteUpload">
 <div class="modal-body">
 	<fieldset>
-		<label>Remote upload URL</label><br>
+		<label>{{i18n.upload_remote_url}}</label><br>
 		<input class="form-control" type="text" id="url" name="url" required><br>
-		<label>Filename (required)</label>
+		<label>{{i18n.filename}}</label>
 		<input class="form-control" type="text" id="filename" name="filename" required><br>
-		<label>Method</label>
+		<label>{{i18n.method}}</label>
 		<input type="radio" name="method" value="curl" checked="checked">cURL<input type="radio" name="method" value="file">file</input><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonUpload">Upload</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button type="button" class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
 f00bar;
 		$templates['renamefile'] = <<<'f00bar'
-<div class="modal-body">
 <form id="formRenameFile">
+<div class="modal-body">
 	<fieldset>
-		<label>Rename {{filename}} to:</label>
-		<input class="form-control" type="text" name="newname" /><br>
-		<button class="btn btn-default" id="buttonRename">Rename</button>
-		<button class="btn btn-default" id="buttonCancel">Cancel</button>
+		<label>{{i18n.rename_filename}} {{filename}}:</label>
+		<input class="form-control" type="text" name="newname" value="" /><br>
 	</fieldset>
-</form>
 </div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
+</div>
+</form>
 
 f00bar;
 		$templates['search'] = <<<'f00bar'
 <form id="searchForm">
 <div class="modal-body">
 	<fieldset>
-		<label>Pattern:</label>
+		<label>{{i18n.search_pattern}}:</label>
 		<input type="text" class="form-control" id="searchPattern" name="pattern" value="{{lastSearch}}"><br>
 		<table id="searchResults" class="table">
 		</table>
@@ -493,7 +499,6 @@ f00bar;
 
 f00bar;
 		$templates['searchresults'] = <<<'f00bar'
-<tbody>
 {{#items}}
 <tr class="{{rowclasses}}" data-filename="{{name}}">
 	<td>
@@ -503,27 +508,152 @@ f00bar;
 	</td>
 </tr>
 {{/items}}
-</tbody>
+{{^items}}
+<tr>
+	<td>
+		No results found.
+	</td>
+</tr>
+{{/items}}
 
 f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
 <form id="formUploadFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Upload file</label><br>
+		<label>{{i18n.upload_file}}</label><br>
 		<input class="file" type="file" name="files" multiple><br>
-		<label>new filename</label>
+		<label>{{i18n.filename_new}}</label>
 		<input class="form-control" type="text" name="newfilename"><br>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button class="btn btn-default" id="buttonUpload">Upload</button>
-	<button class="btn btn-default" id="buttonCancel">Cancel</button>
+	<button class="btn btn-default" id="buttonUpload">{{i18n.upload}}</button>
+	<button class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>
 
 f00bar;
 		$this->templates = $templates;
+
+		$i18n = array();
+		$i18n['en'] = <<<'f00bar'
+{
+    "ajax_request": "AJAX Request",
+    "cancel": "Cancel",
+    "close": "Close",
+    "copy": "Copy",
+    "data": "Data",
+    "delete": "Delete",
+    "directoryname": "Directory Name",
+    "editor_options": "Editor Options",
+    "extract": "Extract",
+    "extract_filename": "Extract file - ",
+    "file_delete_confirm": "Do you really want to delete the following file -",
+    "file_edit_success": "File successfully edited / created.",
+    "file_multi_delete_confirm": "Do you really want to delete these files -",
+    "file_new": "New File",
+    "file_save_confirm": "Do you want to save the following file -",
+    "filename": "Filename",
+    "filename_new": "New Filename",
+    "folder_new": "New Folder",
+    "footer": "IFM - improved file manager | ifm.php hidden |",
+    "github": "Visit the project on GitHub",
+    "group": "Group",
+    "last_modified": "Last Modified",
+    "login": "Login",
+    "logout": "Log Off",
+    "method": "Method",
+    "move": "Move",
+    "options": "Options",
+    "owner": "Owner",
+    "password": "Password",
+    "path_content": "Content of",
+    "permissions": "Permissions",
+    "refresh": "Refresh",
+    "rename": "Rename",
+    "rename_filename": "Rename file -",
+    "request": "Request",
+    "response": "Response",
+    "save": "Save",
+    "save_wo_close": "Save w/o Close",
+    "search_pattern": "Pattern",
+    "select_destination": "Select Destination",
+    "size": "Size",
+    "soft_tabs": "Soft Tabs",
+    "tab_size": "Tab Size",
+    "tasks": "Tasks",
+    "toggle_nav": "Toggle navigation",
+    "upload": "Upload",
+    "upload_drop": "Drop files to upload",
+    "upload_file": "Upload File",
+    "upload_remote": "Remote Upload",
+    "upload_remote_url": "Remote Upload URL",
+    "username": "username",
+    "word_wrap": "Word Wrap"
+}
+f00bar;
+		$i18n['en'] = json_decode($i18n['en'], true);
+		$i18n['de'] = <<<'f00bar'
+{
+    "ajax_request": "AJAX Request",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "copy": "Kopieren",
+    "data": "Daten",
+    "delete": "Löschen",
+    "directoryname": "Ordner Name",
+    "editor_options": "Editor Optionen",
+    "extract": "Auspacken",
+    "extract_filename": "Folgende Datei auspacken -",
+    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden -",
+    "file_edit_success": "Datei erfolgreich geändert / angelegt.",
+    "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden -",
+    "file_new": "Neue Datei",
+    "file_save_confirm": "Soll diese Datei wirklich gelöscht werden -",
+    "filename": "Dateiname",
+    "filename_new": "Neuer Dateiname",
+    "folder_new": "Neue Ordner",
+    "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
+    "github": "Besuche das Projekt auf GitHub",
+    "group": "Gruppe",
+    "last_modified": "Zuletzt geändert",
+    "login": "Anmeldung",
+    "logout": "Abmelden",
+    "method": "Methode",
+    "move": "Verschieben",
+    "options": "Optionen",
+    "owner": "Besitzer",
+    "password": "Passwort",
+    "path_content": "Inhalt von",
+    "permissions": "Berechtigungen",
+    "refresh": "Auffrischen",
+    "rename": "Umbenennen",
+    "rename_filename": "Folgende Datei umbenennen -",
+    "request": "Anfrage",
+    "response": "Antwort",
+    "save": "Speichen",
+    "save_wo_close": "Speichen ohne Schließen",
+    "search": "Suchen",
+    "search_pattern": "Muster",
+    "select_destination": "Zielort auswählen",
+    "size": "Größe",
+    "soft_tabs": "Leichte Tabulatoren",
+    "tab_size": "Tabulatoren Größe",
+    "tasks": "Aufgaben",
+    "toggle_nav": "Navigation umschalten",
+    "upload": "Hochladen",
+    "upload_drop": "Dateien zum hochladen hier hinziehen",
+    "upload_file": "Datei hochladen",
+    "upload_remote": "Hochladen von ausserhalb",
+    "upload_remote_url": "Entfernte URL zum hochladen",
+    "username": "Benutzername",
+    "word_wrap": "Zeilenumbruch"
+}
+
+f00bar;
+		$i18n['de'] = json_decode($i18n['de'], true);
+		$this->i18n = $i18n;
 	}
 
 	/**
@@ -554,16 +684,16 @@ f00bar;
 			<style type="text/css">';?> .treeview .list-group-item{cursor:pointer}.treeview span.indent{margin-left:10px;margin-right:10px}.treeview span.icon,.treeview span.image{width:12px;margin-right:5px}.treeview .node-disabled{color:silver;cursor:not-allowed}.treeview .node-hidden{display:none}.treeview span.image{display:inline-block;height:1.19em;vertical-align:middle;background-size:contain;background-repeat:no-repeat;line-height:1em} <?php print '</style>
 			<style type="text/css">';?> @font-face {
   font-family: 'fontello';
-  src: url('../font/fontello.eot?59435422');
-  src: url('../font/fontello.eot?59435422#iefix') format('embedded-opentype'),
-       url('../font/fontello.svg?59435422#fontello') format('svg');
+  src: url('../font/fontello.eot?17560824');
+  src: url('../font/fontello.eot?17560824#iefix') format('embedded-opentype'),
+       url('../font/fontello.svg?17560824#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'fontello';
-  src: url('data:application/octet-stream;base64,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') format('woff'),
-       url('data:application/octet-stream;base64,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AwMBCAQIAQgDAQgEAwICAwQCBBIFAwwMAQMDAgwZGwMGBQUTBQMLBA0LAQQCBgQIBAkEUTIEBQIGBQMBGAoBAgcFBAMEBAQBAgEBAQIKBwcSBAcJBAMIBAIOAQECAg4CBAICDwgDBAMCAwUBBAoKAQQIBAUMBwIDCAMJBxYGBgUICBAEFAoBAgQCBgMOAwQBCgUIEQoCAgICAQUCBAEKAgMMAwIIAQIIAwEDAgcLBAECAggUAwgKAQIBBAIDBQIBAwIBAwEEGAMJAwEBAQMNAg4EAgMBBAMFAgYIBAICAQgEBAcIBQcMBAQCAgIGAQUEAwIDBQwEAhIBBAICBQ4JAgIKCAUJAgYGBwUJDAppc1ABDAENAQQDFQEDBQIDAgIBBQwIAwYGBgYBAQQIBAoBBwYCCgIEAQwBAQICBAsPAQIJCgEDC3TE6sR0dMTqxHT+3QEIAgYGAQQIAwULAQwBAwICDAEKBwIDBAIEAQIGDAUGAwMCBAEBAwMEAgQBAwMCAggEAgYEAQMEAQQEBgcDCAcKBwQFBgUMAwECBAIBAwwJDgMEBQcIBQMRAgMOCAUMAwEDCQkGBAMGAQ4ECgQBAgUCAgYKBAcHBwEJBQgHCAMCBwMCBAIGAgQFCgMDDgIFAgIFBAcCAQoIDwIDAwcDAg4DAgMEBgQGBAQBAS1PBAEIBAMEBg8KAgYEBQQFDgkUCwIBBhoCARcFBAYDBRQDAxAFAgEECAUIBAELGA0FDAICBAQMCA4EDgEKCxQHCAEFAw0CAQIBEgMKBAQJBQYCAwoDAgMFDAIQCBIDAwQEBgIECgcOAQUCBAEEAgIQBQ8FAgUDAgsCCAQEAgIEGA4JDgUJAQQGAQIDAgEEAwYHBgUCDwoBBAECAwECAwgFFwQCCAgDBQ4CCgoFAQIDBAsJBQICAgIGAgoGCgQEBAMBBAoEBgEHAgEHBgUEAgMBBQQC/g0VVQICBQQGAg8BAQIBAgEBAwIKAwYCAgUGBwMOBgIBBQQCCAECCAICAgIFHAgRCQ4JDAIEEAcAAv/9/2oD6wNSACcAUAB+QA4kFgYDAQJMQjQDBAMCR0uwIVBYQCYAAQIDAgEDbQcBAwQCAwRrAAICAFgGAQAADEgABAQFWAAFBQ0FSRtAIwABAgMCAQNtBwEDBAIDBGsABAAFBAVcAAICAFgGAQAADAJJWUAXKSgBAEdF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b2xkZXItb3Blbgt0cmFzaC1lbXB0eQRwbHVzDHBsdXMtY2lyY2xlZAVtaW51cw1taW51cy1jaXJjbGVkCWRvd24tb3Blbgd1cC1vcGVuBndyZW5jaAdjb2ctYWx0A2NvZwVibG9jawlhdHRlbnRpb24Hc3F1YXJlcwZsb2dvdXQFZ2xvYmUFc3BpbjMFc3BpbjQFc3BpbjUFc3BpbjYIbGluay1leHQEZG9jcw5kb3dubG9hZC1jbG91ZAx1cGxvYWQtY2xvdWQIZG9jLXRleHQMcGx1cy1zcXVhcmVkCGFuZ2xlLXVwCmFuZ2xlLWRvd24MZm9sZGVyLWVtcHR5EWZvbGRlci1vcGVuLWVtcHR5CHRlcm1pbmFsDW1pbnVzLXNxdWFyZWQRbWludXMtc3F1YXJlZC1hbHQOcGVuY2lsLXNxdWFyZWQMbGluay1leHQtYWx0B2RvYy1pbnYMZG9jLXRleHQtaW52C3NvcnQtYWx0LXVwDXNvcnQtYWx0LWRvd24QcGx1cy1zcXVhcmVkLWFsdAhsYW5ndWFnZQhmaWxlLXBkZglmaWxlLXdvcmQKZmlsZS1leGNlbA9maWxlLXBvd2VycG9pbnQKZmlsZS1pbWFnZQxmaWxlLWFyY2hpdmUKZmlsZS1hdWRpbwpmaWxlLXZpZGVvCWZpbGUtY29kZQdzbGlkZXJzBXNoYXJlDXNoYXJlLXNxdWFyZWQFdHJhc2gAAAAAAAABAAH//wAPAAAAAAAAAAAAAAAAAAAAAAAYABgAGAAYA1L/WwNS/1uwACwgsABVWEVZICBLuAAOUUuwBlNaWLA0G7AoWWBmIIpVWLACJWG5CAAIAGNjI2IbISGwAFmwAEMjRLIAAQBDYEItsAEssCBgZi2wAiwgZCCwwFCwBCZasigBCkNFY0VSW1ghIyEbilggsFBQWCGwQFkbILA4UFghsDhZWSCxAQpDRWNFYWSwKFBYIbEBCkNFY0UgsDBQWCGwMFkbILDAUFggZiCKimEgsApQWGAbILAgUFghsApgGyCwNlBYIbA2YBtgWVlZG7ABK1lZI7AAUFhlWVktsAMsIEUgsAQlYWQgsAVDUFiwBSNCsAYjQhshIVmwAWAtsAQsIyEjISBksQViQiCwBiNCsQEKQ0VjsQEKQ7ABYEVjsAMqISCwBkMgiiCKsAErsTAFJbAEJlFY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') format('truetype');
+  src: url('data:application/octet-stream;base64,d09GRgABAAAAADxwAA8AAAAAbhgAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABWAAAADsAAABUIIslek9TLzIAAAGUAAAAQwAAAFY+L1MLY21hcAAAAdgAAAIbAAAFfKNPZpVjdnQgAAAD9AAAABMAAAAgBtX+5mZwZ20AAAQIAAAFkAAAC3CKkZBZZ2FzcAAACZgAAAAIAAAACAAAABBnbHlmAAAJoAAALbMAAFL0JdwiKmhlYWQAADdUAAAAMwAAADYOjcIqaGhlYQAAN4gAAAAgAAAAJAd1A89obXR4AAA3qAAAAGcAAAEA4Rz/z2xvY2EAADgQAAAAggAAAIJyMGEKbWF4cAAAOJQAAAAgAAAAIAG3DbBuYW1lAAA4tAAAAXcAAALNzJ0dH3Bvc3QAADosAAABxwAAAw6ruPY9cHJlcAAAO/QAAAB6AAAAhuVBK7x4nGNgZGBg4GIwYLBjYHJx8wlh4MtJLMljkGJgYYAAkDwymzEnMz2RgQPGA8qxgGkOIGaDiAIAJjsFSAB4nGNgZG5hnMDAysDAVMW0h4GBoQdCMz5gMGRkAooysDIzYAUBaa4pDA4vGD7+YA76n8UQxRzEsBQozAiSAwD9lQzBAHic3dTLTlNhFMXxf2ltvSDeqOK93u83RAVvncEA3gBiijHGGOPAkSPjEzDkJXgK1Kq8BIHZnkDOnhBG4Dpn7xdgar/8mp6TnfR8/dYqsA+oy11pwMBXavpE7Yvu1qr7dQ5W9xu1SV3fp6O5IRuxURuziWKh6BebxVax4y1ve8enfMbnfN4XfclXfNXXfXt3F4xqfrya36jmmz6s+Umf9lnvVfPLml+L+T28anqmN9XqVetttd7xXusDH/nE52p90/pezQ9oTw3tvEmL/RzQ/g4xyGGGOMJRjnGcEwzT5iSnGOE0ZzjLOc5zgYva/SUuc4WrXOM6N7jJLW5zR7/TPT3HAx7yiFEeM8YTnvKMcSZ4zgte8orXdPX1zT3t7v98DZZv9UZedct8hDJzlnROWCozaqnMqaUyv5Z0nljSyWJJZ4wlnTaWylxbUgKwVD6dJaUCS8oHlpQULCkzWFJ6sKQcYUmJwpKyhSWlDEvKG5aUPCwpg1hSGtWkoFxiY0EJxcaDsopNBKWWYiEovxT9oCRTbARlmmIzKN0UW0E5p9gJSjzeDMo+3gpqAT4c1Ae8HdQMvBPUEXwyqC34VFBv8OmgBuEzofwv8tmgVuFzQf3Ce0FNw+eDOocvBrUPXwrqIb4c1Ej8R1A38Z9BLcV/BfUV7wc1F/8d1GH8T1Cb8b9BvcZXghqOrwZ1HV8Laj2+HtR/fDvQ/Qf+7/8EAHicY2BAAxIQyBz0PxqEARISA78AeJytVml300YUHXlJnIQsJQstamHExGmwRiZswYAJQbJjIF2crZWgixQ76b7xid/gX/Nk2nPoN35a7xsvJJC053Cak6N3583VzNtlElqS2AvrkZSbL8XU1iaN7DwJ6YZNy1F8KDt7IWWKyd8FURCtltq3HYdERCJQta6wRBD7HlmaZHzoUUbLtqRXTcotPekuW+NBvVXffho6yrE7oaRmM3RoPbIlVRhVokimPVLSpmWo+itJK7y/wsxXzVDCiE4iabwZxtBI3htntMpoNbbjKIpsstwoUiSa4UEUeZTVEufkigkMygfNkPLKpxHlw/yIrNijnFawS7bT/L4vead3OT+xX29RtuRAH8iO7ODsdCVfhFtbYdy0k+0oVBF213dCbNnsVP9mj/KaRgO3KzK90IxgqXyFECs/ocz+IVktnE/5kkejWrKRE0HrZU7sSz6B1uOIKXHNGFnQ3dEJEdT9kjMM9pg+Hvzx3imWCxMCeBzLekclnAgTKWFzNEnaMHJgJWWLKqn1rpg45XVaxFvCfu3a0ZfOaONQd2I8Ww8dWzlRyfFoUqeZTJ3aSc2jKQ2ilHQmeMyvAyg/oklebWM1iZVH0zhmxoREIgIt3EtTQSw7saQpBM2jGb25G6a5di1apMkD9dyj9/TmVri501PaDvSzRn9Wp2I62AvT6WnkL/Fp2uUiRen66Rl+TOJB1gIykS02w5SDB2/9DtLL15YchdcG2O7t8yuofdZE8KQB+xvQHk/VKQlMhZhViFZAYq1rWZbJ1awWqcjUd0OaVr6s0wSKchwXx76Mcf1fMzOWmBK+34nTsyMuPXPtSwjTHHybdT2a16nFcgFxZnlOp1mW7+s0x/IDneZZntfpCEtbp6MsP9RpgeVHOh1jeUELmnTfwZCLMOQCDpAwhKUDQ1hegiEsFQxhuQhDWBZhCMslGMLyYxjCchmGsLysZdXUU0nj2plYBmxCYGKOHrnMReVqKrlUQrtoVGpDnhJulVQUz6p/ZaBePPKGObAWSJfIml8xzpWPRuX41hUtbxo7V8Cx6m8fjvY58VLWi4U/Bf/V1lQlvWLNw5Or8BuGnmwnqjapeHRNl89VPbr+X1RUWAv0G0iFWCjKsmxwZyKEjzqdhmqglUPMbMw8tOt1y5qfw/03MUIWUP34NxQaC9yDTllJWe3grNXX27LcO4NyOBMsSTE38/pW+CIjs9J+kVnKno98HnAFjEpl2GoDrRW82ScxD5neJM8EcVtRNkja2M4EiQ0c84B5850EJmHqqg3kTuGGDfgFYW7BeSdconqjLIfuRezzKKT8W6fiRPaoaIzAs9kbYa/vQspvcQwkNPmlfgxUFaGpGDUV0DRSbqgGX8bZum1Cxg70Iyp2w7Ks4sPHFveVkm0ZhHykiNWjo5/WXqJOqtx+ZhSX752+BcEgNTF/e990cZDKu1rJMkdtA1O3GpVT15pD41WH6uZR9b3j7BM5a5puuiceel/TqtvBxVwssPZtDtJSJhfU9WGFDaLLxaVQ6mU0Se+4BxgWGNDvUIqN/6v62HyeK1WF0XEk307Ut9HnYAz8D9h/R/UD0Pdj6HINLs/3mhOfbvThbJmuohfrp+g3MGutuVm6BtzQdAPiIUetjrjKDXynBnF6pLkc6SHgY90V4gHAJoDF4BPdtYzmUwCj+Yw5PsDnzGHQZA6DLeYw2GbOGsAOcxjsMofBHnMYfMGcdYAvmcMgZA6DiDkMnjAnAHjKHAZfMYfB18xh8A1z7gN8yxwGMXMYJMxhsK/p1jDMLV7QXaC2QVWgA1NPWNzD4lBTZcj+jheG/b1BzP7BIKb+qOn2kPoTLwz1Z4OY+otBTP1V050h9TdeGOrvBjH1D4OY+ky/GMtlBr+MfJcKB5RdbD7n74n3D9vFQLkAAQAB//8AD3icxXwJeBzHdWa9qu7qc+6eHgADDI7BzIAgiGNOkqDAIQACIAlK4CmABCFYIimaIERZsUXHOpwVN7ZkO6KiKFpfUszYlry79lqmbMub+NpEthPriy05Wcnx8X2J5U2o5FslziqJoxVH+17PDA6SEml/3l1y0NNdU1Vd9d6r9/736nUzztjrnxMHhcU62Tg7VD4wkuLS6ANVxkBwHUAo48zQpW7IRQ1LuVT5ogJcSC4WGAgmgC0ynUlVl/N0IfYyIdg0Y4JNjm1Np1LFVLrgdJpqy1pwon5IdqQzmuxIXwP54iBkXRmABJSyxRL+p+tI1JFroSNd3AzpZIfU8D9dlgpDkMu6sVIx64odnT/90K4Pbpqwml3X/6rf5cbOrsOl7fdkZINiL+im3wlWS3ffugMLY6p9UrOh828+tOvD1KgBVAEP/8HQhgnLa+42Wzs7u2H7kLneZ8OXaiU7q9dSqdWkGbHXj4sZsZtFWBNLstkvOMAVGN/xRPvUdDnBOBMqF/NMUWCaAdgTElSVSMF8bFu8HK9XwGLGVDa7VFHZNlP2x+PxZDwZSTuFoqY2rkWqREOO1NqRXqF8sdSOk9eiuXQfpCMhImKhPSRyQTcRuxCOJaDNhVfcYmD791Tts/Kb57GksoffHcw3XLjb+1XciV9uMP29kPys9toTfFNb9KXXHmNMef21178jvs9fZibOqputZ4+U7e4MZ7B+LTc0jpML4uTyTJOG1I4wQ5GGsoAjv8VE5nOUkTkGOBtgc0yVUt3NVFXu10Gqcnu8XKg2MxZ/oXYz5QbLKuYG+vt61/Ws6Uo0WxEr0uCELDW2FqLtBY8aCcjgX7QdL1Q35mrCD0irTJpn0kOwmaqJQhKPyaiTa88WC2LiwkSTzedlsPkh/Kv48eLBDkXKSaXNvrAxr8thafpluEuM/mCs8tpoP/S4TXw6m8Ujb/oN3uTiyZ+0+cOdlSE8yzbB+xJujx7smpqq/MXhqanD2QYbOa2gjPybOIsyorMQy7DNbLS8ZRNousE4Z3zcwFOha2KRSaEIqSyqIAAYFwzlhnGFzzJdt/Vtm6/pTLkd4dSGhjAtnVS+F/zgDkFp6SRaEw4kR6495mY3A4qIcAMgO1BGaDERoXDNoNRk+bedhMMbmhp+y2kLc7e5YazNfe2ZqtyIHe372ydBuG1fNMOvmgnz1ZBhxs64/jN+F840HA54DbkTqJ984EkXG0afdNsm2/ADXbHgq5b1ajAWfTXgAC6pGh0+h3To9eiwhpXZWHmkACgOVTowQxonkd2aPMk0oZ30Jr93JTEUPk30mLxmUzKX7MguUyLt5wkolurfSIdkjQ6xXAJQh3izFqg2iETeUsHDZihmW8F9E0K8bBeTZzqKvpeREEbDGSdwBmdzJhYJeTQJt6BGCbeFlSa7fnIfUqDNxQO0dnW1JmC3W5t/DzZBKiIZcJmTPPwU9atkAbaBDbEJ0MrR8tBgUHDQmJKnCY9vAQXGdjxh4lLrR3ooQlMWkYj42xFUOwoTyjzqYtSyIG9gKufqXlwvRCCVT8Z3PGFhuzW1+hpcRYPYL3Wj8sDKJgqDxSu2mZmZKaPqHB25ZtNA75p0Iu5GkBLSMdTo2lQpg7IZhTTKrIv8idRYWajqO2QK/pBJY5HUQo4bw2WMVgMruiIGSRSmTMnjqQP/WN5XLkDUMJ42wvjXOTdS6R+ZmxuBZ5MJQ2hx3fTZlf5UHoqd8Gwqr3bqDaWzlfvO8pO5s7lgT3Bf8Ctb9m1pLcKD9S4qXz1e7WB4DvxKRDbrisinan2MadiDDmc+VrnvY9CbP5sPBPYFe2oyv5O/jjN0WCNa1PeUcRJcbXH9miJ4o+BkL5FUCqrVMLIgg+RST6LA85NISXGSoTVgN0kAtAy78QuU64nQO+Ll9KU12clLK86Uw4y1tzXEggFD9witIaFjNULnkx0aSFSI2RIUMx4NnQDUqPhM9nRuAm6wVaXynOJTFegTifOV/vNip3Po/CFn0D3taLnTuU3jXNpK5XsKHqFXedv5St9L8OGW6KGXZqPR0y7JPNR0oIVUiJUdBhxw5AxHztjRZCEnSI+HlnlNZr/F015nt+cuzOS2b889mdsOp/Dv9copuuQNdAxvZ4y//vrr/6Y0Yt9h1Co9KPUokCfxFmhTEIgwdgtTOGqSZf2R3JgsFlSyqDhXxB/tHb1oHxBN4A0zUZStAJqM0sphKI3hP2zYn75wNtIMoS837E/xGyKJr1f6C7clv8yR1tXh9eUnYHPI+XFzl7/DO372QH7Nj4WGC2BptAxZQDIRxvEGWCvrY4NshN3MDpffcv1WLvU17Y0hAyQOf1xFdYD8wkng+NFsMm2B+RF5+Y35gI/rtskl6HKOaZal7WWaZk0zS7Mmjxx+y9zBmT27r5vcNr5ls9PppOlfMkhwK1RFUnUSx65wHQm1h5wE0WUIIJdJZ5IShYfq1HiVIdxRxW0lNECoZFsJk0HC1Dt10zucWT6939Sqp5o5UbF1ncOzXNcr970aV9TPSQX+3tSLtRVVoHqfzhg97rlYt5H5jG7CU5WvUSFsoeMbnFcO89CFf7Ad03T4kS0qgLoH73jhH3pHh3t5xBvEoWgzJJxDZk0miQ9JtgZXkyIUlBoGt6LJQWRHlgdRK8oQwtZkLoUmR6pNngXJJGtmpFRIVs1MKVeoUTBKhibc5p5vcxfQDJz37Mj5RGwBT+jiKSp9ybOWL9VKyWScb0M5voBycYM3nn62pTzkw8G0AmqJcRwEEJAmaKDgZ4FpOFIN0CZK6Um2nGZSkZPRaLIzlex0dLV5LRr7tJbEQ4ZAcxQPsajjlnJ4iOXQIhbo4Piho5cPAQIn/jjad9c/TiYOzTwau6WLc7d98/yf3CLf9eVX/uBu2DhBIMAza2gRV17k3vH029/+9N/RobrmkYxh+J8o5w3lKF3DXtJm0/TbZCHHVbdKzpqtJkBLpLtwwCMaf6xOriqd2hhbQaMAa2Yt5aZlzVfTKfxoNFroVNSG6vzba7Nuv3SulT3eLOEzl5tfdWKrZkTy8rfii3wNafKyS9wB5Ax+eVrMiYVJi+Ha7chAmmxSNmZUEYYj/nPlRkQMlRst6xB+Qxd0Wc32rAVnKjdZFjxiJcxZy6p8H4utWau5Trsv8rHqvRATcxj3FCbejx2NOd69Uug1ZYwqusuX6IbevWaxu8r3K9+3mq1D2Puj+I2HhVnThDWVF0yTfodHTRpOM6v6MLeLjyFNdbxbL8uV+9ModV2ZsOAK8UuMVzWqwpW60vboDUebk+sawqRI69ArtTSYBKQczQ+ZjjQyFteFi5SOxopEFvf5GuCCo5XT0Y3uYDQKd7p74UO++D3XHXvwwWNtY42G8fETvHtHe8BcAln/UjntONeg1YE7S3t/7KZ2zMGDzz7AnaAMa3N3beKN6xyzrl9vU/rENpxPmMXZu9gX2c/YR8sfevkvueI/foir+rNfvlUw9auf/tg7dk9uTbYYwJ58tIzaduM6Lvnv/ga3hDb+tz/k/q33gDVqgm6ohq4iPucal9oiKmHF8CvzqIqZgcCGJEFFfIrqmO+1kWCaAA09X8vyPF9Sy8Ka/B8vfuub/+lT73/f4onDNx6YyWfXdkccx4mEA6RU8ukO6bjZoop0hBidCSpKIHLVcIUg6NGIhEhQJO+SB1zIeI5zJl3Ik/ZFR7AXSBkjkUvpTJoKcyh/S440iiJ5yzE36ng9tiKXcAFidy4dk9R3Rwa9pmqX2AX2ho3xArv0fG3ioNcBjSe0sm0647W9yqbwyt7b9+IHPtOzvge6N/ZA7fv7unK9tCOtimKPBtVy1JWa4jsmTV8kNqz45JSCOMun7VN1Xd2vWdV6ppTlSIPUBFUErLlF9am7lIaQ7pP7pISje6TZzEdBjbZYtqX1CBgVLaa2Z49mtoh8EJRuPRRqjil8hDcbWFyr3a17tZU3rQxzgzSPvS+29PCu1pbubj6Dh8Hu7j+7Gcfij8TiKYRFoWEla8lNcZ+OA7KzirIjoKp6j92AakTXjqlLNdUg1jT1TU1eTWuAaioyEfXFIzbXK9+91tAD/s1+zrviKQArD12c43VAN641jKCPfkkYeRTCrhhk6Cdf0OA5/K3aKkM/2flMtZGBjfSlRhZAZqmRjrrWwykHPL1wnG0tDx+ZmdyiMGXQRHOU74oHFQGoGlRFRdSJ5XW1IFAfIqz1dPHswT27tk2s7e5oi4Q1Uvco1eirZoup1VKduaxYV0W4KtdkIK4o19XOqoLNB3e/czff//b90IwUNq1Il1QDUz5N29nYZGhK8E7dDsZj18mgHHMVVe8yA/pRTQdTPab7Y6lqXX1nQ5Ohi9Cdmg2B5th1akCbcBTFqFY267x/J/0eTETjWemX0SlQN/n0yeagqd1s2JtUWU6ofmR6oDkeAFvz6jY2ta3TbM2ZWlHVGlTVkeZa1aYgUOxAILZ9QsyIIDNQlyVZdzljkcuAlgf1NqpmhADkPe8l2zhNynky1piumr98BtxcdoirFDVDqjgpx897xZCS4PxH/ZWDkweGbp3KXvgefHLH7J4PTAH/0ehtH/v07986xoff/ugTH729DPMHtldms9mp294Kn8xO3b/74MHpj92GP9/+0c9/+J1DcvuJxzwz9fo/o5z8L7EbbXI7y7FCORsPoVdioEEmt56rFOIiv5CCg/M4anRLZtEftNVtsfUZ9OYIV6XQWiPzZQtU4Ukmks9QgSajMUItqBHB1byIDopACdF61uWDpnZCM70DMk7T3iV11bC1m3Vbh087UaMj/Npj4Q4j6sBnjI50x57jBBTxAPYLAJKwk/66qoPkwddeTiZDYXCCyaQIhxynZhd/It7Cf4DzirA0u3fHEy2ej6yoKPRHcFWoiq7OofFAzc/4HBoeTUhS/ABIDCEokifA85G9Jl5U9OrazJQbOetsb25qbCCNGQmHUERYgAdM1VlLDkl0hbOktofaRbLQHsohyPNKyJGJQgleiqfT8UqsKZOBv6ocgo8/eKRyw8ZD8UwmDufjafh5pqlyAn9sgoeaMnOVx3igp/LEDXj5fqpCvOUeRl7gf8wyrMyGy5sdZCrKnkRHXqJFRBdFFQsInREh4PTAs4HzdLEy6OsmG1PdqYymxtemHJdcLi257GREY16Rh1JDHvMTHBz0SsmzqLkXHr52Ed7AEY4j0PVz5IqfQ05C9dJzwj8v0XxzaVWes5pditn6X3UR+/RZvTys+g0F0Hu/d2TO1C1D4uJGZVR5JzZUuA49fqvyrOkEzrr+5xHNnqVYMRZU5Zsw5wzqQRu+Av/KT+14wpia3rKJfYX9IfsS+z32MLsX+Yjiws4QBfDsB+zPkRozbBcbZkO4JNrQ9TcRs3N4FD4ID8MH4P3wLngHHIGbcEn8NfsrZpMkwB7YCV3YHv10eAV+CM/BM/B1+CqshxyWAZWz8bgXFNoyUrv7vUyhkBKOhjwV9f/BGDQ2jnMGvBewsfj/P0LMzHicKBcYF5rgCMw0KTS5wKQupL7AdBA6LKCuvAXXGwrjXlp2YlpVKOYyWSVjeSP6UyoK8RHG0U9HD1uTarUPtdqHutyHqlb7UPfj3FUvmP3L3HlmZkuj5w19H56H/wpPwfWwn32LfYN9gX2efY79F/br7HakEeJYpAbgn4m3w2WPfkvdhaElhD55Aa1jMUYbI/iR6YKj5dOy0KsQBO8DTTrd4HTIDq2ISraYzuR6eaaXitFgIrbUyAKTzZQdeJIme6vRXzatDUGSOs1QDI72V3JuPpP1KsgYVcYbZLBb7DWTpusEITsNbyVdDW21S4sZDXgpH8tILUtdIf5LE1jUcATYVGoJ7pRczTPaWiYt3Rz104oDKslWkeAxSf0VsJZbKmZ6eYEsvkzwHI47m1BaBYW3USW4pQ6y9tEExIoF7AUPNPt0MZYt4nRxWo6MJouEQrFc69D8Io1DoOsMjQs1UB7n4RaxJxywW0pwpE6x5KLHOQSIRQq9FFn2qJHFGh04GoQfLh1LbjE9BNFSMUljJAJnC0gQgSgF8UyRNmb6KJSJM4sivShMH4B0MU10L8qoH6K9UMKBu4R8Yo504TNv/+ZtdV8UIlwXwBURikbQYnFdolshFcVUpQI6qj0hFPwn0Xyhg6JIrAm6DWqzIjjqRLwZ1wysgvoNG5pcUX1COP6IoqOOBq4aHCKGVLgqTaErKPxCGtibaiiqQLWugF+zAkoQbZKu6KDTF3Ys0AsMq8K28fbcbowLqaoRVViKz8IboUFVDGVXViHzIKDBxDGoCo2T7AZwU9PCimYoeEPux2vu5wrnAR39Sy5UUNBFxR5UW+NCF4bmSolAP6g42A92LvxCQTuvh0yO/0DleMWFTZuSRCpciBbeh+uOQMPAad4qbSuhQVUahEFhVuHjfiKHgr9IHAPSSVE0XdVsBS/QeKneQGyFh7E5R6PBuYmYgkupIbIw3/prU2CDD9tHSW0QoVUb1zz+Axq5iRziSGqshANRrABwwwRh1WIIeKj8GHTsDSsL1cJq2IUNpubRFTg6ABLpqgAxF7/wnOtEVor7IK81oWumpqhStUk0cGq2gURRcQoCMZdfp3JhIFuFBL9iYpcqTstUNE0DQ9U1HYkkiJYoDqYQfvpZVTQOph7ggpSZHwmgIDZClsG66xTiuiIDJo4Bkb7fcCwOsolDDCVOqI4QQaQxYhpdAavBp9o4a8XW/YofTMtBG6siyZEXYWEiblYlF6ZHYB7UwyS/OA4TUR2xEukdVAOki7mFk6aYbYPf8KsGoFQiqZHouExUxEBAu8340VV0w3QkpJ+bpooFimWoJBrIA5yzggsCSSABp4cNie94qPii+2jOkgcIO6BYCm4KxA0qUtcvOdUheaJ+1GY9ZPgNmytBzYszHxdnhQ+tTzvbWzZb0dX3o3Dx2navS+F+9IQI4pLUzSMy9/Ft8XILBelvXf4VlxQFwsQ0wj40B0/FkojwvHh0vhek46J+dyiOgl41KnvE6zFHi7n89IPPPogfSPRsdL52+I6pB4+V+aYT93/i/hObYOvXonDPzQ/yh7/9QfmByodbuqNf2zp0/IHfv/+Wjcrw0Yd33nH4a9Fa/Oy4+HuEmhk2xe4u+ztd1Cp8cjhPK7A2jzTzyC0WNZQ6TtFG9DCmJVose4IpijqNhtCn4rySl1RUyB2cXa7Pt82UY2u6gI1vHejrmloz5YRtk2UgoxOOJTMgNceLGRc8b44CBZokh24IyOtDdZlJQ0fU8w2T5BKWPLXqB1L6m9HvQxeHGpbyWAwvn37b4shWVVWUvRG1kNtz/U3X3Z/faHD7Xy3HVDbysLFl9MAs5Lwf9980NbG1MKhz6+e1X83y6IFDR+952y3DXh9id3lo4ZZ/p6OiDN+4Z1ffwND6DUZEZIXhBl/U0Z0fS3dVlOpPbYlLf6PW91CUu7pHcVD8HdK9lW1h68rdKMEMxgcARhEnUXRvkdCCIJqxbcDa25wIa4VWpU6mAZwjmcqYS6Yi4UXbi2TIiDweGaVb/R1pMYBXGc+eF6lSGv7p+l17R/efOH7z8euG29tlyt8UzIWEyZOQSj8wd7CiNgTIkHTyzvTEwTtO/fpdb6HKC1i5TU3p0h8Wu1sSG7ZGnUTbdcP79zy5a008CCERkAf+eObQA+lU5eWgInXvauJgZ0dD464VdaPt/jDzsAzlSpyv+YkFto3NIja8mz3APoHo8duIFf93ucvGBdmsoB+7bydX2B2/dvxGXPXvB119GizthS9zw/oumIZek9TtPvIxkZSLQayioX5DJGapmrXADMu0DHPRjytOoFKfR5PLVF2q8xSZnkb1DPZECCzLnGam6TNRmsd/ic6wB2Za5uxypwwlPvvMM4998pZbDh1KdjD2zA+e+cs/f+6Pvv7JLz32pfvee8vdt9x16h2HFg+dOHq4o5AsIC386bAarbu+tFeNDk86GfO2QFsh6hL0IJlXO8hNaoX+gYS3W9UHBa+sf6C+GnJU6JV5Swgb9g9Umw5c1PulBdgoWW+1dLtkvef+gaWuqShaH0H/wKrbUcP+gdhFfcN30PwoY+ifq5+XykHEFpsUkx9E/X4NVKbwiKr+IDdU71vwIwp/BJVRUhjKI2QUkuK17+oiidUfxWbVb/4tBTX6U5Qm8lofdfxFOuXXaqIDVlbkF74peLUXbipetxK+q/DqLc3qrUXlfZrwhqMYfBb12KYz1OUYdSl2421q90KFTB1X74CYIAkruvVGKz8OSxOh3jUpqc/lKf+9VMdqfave0aPLh+QSQWgEoMLS2Kg3+S5YJgbdD93cpRnSONZ7w9MUPJAgvv6Pr78bdfxWtoEFynYPsK20PxEB2l9HzZCuqoaSF04rJnhVe1SVRxH1SiafIcWiFWoKx1M54vqtNxz41oG50UOpZFPTPiVix4d7db9mbG1qdGMj29964zdHChugbc2eqT878o5T75id78PhrS8Fja1JVDiZ0UPvvuOu37hJiWkhrXco7jO2z88dnBvZ7oS37rzmg1O7J99SvqajA9ZEImPbbt09c/1jW93l+MN5z155eTNdADKE67TUiyCmHW21Ms4QwiKaWQpGoDZVvCAExR5mmZS23LYxnioUUzmKQMDqlAIXRVVelE9Q2/tEZwttSn1DI5OuxlVEeCmV4D6KPVVOLSURePuLz7vN1o2Vh9SgUkaYd+JGy/VDS8CByXNL2QNevaXUgXM6ot4fVF4MONzGhlKWVb/XsNl16/kiVb3ZyjpYCr3oTewz5UASGC4zg2XaEGKLmkIs2WhBDJUZc9gMcaJGKUQm4tJ5BC3c0pEsUhLuEPaED7Wfl2zmA9R++Su2xPoMLJhd6kGiqkvm88Dym/KbBjcUC/19vT1rulKdHe1NMb9tSLRgCT9ZsOrOcjU3qZa9RvqjumFazAUgB1ouVipU91VDlM8FoaS30xoS57zdwAsvUQLbc17K2k8DRZf2UtPt448/XvnI448vPvF8IvYSJFyefiERO8/vXNpE/FibC6fcYuCnQbfNfSp26nG46/E/euIl2oCtfOSMW6xcy0+fd9ug8uFaHkG/sFgD0ni4vLkbmT+QVAXtxVMqiyphcWkn1ot+qECxLsWLdSnTtIM8mewquk6yw5M0imguhTXRIya/m7xWtUoL9CpLmbyHeegQdbQE8G+b+l1eQPMu3VSfVoP4B0fuPHDh7M0PwbXD8Knbr3+gvaswuDc2MQeTuvk0RTSfNqma+rS8feZOePDYxJ2Jhts/deNUcu/g2o7Q7d46WjW3reXhbpSegSTOhoyeoOkxVB6LXq4VzpemV9vUQiC+FwEdTY/T9ApOMuVUp4cLg5Q/qfpoXd/nsm8+vdqcVszyDad3q16dVaA+yw9ddnryohzMHBthe9jny1FKxezpRP1WXo8e8tQENy2ltk7WU3RKUmamZJohNRRug+mWoc/7yaKrlrkiZ9NelbNZuHJT+3LZnB2jo/l8PD66Z3T35Pb8SH5408b+3q70UoZn4CozPCNVNVRTW+mCunxOqit38fUVMkLPmDrc52VRnEJWfKR+trLU1K+cNgovki70sjtmLpv7Ud9PmvHyG3K/ZH5DoZDMucnO5OXzG7R6foOX8Uf5DZEaNevKnn/bCTxZTWs45yUtnKtePOl3758bufASqWgeG5mrJgE86VV5spoL8CTFk590YPOF86jC57fwBvqq5znwafgLFqW9eu2SvXrH26t3qmmY2qrdej4tacfnRz9Ec9FMUQFS/Yr8iqbi1Q9/KL1fsUBWXlPZinv9TfVegUtyELx7VaPn9SyEVqhmc+G9sJegUnmt2u0Pf+TdFJ7S1Mr/VlG9YdnSXZdsL+VsxViPl1eloEpQcM74K/d0gxCebiBzwMVksoD/ct5mTshLvaCsDmRRh0ShdinlNnLZFK+ZRKxyCoUqEfOyJ/njbtv4RVlft8N9qKTb3E4vG+QCpczA712UCEb7Nf+mrMHxUpbtVra9PN5JlEHlxhDBKfMoVBT9mEeHDueGQB9dcZw3ueLk04I6GQkPl68ZXF/oX9eeaHTDmUimOGB625aEEAJeoly7F85MtRcuniJCJ7WeT7Z6hl5SUMwVP0lcOOvmfZ+wEvyGWDbwCfPCafhMm1v5Wn3yZxqn+N81frJhd+rC2frsKalsIZG3dNgRaQg94zOcpuAz9uEDK+hR6fxsIn0g2fZMIr1Mj9yBpnhoGUOd5buYwzppd87AtZbA1eYiCVD1exu2xEDGaZOOe9aMNhMFn0x3NYdpM7GeZLKZYNDmWqZJHUl5aganCeMoRytkKKggefk+U79w3lMiDahgeknUmqUnfV5VEsnKa0mqQAe2Uk9Qftzlc3wKhXRuZY6PVsvxudx6r9jeMoZXLrvGa4k+ly7rqjyJyFKeXq7cb5DXjgKlMoo+UpyHnm+4BAPgMiiml7LFVpIoggtjJdhcuSC88Z5Gldvvqd9ndXN8CSMSupxYTmEdnoeH6pl0ZuV1+rVeFV5ZqlSbh7pET8o3dliC9bId5YlEJByS1exqwjf15zYo1ZovYCMBKj2XQPZ/t4QlABAMrutOdTTHg07QCXl7+qUYauFkIUV55pRTLSADUdQ5NXiQuoglf72vpbUIqmZ83Ajg329D39nKc/BKLhjcF+j15+HUSh6d39dSaPuXet3KKeg/W3n2LOz1MnQDgXzxIq4ty04D62LZcl+Y1rqnjqtBFgXrXCYGVyg5jTkvAocMyiCDWhH7eXCtBNUQ02Ul65WGSHiq8rxlbaAcq+5dZkDq0TOrhGwSSPzWBalawtyAUL97yhImFC6RN76EYySOfuYLlHlVf5IkrtCFoPRqL/S54CH4enyx6ZJfOb+FagjEHQHGGtyQ3zIo91clNB7yEiZUksBVYIMP+vQXdb3yOcQJfcuQ4as8D7qu/1TzhRE1X3hyGQXUfZP6mLvYejbBHi1HaTzDG7mhZ7sRfnU0cfLTqjMZYLWhmjg/3QB9nuHIEEiReka3A9W0N7Vqunh1fr1XbqNSavlsfc5NujY2OrSpmO/tSXcmmqMRv6U16A1hiwItNG03JlbPHddjpFBdmxS7yLXXYhdvci1ySKuf+/T0KmK1nbwcgLr4nE9oPiJq5b+tpGflWTdROVxHTOZ/WHFWR1er/MEY2rkSG2fXs4fLsV3bbGHyLRsQ6g6s4Ti1Rs7UOtX7cZlL9F/QS0awqhn6HG0wIhiZZ6bJpy1c3x7N2TSyropz171xEwQBHrxdamoizcP79uzcsXUkRsnGTrLTsenJjBroSaMtrO/2h9AWqhepRXGZay25/ESYqD0BVr+Gj8hzaD6e1HXfgqkv6CZ++M6VqhOLKx6YhSPexat0/qp3eoZO8dArtXOq+qQRFYxKLjDzugU6oQO4y6fRBc0EW15UvJIPgdV8aBamsswHz2Ys8QEVrgQpYBVRRZUPChJTUZAPlCPLl/jwxk28eKXHh1rT1XxALsTSSeKDehH93ogvqYvqRWpPFC2Zr4v4xB9fJmfllUt5AqdWUX4VR5Z51bhE1M2XsOS7V+bDsp2u+n67y9c1oA8RIXQjq+mrihRSEZSfgn6FRoSUCmoPlTYHq0lJmq57OfT6NNJYnxzejCbcSSIJk95jih5dloizJJmFOsjLXZ1pf9pbzjVvtnZ6JSO/VFszv0Gn37iSwdeXdPII289m2CF2hB1jv8keYb9TXvvIw7/70APvOXbzWw7NWqBei7P/rXvfe/imG284eGBmeqjLp7DfPLFwnHZslzeDVHomj57vURlt8VAEfIHStyZqOLGqpJNvUJEQJa+le6E1+siHP/C+d99128n9+7Zvk2iNUrKPe/sYFIX0Q4Y2Nijnj5IT/NACta2MgheszHk/DoKreQmsUmuFBBfe9nmSgpqFhJcUmFVjGcQdKsRERsRKMVALIqZlaumFFMjLJgD1bSxL8c7NEAmlvN2lfCZEUVF0qSlVtQVgEWTYamhQ0jydWufnYei1JzQzDep61YroQgRsv6kKX6gtXgLZqal+2s7VAjr4W5LdSVXehq6bGwwFbJ3zsN3kWAbcm9x54etwunIX//yGI+vfuaHx9sprsPnB6YS7bVdbpK/nPdhMBsOi68Z0carPCFrBn1SmnvtTRee04bkXSnDu+gPWz4FL1QrxBGzoKeig8LzvaCA0qUKE9ry5qqrIQW4ohhCG4YDDkVoW97cElOZ1wXAAmsAyNJ+ucZ8eoCeGNA12vTtW+Y/38PI9lbeF4GSo8t/DQ53wZzf/xWuf02dSvX6tp1ExJaL4aBMEHTw1+OkLj903PqoB8AOqEM3P3zLUkrBfWiF/1XjMDJtjJ9gpdjf7QrmNYjInjqNEvP0t+7fhsjyZ5qa8O88tcxZ0TdbDmLgIaU970YDlYItpSXOeWbhULe0NozP5K7a8bHCmKR6/8453/frUzvWlbP+azFJQxneVQRnwYlwxlMtkLRfaS6fmaW+fLuZGSSx7wUtX9dI9olJzUVb9EJGxYokypVFT5DMCvym3hja600kCnlcI38Cnwy3tbbtDBj2X3Rnf3nnH/L6srvlx6mqxV1ehpTXt+HRdhmyfZqoAoLVW/qmlr6XrBYN2bWn/Wxub3APSWNscaA3BvG9LdxzF9coRnx3+kBL3BYFH3bCv/UFF49IfW9+k4kj6Nk+O9e5vdnW7SYA7mjlY+Zlvh5uFn8WyisNdSpuw9cpvJQKqnrqmf6hVYjfes3Ir5WYPe6VskbxMDiGI5LXn4zYE/YhzhBTmEZ9lCEnpkws6aKqq3USROXPV49YBEo6ZmnBUZWtwqQO5uLoHoakLV+iivP6qWgeqMnZopYzNlDs7O+Pxzj2de3bvGh/buGF9qVjI57oy6dSSuIWuNgYYzUVyEZSpQo7UGJ7nCslojnQmBcTQhRFJ4V1lsF2ucAUhGszMTk9Q5gwlrUzMHMw8jnJHeRGc79q8yytF7bM+exVC8cpg5QwELL+ButBRKj+Dtw0O/rPlt9F1VMIq9Fee9emKbfutfx5ktWeCV/EcolWe7x7kqLBqPB8OgC0sYR8J+n3C0vCzEAmZulJNujMQpqrSY769inPhS5k/WuvJWnzDroSs8vFN+ipv+cW6CV9WHLrr4rBr6rprd05uKW8eumZTVSxWCYVzlUJRiqIQlHCt5BzatG2FJBVkSlXRoNSzZL4qDngd064gE596pHujUCRJAZqXTWs/nl44kf7omg30Agh0nuVg9++njy9eWSJODw4eQGvhxREUcWBw8IOPDg7OKCbl70hthq7ZSj+yKgclNgznlt6lQHma48zAdWeYi8z0CdO3gP4fcv0IkdggTqEGsXWfPc/0gIXqQtfmlpnnXy0I9Gj0lqXuVvfjA5M6Mq+qo/CvdlwkoBOX6U6jTOtfuL/y1l+8K//lBBVFNb1hPQnrpo3rhzcMd5Y6SXNl1675pXSXJ6YFtGxD9FRHGmF1LlSiAu/RIHkFsTz7VH5ybSzVC93J+Lrv5H97eKQl1NoRvio5PGTYEweHg+Zg5dsffdiMrMuGDHYZ2etGL+KhcoiErxs0HWfZSYl3NWjSt5KMOpFRp6Q/fSUkMVZBkp43bGFcDoo09KyNx/v71uZ6ciuoa10ldVPR9kIpVlLpsbus61yJnIjhvrEw/kLlJ+uGhg4MDV2ZjK+eW1gYf36cKh8YYuhI1Wkn0LWiSCnRr8S2oyZ/sWx1ArNhfBTC9CYDStWe9WEJt9EjQQTAb0JkTkhHWww1cC0stfBClB6FF6DMmS4XlqdH51mYOZGwM98EERYMRILzfrBtY5oZyM9GCATIZ9N9en1FHlp1D1j4ld+ExGCudhO++H/nLuWDv6IbYK+4vvXZ5RvZtKbLo5M71q61bV1X0AZPXbdjz+SebeNjW4euWVta6wGT7EBvTzpF+yB2wA74fbqlW6ahaJQMQxH5UJyCaWhLYoVkS+07mrqiiCaj9KQK0GKXuP4J+RZy3kPT2WL14TA4Mn5mAj/wnTcR3fGJyk9gcZMydfe1XLVL4z2+8I5Ed/emLt7D7xwfn5iYGPeOf/nmAj0xgZjld/444O8d4hv7/YHkH4yP+yv/6Da7+Kk9S7pSN2xgO9gsDJdN0g45dKoIopBgX8NMoQlTW/SBQQ8hHbFBV1V9GZJqTBqaXKGsrUttydCqTqShL/6ivZBobr5sLziohavsprzpqnuwLmswym07Jwc3xuN7dk/O7pzduGNwR6nQ17uky/xX7VRhlepjqctvGShGsqViPkO59PS0H2U9Zmol0vFKHPdKPlPEshQh5aFtFE/Zdkh/JWRNTBiJmGKuX29w23xrwBoYMBOu2dJixq4C9H5LtSvP2gqoh7yY1CG9cod/+qczlhJJWFvPjdoJ3dhj5T+Qt7jbbLftbrMSkcvYHYpd3V9Fv5vrHo9ncXSTI6wU9OTxspshV8HTiyzOG7a4vMVJoW0f2bKuuzOXyv7CFgeq+Qb1cG1OXeZagRJ6r8SMoy3d3S0v0AFeIr5o6kMPqZq4Gl+ju+X5lm7oaaajYle+aqug/m72IfXSdVvCdXuQ/fsqdUd6VlB3HbsSbfVVtO1+g/r65Sgbjsdz2RVW3Lha/6762oAAirisv72p3XtKjpKiaRO26D38InqhFBnycjTpbVeZK9D6G0pQbdbE0aMKl83Sr96t6/waXb9b8WvNkiu18qD4kabDTsSGyeq3djW80ERU9ct778Vuo4r2KQv/fUpydUUhl5XrwS/hWXoqgNtapR9PWBVDfE7M8KfRqkRYjMW93dbNuBrG2e+VP7oWLDkIPoWPN4WiQguCtFDxxMBklm1a840BR6CvSa+nmWsAm/m47ZuPUFIT3+saYQE67Y2xOSyq5ymMjpbLA/3tbc3NDQ2Oo6L9Gx0fRdtXHimPDG/ZUOzfPLB5Tbqtr72vubW5NdHSEG+INzU6MVQvUZ+pRNTIkv0roTVLVRdAPW7uvWgsguXeC8foXVv1V07lizG46FrFehGs9/TTcB/ll5yhw/lK4q67xEzlyF0BF5zg/Uvb11B9ARVebLnrrkqijBau1oSKnx8fh8TExIWnx8f56Xqz+7GLyk/q7ei9HuPVatV38tDz3TZLUWZla4SrotPknBno8FPQnN6HIlRxkh52OykpMewkYhHuvfkBWKK5sSEc9FlIvxSktGqanyMp76uUoRgYpX7F6AUAQyieMtOR0VA7x4r88e3Hjj10HOBPc2M7jh3bMZb7Uzj28FF+fNs4nmEpxI4/ePz4Ns0+3I8n/YdtbfsxfuKBE4Cnfiys75VW93nTrEgR/wjy2zWR6wYlFalcYco4PYTBhbfpqzJKENXocb3qtr1C2/aU4EsvpqLkIpWSi9xkOpLpoOSiVJ4ecMugXSnRQ9TgvZYhptH7Bx0Ky8VklN7ScOmu8NhAb8d7Ad7b0Zsd5RPzEwDvSfYOjGFx8j0wduPYqt3hpwbGoH3E0I2RdqzKR7OKMdKGldpGDAXbwE8v3iRWL3p3UAm12nR53w50y2XtzUHeM9c206StzZugM6nv9Vlc0iuEQLJ5eqmQYcBe+gYChGBMzkzv233dzvGxkXK6I1J9W5Cfdu9C1dxFyt7xMqqucP2rfUNQ5bmrei3Q7jfbZq2d8+wVXgX0fwCjyTzJAHicY2BkYGAA4h0rt36P57f5ysDN/AIownB1ub0PjP7/4X80iwFzEJDLwcAEEgUAjYUNjwB4nGNgZGBgDvqfxcDAov//w/+vLAYMQBEU4AAAlSQGS3icY37BwMAcCcVX//9hXgCkQRgmDmSz6P//zywIZINw5P+/cPoFVB1YDcwcoNoX/78yJ0LNAalbABb7y/wSRIP0/P8A0wsyG2w+1A1MTRAMN3MB1FxBJHfCMMx+bHLEYKA+ANAcOJYAAAAAAACWAQABqAIsArADpgQqBFgEsAV0BbwGJAZOBowGwgb4B2AJBAnGChgKhAsGC4gPjA/uEKoRLBLgE0YTyBR8FOoVWBYsFpgWzhcEF1wX6BhAGIQY6BleGbwaFhrQG5QcWBzgHiAfPCA2IToieCMWJIYltCZiJzgn9ChSKM4pegAAAAEAAABAAfgADAAAAAAAAgA2AEYAcwAAAMELcAAAAAB4nHWQ3WrCMBiG38yfbQrb2GCny9FQxuoPDEEQBIeebCcyPB211rZSG0mj4G3sHnYxu4ldy17bOIayljTP9+TLl68BcI1vCOTPE0fOAmeMcj7BKXqWC/TPlovkF8slVPFmuUz/brmCBwSWq7jBByuI4jmjBT4tC1yJS8snuBB3lgv0j5aL5J7lEm7Fq+UyvWe5golILVdxL74GarXVURAaWRvUZbvZ6sjpViqqKHFj6a5NqHQq+3KuEuPHsXI8tdzz2A/Wsav34X6e+DqNVCJbTnOvRn7ia9f4s131dBO0jZnLuVZLObQZcqXVwveMExqz6jYaf8/DAAorbKER8apCGEjUaOuc22iihQ5pygzJzDwrQgIXMY2LNXeE2UrKuM8xZ5TQ+syIyQ48fpdHfkwKuD9mFX20ehhPSLszosxL9uWwu8OsESnJMt3Mzn57T7HhaW1aw127LnXWlcTwoIbkfezWFjQevZPdiqHtosH3n//7AeZuhFEAeJxtUtdy2zAQ5FpikUTJVnrvPWGaS3rifAoMQBLGEMEAoOj8fVDEjDMTPNzt7QGHXQySnSSucfL/dYwdDDBEigw5CowwxgQlpphhF3uY4wIu4hIu4wqu4hqu4wZu4hZu4w7u4h7u4wEe4hEe4wme4hme4wVe4hUqvMYbvMU7vMc+DnCII3zAR3zCZ3zBV3zDd/zAMX4mI6K16kxFuwFTNCearsSGF0x1tVSEZW3j05AzYbOG11TIbKEk43oSU6UcO7GamFXF1439PWxka0ofKio0lZyla1G3Zhpiz438BeFs3jYhZ51241c5VcuKSDtwOT2Rip6OiLW8tkLVufnVEs1NJtVStTZdSnXCM8O96NQ0ot4P8SDEwxCPCinq04qf2aGzZ2a9r4pK1bIyuouF80wr63ZG8fEuVpB6KXnVNuMI/IByaz34nZ97h8gUlmtnlsit5e2k+T+V9ziLD9pTZS/V93KvRtSbslfli4lROnSdnulf7CXtndfs2UI6vS1Z8mIhnOyGLUYBdEqzcUD8jHK5G7uq47pRoraxJdbuYBng9kNEnrRMqAg3gnEVR1LFeG6kI7RJzcopmIbYy0nD70iSP4Bw6OkAeJxj8N7BcCIoYiMjY1/kBsadHAwcDMkFGxlYnTYxMDJogRibuZgYOSAsPgYwi81pF9MBoDQnkM3utIvBAcJmZnDZqMLYERixwaEjYiNzistGNRBvF0cDAyOLQ0dySARISSQQbOZhYuTR2sH4v3UDS+9GJgYXAAx2I/QAAA==') format('woff'),
+       url('data:application/octet-stream;base64,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AwMCBQQBDgcLDwQQAwMBCAQIAQgDAQgEAwICAwQCBBIFAwwMAQMDAgwZGwMGBQUTBQMLBA0LAQQCBgQIBAkEUTIEBQIGBQMBGAoBAgcFBAMEBAQBAgEBAQIKBwcSBAcJBAMIBAIOAQECAg4CBAICDwgDBAMCAwUBBAoKAQQIBAUMBwIDCAMJBxYGBgUICBAEFAoBAgQCBgMOAwQBCgUIEQoCAgICAQUCBAEKAgMMAwIIAQIIAwEDAgcLBAECAggUAwgKAQIBBAIDBQIBAwIBAwEEGAMJAwEBAQMNAg4EAgMBBAMFAgYIBAICAQgEBAcIBQcMBAQCAgIGAQUEAwIDBQwEAhIBBAICBQ4JAgIKCAUJAgYGBwUJDAppc1ABDAENAQQDFQEDBQIDAgIBBQwIAwYGBgYBAQQIBAoBBwYCCgIEAQwBAQICBAsPAQIJCgEDC3TE6sR0dMTqxHT+3QEIAgYGAQQIAwULAQwBAwICDAEKBwIDBAIEAQIGDAUGAwMCBAEBAwMEAgQBAwMCAggEAgYEAQMEAQQEBgcDCAcKBwQFBgUMAwECBAIBAwwJDgMEBQcIBQMRAgMOCAUMAwEDCQkGBAMGAQ4ECgQBAgUCAgYKBAcHBwEJBQgHCAMCBwMCBAIGAgQFCgMDDgIFAgIFBAcCAQoIDwIDAwcDAg4DAgMEBgQGBAQBAS1PBAEIBAMEBg8KAgYEBQQFDgkUCwIBBhoCARcFBAYDBRQDAxAFAgEECAUIBAELGA0FDAICBAQMCA4EDgEKCxQHCAEFAw0CAQIBEgMKBAQJBQYCAwoDAgMFDAIQCBIDAwQEBgIECgcOAQUCBAEEAgIQBQ8FAgUDAgsCCAQEAgIEGA4JDgUJAQQGAQIDAgEEAwYHBgUCDwoBBAECAwECAwgFFwQCCAgDBQ4CCgoFAQIDBAsJBQICAgIGAgoGCgQEBAMBBAoEBgEHAgEHBgUEAgMBBQQC/g0VVQICBQQGAg8BAQIBAgEBAwIKAwYCAgUGBwMOBgIBBQQCCAECCAICAgIFHAgRCQ4JDAIEEAcAAv///2oDoQMNAAgAIQBUQAofAQEADgEDAQJHS7AhUFhAFgAEAAABBABgAAEAAwIBA2AAAgINAkkbQB0AAgMCcAAEAAABBABgAAEDAwFUAAEBA1gAAwEDTFm3FyMUExIFBRkrATQuAQYUFj4BARQG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AAAAAAAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAQIBAwEEAQUBBgEHAQgBCQEKAQsBDAENAQ4BDwEQAREBEgETARQBFQEWARcBGAEZARoBGwEcAR0BHgEfASABIQEiASMBJAElASYBJwEoASkBKgErASwBLQEuAS8BMAExATIBMwE0ATUBNgE3ATgBOQE6ATsBPAE9AT4BPwFAAUEACWFycm93cy1jdwNkb2MHYXJjaGl2ZQhkb3dubG9hZAZ1cGxvYWQEZWRpdAZwZW5jaWwGZm9sZGVyC2ZvbGRlci1vcGVuC3RyYXNoLWVtcHR5BHBsdXMMcGx1cy1jaXJjbGVkBW1pbnVzDW1pbnVzLWNpcmNsZWQJZG93bi1vcGVuB3VwLW9wZW4Gd3JlbmNoB2NvZy1hbHQDY29nBWJsb2NrCWF0dGVudGlvbgdzcXVhcmVzBmxvZ291dAVnbG9iZQZzZWFyY2gFc3BpbjMFc3BpbjQFc3BpbjUFc3BpbjYIbGluay1leHQEZG9jcw5kb3dubG9hZC1jbG91ZAx1cGxvYWQtY2xvdWQIZG9jLXRleHQMcGx1cy1zcXVhcmVkCGFuZ2xlLXVwCmFuZ2xlLWRvd24MZm9sZGVyLWVtcHR5EWZvbGRlci1vcGVuLWVtcHR5CHRlcm1pbmFsDW1pbnVzLXNxdWFyZWQRbWludXMtc3F1YXJlZC1hbHQOcGVuY2lsLXNxdWFyZWQMbGluay1leHQtYWx0B2RvYy1pbnYMZG9jLXRleHQtaW52C3NvcnQtYWx0LXVwDXNvcnQtYWx0LWRvd24QcGx1cy1zcXVhcmVkLWFsdAhsYW5ndWFnZQhmaWxlLXBkZglmaWxlLXdvcmQKZmlsZS1leGNlbA9maWxlLXBvd2VycG9pbnQKZmlsZS1pbWFnZQxmaWxlLWFyY2hpdmUKZmlsZS1hdWRpbwpmaWxlLXZpZGVvCWZpbGUtY29kZQdzbGlkZXJzBXNoYXJlDXNoYXJlLXNxdWFyZWQFdHJhc2gAAAAAAAEAAf//AA8AAAAAAAAAAAAAAAAAAAAAABgAGAAYABgDUv9bA1L/W7AALCCwAFVYRVkgIEu4AA5RS7AGU1pYsDQbsChZYGYgilVYsAIlYbkIAAgAY2MjYhshIbAAWbAAQyNEsgABAENgQi2wASywIGBmLbACLCBk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VFguIDwjIRuwAiWwAiVHI0cjYSCwBSWwBCVHI0cjYbAGJbAFJUmwAiVhuQgACABjYyMgWGIbIVljuAQAYiCwAFBYsEBgWWawAWNgIy4jICA8ijgjIVktsDossAAWILAIQyAuRyNHI2EgYLAgYGawAmIgsABQWLBAYFlmsAFjIyAgPIo4LbA7LCMgLkawAiVGUlggPFkusSsBFCstsDwsIyAuRrACJUZQWCA8WS6xKwEUKy2wPSwjIC5GsAIlRlJYIDxZIyAuRrACJUZQWCA8WS6xKwEUKy2wPiywNSsjIC5GsAIlRlJYIDxZLrErARQrLbA/LLA2K4ogIDywBCNCijgjIC5GsAIlRlJYIDxZLrErARQrsARDLrArKy2wQCywABawBCWwBCYgLkcjRyNhsAlDKyMgPCAuIzixKwEUKy2wQSyxCAQlQrAAFrAEJbAEJSAuRyNHI2EgsAQjQrAJQysgsGBQWCCwQFFYswIgAyAbswImAxpZQkIjIEewBEOwAmIgsABQWLBAYFlmsAFjYCCwASsgiophILACQ2BkI7ADQ2FkUFiwAkNhG7ADQ2BZsAMlsAJiILAAUFiwQGBZZrABY2GwAiVGYTgjIDwjOBshICBGI0ewASsjYTghWbErARQrLbBCLLA1Ky6xKwEUKy2wQyywNishIyAgPLAEI0IjOLErARQrsARDLrArKy2wRCywABUgR7AAI0KyAAEBFRQTLrAxKi2wRSywABUgR7AAI0KyAAEBFRQTLrAxKi2wRiyxAAEUE7AyKi2wRyywNCotsEgssAAWRSMgLiBGiiNhOLErARQrLbBJLLAII0KwSCstsEossgAAQSstsEsssgABQSstsEwssgEAQSstsE0ssgEBQSstsE4ssgAAQistsE8ssgABQistsFAssgEAQistsFEssgEBQistsFIssgAAPistsFMssgABPistsFQssgEAPistsFUssgEBPistsFYssgAAQCstsFcssgABQCstsFgssgEAQCstsFkssgEBQCstsFossgAAQystsFsssgABQystsFwssgEAQystsF0ssgEBQystsF4ssgAAPystsF8ssgABPystsGAssgEAPystsGEssgEBPystsGIssDcrLrErARQrLbBjLLA3K7A7Ky2wZCywNyuwPCstsGUssAAWsDcrsD0rLbBmLLA4Ky6xKwEUKy2wZyywOCuwOystsGgssDgrsDwrLbBpLLA4K7A9Ky2waiywOSsusSsBFCstsGsssDkrsDsrLbBsLLA5K7A8Ky2wbSywOSuwPSstsG4ssDorLrErARQrLbBvLLA6K7A7Ky2wcCywOiuwPCstsHEssDorsD0rLbByLLMJBAIDRVghGyMhWUIrsAhlsAMkUHiwARUwLQBLuADIUlixAQGOWbABuQgACABjcLEABUKyAAEAKrEABUKzCgIBCCqxAAVCsw4AAQgqsQAGQroCwAABAAkqsQAHQroAQAABAAkqsQMARLEkAYhRWLBAiFixA2REsSYBiFFYugiAAAEEQIhjVFixAwBEWVlZWbMMAgEMKrgB/4WwBI2xAgBEAAA=') format('truetype');
 }
 /* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
 /* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
@@ -571,7 +701,7 @@ f00bar;
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?59435422#fontello') format('svg');
+    src: url('../font/fontello.svg?17560824#fontello') format('svg');
   }
 }
 */
@@ -630,6 +760,7 @@ f00bar;
 .icon-squares:before { content: '\e815'; } /* '' */
 .icon-logout:before { content: '\e816'; } /* '' */
 .icon-globe:before { content: '\e817'; } /* '' */
+.icon-search:before { content: '\e818'; } /* '' */
 .icon-spin3:before { content: '\e832'; } /* '' */
 .icon-spin4:before { content: '\e834'; } /* '' */
 .icon-spin5:before { content: '\e838'; } /* '' */
@@ -668,7 +799,91 @@ f00bar;
 .icon-share:before { content: '\f1e0'; } /* '' */
 .icon-share-squared:before { content: '\f1e1'; } /* '' */
 .icon-trash:before { content: '\f1f8'; } /* '' */ <?php print '</style>
-			<style type="text/css">';?> .animate-spin{-moz-animation:spin 2s infinite linear;-o-animation:spin 2s infinite linear;-webkit-animation:spin 2s infinite linear;animation:spin 2s infinite linear;display:inline-block}@-moz-keyframes spin{0%{-moz-transform:rotate(0);-o-transform:rotate(0);-webkit-transform:rotate(0);transform:rotate(0)}100%{-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@-webkit-keyframes spin{0%{-moz-transform:rotate(0);-o-transform:rotate(0);-webkit-transform:rotate(0);transform:rotate(0)}100%{-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@-o-keyframes spin{0%{-moz-transform:rotate(0);-o-transform:rotate(0);-webkit-transform:rotate(0);transform:rotate(0)}100%{-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@-ms-keyframes spin{0%{-moz-transform:rotate(0);-o-transform:rotate(0);-webkit-transform:rotate(0);transform:rotate(0)}100%{-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-webkit-transform:rotate(359deg);transform:rotate(359deg)}}@keyframes spin{0%{-moz-transform:rotate(0);-o-transform:rotate(0);-webkit-transform:rotate(0);transform:rotate(0)}100%{-moz-transform:rotate(359deg);-o-transform:rotate(359deg);-webkit-transform:rotate(359deg);transform:rotate(359deg)}}
+			<style type="text/css">';?> /*
+   Animation example, for spinners
+*/
+.animate-spin {
+  -moz-animation: spin 2s infinite linear;
+  -o-animation: spin 2s infinite linear;
+  -webkit-animation: spin 2s infinite linear;
+  animation: spin 2s infinite linear;
+  display: inline-block;
+}
+@-moz-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@-webkit-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@-o-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@-ms-keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@keyframes spin {
+  0% {
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
  <?php print '</style>
 			<style type="text/css">';?> body {
 	padding-top: 70px;
@@ -693,6 +908,7 @@ f00bar;
 }
 
 a { cursor: pointer !important; }
+a.ifmitem:focus { outline: 0 }
 
 img.imgpreview { max-width: 100%; }
 
@@ -819,63 +1035,70 @@ this.activeTarget=b,this.clear();var c=this.selector+'[data-target="'+b+'"],'+th
  * @param object params - object with some configuration values, currently you only can set the api url
  */
 function IFM( params ) {
-	var self = this; // reference to ourself, because "this" does not work within callbacks
+	// reference to ourself, because "this" does not work within callbacks
+	var self = this;
 
-	// set the backend for the application
 	params = params || {};
+	// set the backend for the application
 	self.api = params.api || window.location.pathname;
 
-	this.editor = null; // global ace editor
-	this.fileChanged = false; // flag for check if file was changed already
-	this.currentDir = ""; // this is the global variable for the current directory; it is used for AJAX requests
-	this.rootElement = "";
-	this.search = {};
+	this.editor = null;		// global ace editor
+	this.fileChanged = false;	// flag for check if file was changed already
+	this.currentDir = "";		// this is the global variable for the current directory; it is used for AJAX requests
+	this.rootElement = "";		// global root element, currently not used
+	this.fileCache = [];		// holds the current set of files
+	this.search = {};		// holds the last search query, as well as the search results
 
 	/**
 	 * Shows a bootstrap modal
 	 *
-	 * @param string content - content of the modal
-	 * @param object options - options for the modal
+	 * @param {string} content - HTML content of the modal
+	 * @param {object} options - options for the modal ({ large: false })
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
-		var modal = $( document.createElement( 'div' ) )
-			.addClass( "modal fade" )
-			.attr( 'id', 'ifmmodal' )
-			.attr( 'role', 'dialog' );
-		var modalDialog = $( document.createElement( 'div' ) )
-			.addClass( "modal-dialog" )
-			.attr( 'role', 'document' );
-		if( options.large == true ) modalDialog.addClass( 'modal-lg' );
-		var modalContent = $(document.createElement('div'))
-			.addClass("modal-content")
-			.append( content );
-		modalDialog.append( modalContent );
-		modal.append( modalDialog );
-		$( document.body ).append( modal );
-		modal.on('hide.bs.modal', function () { $(this).remove(); });
-		modal.on('shown.bs.modal', function () {
-			var formElements = $(this).find('input, button');
-			if( formElements.length > 0 ) {
-				formElements.first().focus();
-			}
-		});
-		modal.modal('show');
+		var modal = document.createElement( 'div' );
+		modal.classList.add( 'modal', 'fade' );
+		modal.id = 'ifmmodal';
+		modal.attributes.role = 'dialog';
+		var modalDialog = document.createElement( 'div' );
+		modalDialog.classList.add( 'modal-dialog' );
+		modalDialog.attributes.role = 'document';
+		if( options.large == true ) modalDialog.classList.add( 'modal-lg' );
+		var modalContent = document.createElement('div');
+		modalContent.classList.add( 'modal-content' );
+		modalContent.innerHTML = content;
+		modalDialog.appendChild( modalContent );
+		modal.appendChild( modalDialog );
+		document.body.appendChild( modal );
+
+		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
+		// events require jquery, as they cannot be handled by addEventListener()
+		$(modal)
+			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
+			.on( 'shown.bs.modal', function( e ) {
+				var formElements = $(this).find('input, button');
+				if( formElements.length > 0 ) {
+					formElements.first().focus();
+				}
+			})
+			.modal('show');
 	};
 
 	/**
-	 * Hides a bootstrap modal
+	 * Hides a the current bootstrap modal
 	 */
 	this.hideModal = function() {
+		// Hide the modal via jquery to get the hide.bs.modal event triggered
 		$('#ifmmodal').modal('hide');
 	};
 
 	/**
-	 * Reloads the file table
+	 * Refreshes the file table
 	 */
 	this.refreshFileTable = function () {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: "Refresh" } );
+		var taskid = self.generateGuid();
+		self.task_add( { id: taskid, name: "Refresh" } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -885,8 +1108,8 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function( response ) { self.showMessage( "General error occured: No or broken response", "e" ); },
-			complete: function() { self.task_done( id ); }
+			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			complete: function() { self.task_done( taskid ); }
 		});
 	};
 
@@ -908,8 +1131,9 @@ function IFM( params ) {
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
-			item.download.allowed = self.config.download;
 			item.download.currentDir = self.currentDir;
+			if( self.config.isDocroot )
+				item.href = 'href="'+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) )+'"';
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
@@ -917,22 +1141,27 @@ function IFM( params ) {
 				item.button = [];
 			}
 			if( item.type == "dir" ) {
-				item.download.action = "zipnload";
-				item.download.icon = "icon icon-download-cloud";
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "zipnload";
+					item.download.icon = "icon icon-download-cloud";
+				}
 				item.rowclasses = "isDir";
 			} else {
-				item.download.action = "download";
-				item.download.icon = "icon icon-download";
-				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot )
-					item.tooltip = 'data-toggle="tooltip" title="<img src=\'' + self.HTMLEncode( self.pathCombine( self.currentDir, item.name ) ) + '\' class=\'imgpreview\'>"';
-				if( self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
+				if( self.config.download && self.config.zipnload ) {
+					item.download.action = "download";
+					item.download.icon = "icon icon-download";
+				}
+				if( item.icon.indexOf( 'file-image' ) !== -1 && self.config.isDocroot ) {
+					item.tooltip = 'data-toggle="tooltip"';
+				}
+				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
 					item.button.push({
 						action: "extract",
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1) {
+				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1 && ! self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
@@ -962,84 +1191,169 @@ function IFM( params ) {
 					});
 			}
 		});
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config } );
-		$( "#filetable tbody" ).remove();
-		$( "#filetable" ).append( $(newTBody) );
-		$( '.clickable-row' ).click( function( event ) {
-			if( event.ctrlKey ) {
-				$( this ).toggleClass( 'selectedItem' );
+
+		// save items to file cache
+		self.fileCache = data;
+
+		// build new tbody and replace the old one with the new
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
+		var filetable = document.getElementById( 'filetable' );
+		filetable.tBodies[0].remove();
+		filetable.append( document.createElement( 'tbody' ) );
+		filetable.tBodies[0].innerHTML = newTBody;
+
+		// add event listeners
+		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'newpermissions' && !!self.config.chmod && e.key == 'Enter' )
+				self.changePermissions( e.target.dataset.filename, e.target.value );
+		});
+		filetable.tBodies[0].addEventListener( 'click', function( e ) {
+			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
+				e.target.parentElement.classList.toggle( 'selectedItem' );
+			else if( e.target.classList.contains( 'ifmitem' ) ) {
+				e.stopPropagation();
+				e.preventDefault();
+				if( e.target.dataset.type == "dir" )
+					self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+				else
+					if( self.config.isDocroot )
+						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, e.target.parentElement.parentElement.dataset.filename ) );
+					else
+						document.forms["d_"+e.target.id].submit();
+			} else if( e.target.parentElement.name == 'start_download' ) {
+				e.stopPropagation();
+				e.preventDefault();
+				document.forms["d_"+e.target.parentElement.dataset.guid].submit();
+			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
+				e.stopPropagation();
+				e.preventDefault();
+				var item = self.fileCache.find( x =>  x.guid === e.target.parentElement.dataset.id );
+				switch( e.target.parentElement.name.substr( 3 ) ) {
+					case "rename":
+						self.showRenameFileDialog( item.name );
+						break;
+					case "extract":
+						self.showExtractFileDialog( item.name );
+						break;
+					case "edit":
+						self.editFile( item.name );
+						break;
+					case "delete":
+						self.showDeleteDialog( item );
+						break;
+					case "copymove":
+						self.showCopyMoveDialog( item );
+						break;
+				}
 			}
 		});
+		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="tooltip"]' ).tooltip({
+			title: function() {
+				var item = self.fileCache.find( x => x.guid == $(this).attr('id') );
+				var tooltip = document.createElement( 'img' );
+				tooltip.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+				tooltip.classList.add( 'imgpreview' );
+				return tooltip;
+			},
 			animated: 'fade',
 			placement: 'right',
 			html: true
 		});
-		$( 'a.ifmitem' ).each( function() {
-			if( $(this).data( "type" ) == "dir" ) {
-				$(this).on( 'click', function( e ) {
-					e.stopPropagation();
-					self.changeDirectory( $(this).parent().parent().data( 'filename' ) );
-					return false;
-				});
-			} else {
-				if( self.config.isDocroot )
-					$(this).attr( "href", self.hrefEncode( self.pathCombine( self.currentDir, $(this).parent().parent().data( 'filename' ) ) ) );
-				else
-					$(this).on( 'click', function() {
-						$( '#d_' + this.id ).submit();
-						return false;
-					});
-			}
-		});
-		$( 'a[name="start_download"]' ).on( 'click', function(e) {
-			e.stopPropagation();
-			$( '#d_' + $(this).data( 'guid' ) ).submit();
-			return false;
-		});
-		$( 'input[name="newpermissions"]' ).on( 'keypress', function( e ) {
-			if( e.key == "Enter" ) {
-				e.stopPropagation();
-				self.changePermissions( $( this ).data( 'filename' ), $( this ).val() );
-				return false;
-			}
-		});
-		$( 'a[name^="do-"]' ).on( 'click', function() {
-			var action = this.name.substr( this.name.indexOf( '-' ) + 1 );
-			switch( action ) {
-				case "rename":
-					self.showRenameFileDialog( $(this).data( 'name' ) );
-					break;
-				case "extract":
-					self.showExtractFileDialog( $(this).data( 'name' ) );
-					break;
-				case "edit":
-					self.editFile( $(this).data( 'name' ) );
-					break;
-				case "delete":
-					self.showDeleteFileDialog( $(this).data( 'name' ) );
-					break;
-				case "copymove":
-					self.showCopyMoveDialog( $(this).data( 'name' ) );
-					break;
-			}
-		});
-		if( self.config.contextmenu ) {
+
+		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
+			// create the context menu, this also uses jquery, AFAIK
 			var contextMenu = new BootstrapMenu( '.clickable-row', {
-				fetchElementData: function( $rowElem ) {
-					var data = $rowElem.data();
-					data.isDir = $rowElem.hasClass( 'isDir' );
-					data.element = $rowElem[0];
+				fetchElementData: function( row ) {
+					var data = {};
+					data.selected =
+						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+						.map( function(e){ return self.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
+					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
 					return data;
 				},
-				actions: [{
-					name: 'download',
-					onClick: function( item ) {
-						console.log( item );
-						$( '#d_' + item.element.children[0].children[0].id ).submit();
+				actionsGroups:[
+					['edit', 'extract', 'rename'],
+					['copymove', 'download', 'delete']
+				],
+				actions: {
+					edit: {
+						name: "edit",
+						onClick: function( data ) {
+							self.editFile( data.clicked.name );
+						},
+						iconClass: "icon icon-pencil",
+						isShown: function( data ) {
+							return !!( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
+						}
 					},
-					iconClass: "icon icon-cloud"
-				}]
+					extract: {
+						name: "extract",
+						onClick: function( data ) {
+							self.showExtractFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) {
+							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+						}
+					},
+					rename: {
+						name: "rename",
+						onClick: function( data ) {
+							self.showRenameFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-terminal",
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
+					},
+					copymove: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'copy/move';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCopyMoveDialog( data.selected );
+							else
+								self.showCopyMoveDialog( data.clicked );
+						},
+						iconClass: "icon icon-folder-empty",
+						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
+					},
+					download: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'download <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'download';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showMessage( "At the moment it is not possible to download a set of files." );
+							else
+								document.forms["d_"+data.clicked.guid].submit();
+						},
+						iconClass: "icon icon-download",
+						isShown: function() { return !!self.config.download; }
+					},
+					'delete': {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'delete <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'delete';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showDeleteDialog( data.selected );
+							else
+								self.showDeleteDialog( data.clicked );
+						},
+						iconClass: "icon icon-trash",
+						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
+					}
+				}
 			});
 		}
 	};
@@ -1079,52 +1393,71 @@ function IFM( params ) {
 	this.showFileDialog = function () {
 		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
 		var content = arguments.length > 1 ? arguments[1] : "";
-		self.showModal( Mustache.render( self.templates.file, { filename: filename } ), { large: true } );
-		var form = $('#formFile');
-		form.find('input[name="filename"]').on( 'keypress', self.preventEnter );
-		form.find('#buttonSave').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
+
+		var form = document.getElementById( 'formFile' );
+		form.addEventListener( 'keypress', function( e ) {
+			if( e.target.name == 'filename' && e.key == 'Enter' )
+				e.preventDefault();
 		});
-		form.find('#buttonSaveNotClose').on( 'click', function() {
-			self.saveFile( form.find('input[name=filename]').val(), self.editor.getValue() );
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == "buttonSave" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+				self.hideModal();
+			} else if( e.target.id == "buttonSaveNotClose" ) {
+				e.preventDefault();
+				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+			} else if( e.target.id == "buttonClose" ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonClose').on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-		form.find('#editoroptions').popover({
+
+		$('#editoroptions').popover({
 			html: true,
-			title: function() { return $('#editoroptions-head').html(); },
+			title: self.i18n.options,
 			content: function() {
-				var content = $('#editoroptions-content').clone()
+				// see https://github.com/twbs/bootstrap/issues/12571
+				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+
 				var aceSession = self.editor.getSession();
-				content.removeClass( 'hide' );
-				content.find( '#editor-wordwrap' )
-					.prop( 'checked', ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ) )
-					.on( 'change', function() { self.editor.setOption( 'wrap', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-softtabs' )
-					.prop( 'checked', aceSession.getOption( 'useSoftTabs' ) )
-					.on( 'change', function() { self.editor.setOption( 'useSoftTabs', $( this ).is( ':checked' ) ); });
-				content.find( '#editor-tabsize' )
-					.val( aceSession.getOption( 'tabSize' ) )
-					.on( 'keydown', function( e ) { if( e.key == 'Enter' ) { self.editor.setOption( 'tabSize', $( this ).val() ); } });
+				var template = document.createElement( 'template');
+				template.innerHTML = Mustache.render( self.templates.file_editoroptions, {
+					wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
+					softtabs: aceSession.getOption( 'useSoftTabs' ),
+					tabsize: aceSession.getOption( 'tabSize' ),
+					i18n: self.i18n
+				});
+				var content = template.content.childNodes;
+				content.forEach( function( el ) {
+					if( el.id == "editor-wordwrap" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'wrap', e.srcElement.checked );
+						});
+					else if( el.id == "editor-softtabs" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
+						});
+					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
+						el.lastChild.addEventListener( 'keydown', function( e ) {
+							if( e.key == 'Enter' ) {
+								e.preventDefault();
+								self.editor.setOption( 'tabSize', e.srcElement.value );
+							}
+						});
+				});
 				return content;
 			}
 		});
-		form.on( 'remove', function () { self.editor = null; self.fileChanged = false; });
+
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
-		// word wrap checkbox
-		$('#aceWordWrap').on( 'change', function (event) {
-			self.editor.getSession().setUseWrapMode( $(this).is(':checked') );
-		});
 	};
 
 	/**
@@ -1143,7 +1476,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully edited/created.", "s" );
+							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
 					},
@@ -1157,7 +1490,7 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.editFile = function( name ) {
+	this.editFile = function( filename ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1165,7 +1498,7 @@ function IFM( params ) {
 			data: ({
 				api: "getContent",
 				dir: self.currentDir,
-				filename: name
+				filename: filename
 			}),
 			success: function( data ) {
 						if( data.status == "OK" && data.data.content != null ) {
@@ -1184,18 +1517,25 @@ function IFM( params ) {
 	 * Shows the create directory dialog
 	 */
 	this.showCreateDirDialog = function() {
-		self.showModal( self.templates.createdir );
-		var form = $( '#formCreateDir' );
-		form.find( 'input[name=dirname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonSave' ).on( 'click', function() {
-			self.createDir( form.find( 'input[name=dirname] ').val() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
+		var form = document.forms.formCreateDir;
+		form.elements.dirname.addEventListener( 'keypress', function( e ) {
+			if(e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createDir( e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createDir( form.elements.dirname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
 	};
 
 	/**
@@ -1224,48 +1564,53 @@ function IFM( params ) {
 		});
 	};
 
-
 	/**
-	 * Shows the delete file dialog
-	 *
-	 * @param string name - name of the file
+	 * Shows the delete dialog
 	 */
-	this.showDeleteFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.deletefile, { filename: name } ) );
-		var form = $( '#formDeleteFile' );
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.deleteFile( filename );
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+	this.showDeleteDialog = function( items ) {
+		self.showModal(	Mustache.render( self.templates.deletefile, {
+			multiple: ( items.length > 1 ),
+			count: items.length,
+			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
+			i18n: self.i18n
+		}));
+		var form = document.forms.formDeleteFiles;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonYes' ) {
+				e.preventDefault();
+				self.deleteFiles( items );
+				self.hideModal();
+			} else if( e.target.id == 'buttonNo' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
-	 * Deletes a file
+	 * Deletes files
 	 *
-	 * @params string name - name of the file
+	 * @params {array} items - array with objects from the fileCache
 	 */
-	this.deleteFile = function( filename ) {
+	this.deleteFiles = function( items ) {
+		if( ! Array.isArray( items ) )
+			items = [items];
 		$.ajax({
 			url: self.api,
 			type: "POST",
 			data: ({
 				api: "delete",
 				dir: self.currentDir,
-				filename: filename
+				filenames: items.map( function( e ){ return e.name; } )
 			}),
 			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							self.showMessage("File successfully deleted", "s");
+			success: function( data ) {
+						if( data.status == "OK" ) {
+							self.showMessage( "File(s) successfully deleted", "s" );
 							self.refreshFileTable();
-						} else self.showMessage("File could not be deleted", "e");
+						} else self.showMessage( "File(s) could not be deleted", "e" );
 					},
-			error: function() { self.showMessage("General error occured", "e"); }
+			error: function() { self.showMessage( "General error occured", "e" ); }
 		});
 	};
 
@@ -1275,17 +1620,24 @@ function IFM( params ) {
 	 * @params string name - name of the file
 	 */
 	this.showRenameFileDialog = function( filename ) {
-		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename } ) );
-		var form = $( '#formRenameFile' );
-		form.find( 'input[name=newname]' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRename' ).on( 'click', function() {
-			self.renameFile( filename, form.find( 'input[name=newname]' ).val() );
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
+		var form = document.forms.formRenameFile;
+		form.elements.newname.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.renameFile( filename, e.target.value );
+				self.hideModal();
+			}
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRename' ) {
+				e.preventDefault();
+				self.renameFile( filename, form.elements.newname.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -1320,8 +1672,8 @@ function IFM( params ) {
 	 *
 	 * @params string name - name of the file
 	 */
-	this.showCopyMoveDialog = function( name ) {
-		self.showModal( self.templates.copymove );
+	this.showCopyMoveDialog = function( items ) {
+		self.showModal( Mustache.render( self.templates.copymove, { i18n: self.i18n } ) );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1353,83 +1705,95 @@ function IFM( params ) {
 			},
 			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
 		});
-		$( '#copyButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'copy' );
-			self.hideModal();
-			return false;
-		});
-		$( '#moveButton' ).on( 'click', function() {
-			self.copyMove( name, $('#copyMoveTree .node-selected').data('path'), 'move' );
-			self.hideModal();
-			return false;
-		});
-		$( '#cancelButton' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		var form = document.forms.formCopyMove;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'copyButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
+				self.hideModal();
+			} else if( e.target.id == 'moveButton' ) {
+				e.preventDefault();
+				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
+				self.hideModal();
+			} else if( e.target.id == 'cancelButton' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Copy or moves a file
 	 * 
-	 * @params string name - name of the file
+	 * @params {string} source - name of the file
+	 * @params {string} destination - target directory
+	 * @params {string} action - action (copy|move)
 	 */
-	this.copyMove = function( source, destination, action ) {
-		var id = self.generateGuid();
-		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source + " to " + destination } );
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: {
-				dir: self.currentDir,
-				api: "copyMove",
-				action: action,
-				filename: source,
-				destination: destination
-			},
-			dataType: "json",
-			success: function(data) {
-				if( data.status == "OK" ) {
-					self.showMessage( data.message, "s" );
-				} else {
-					self.showMessage( data.message, "e" );
+	this.copyMove = function( sources, destination, action ) {
+		if( ! Array.isArray( sources ) )
+			sources = [sources];
+		sources.forEach( function( source ) {
+			var id = self.generateGuid();
+			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
+			$.ajax({
+				url: self.api,
+				type: "POST",
+				data: {
+					dir: self.currentDir,
+					api: "copyMove",
+					action: action,
+					filename: source.name,
+					destination: destination
+				},
+				dataType: "json",
+				success: function( data ) {
+					if( data.status == "OK" ) {
+						self.showMessage( data.message, "s" );
+					} else {
+						self.showMessage( data.message, "e" );
+					}
+					self.refreshFileTable();
+				},
+				error: function() {
+					self.showMessage( "General error occured.", "e" );
+				},
+				complete: function() {
+					self.task_done( id );
 				}
-				self.refreshFileTable();
-			},
-			error: function() {
-				self.showMessage( "General error occured.", "e" );
-			},
-			complete: function() {
-				self.task_done( id );
-			}
+			});
 		});
 	};
 
 	/**
 	 * Shows the extract file dialog
 	 *
-	 * @param string name - name of the file
+	 * @param {string} filename - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
-		var targetDirSuggestion = '';
-		if( filename.lastIndexOf( '.' ) > 1 )
-			targetDirSuggestion = filename.substr( 0, filename.lastIndexOf( '.' ) );
-		else targetDirSuggestion = filename;
-		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion } ) );
-		var form = $('#formExtractFile');
-		form.find('#buttonExtract').on( 'click', function() {
-			var t = form.find('input[name=extractTargetLocation]:checked').val();
-			if( t == "custom" ) t = form.find('#extractCustomLocation').val();
-			self.extractFile( filename, t );
-			self.hideModal();
-			return false;
+		var targetDirSuggestion = ( filename.lastIndexOf( '.' ) > 1 ) ? filename.substr( 0, filename.lastIndexOf( '.' ) ) : filename;
+		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
+		var form = document.forms.formExtractFile;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonExtract' ) {
+				e.preventDefault();
+				var loc = form.elements.extractTargetLocation.value;
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
-		form.find('#buttonCancel').on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.elements.extractCustomLocation.addEventListener( 'keypress', function( e ) {
+			var loc = form.elements.extractTargetLocation.value;
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) );
+				self.hideModal();
+			}
 		});
-		form.find('#extractCustomLocation').on( 'click', function(e) {
-			$(e.target).prev().children().first().prop( 'checked', true );
+		form.elements.extractCustomLocation.addEventListener( 'focus', function( e ) {
+			form.elements.extractTargetLocation.value = 'custom';
 		});
 	};
 
@@ -1440,6 +1804,8 @@ function IFM( params ) {
 	 * @param string destination - name of the target directory
 	 */
 	this.extractFile = function( filename, destination ) {
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "extract "+filename } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1456,7 +1822,8 @@ function IFM( params ) {
 							self.refreshFileTable();
 						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( "General error occured", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
@@ -1464,30 +1831,29 @@ function IFM( params ) {
 	 * Shows the upload file dialog
 	 */
 	this.showUploadFileDialog = function() {
-		self.showModal( self.templates.uploadfile );
-		var form = $('#formUploadFile');
-		form.find( 'input[name=newfilename]' ).on( 'keypress', self.preventEnter );
-		form.find( 'input[name=files]' ).on( 'change', function( e ) {
+		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
+		var form = document.forms.formUploadFile;
+		form.elements.files.addEventListener( 'change', function( e ) {
 			if( e.target.files.length > 1 )
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', true );
+				form.elements.newfilename.readOnly = true;
 			else 
-				form.find( 'input[name=newfilename]' ).attr( 'readonly', false );
+				form.elements.newfilename.readOnly = false;
 		});
-		form.find( '#buttonUpload' ).on( 'click', function( e ) {
-			e.preventDefault();
-			var files = form.find( 'input[name=files]' )[0].files;
-			if( files.length > 1 )
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-			else
-				self.uploadFile( files[0], form.find( 'input[name=newfilename]' ).val() );
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				var files = Array.prototype.slice.call( form.elements.files.files );
+				if( files.length > 1 )
+					files.forEach( function( file ) {
+						self.uploadFile( file );
+					});
+				else
+					self.uploadFile( files[0], form.elements.newfilename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
@@ -1512,7 +1878,7 @@ function IFM( params ) {
 			xhr: function(){
 				var xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
-				xhr.upload.onload = function(){ console.log('Uploading '+file.name+' done.') } ;
+				xhr.upload.onload = function(){ self.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
 			},
 			success: function(data) {
@@ -1533,7 +1899,7 @@ function IFM( params ) {
 	 * @params object e - event object
 	 * @params string name - name of the file
 	 */
-	this.changePermissions = function( filename, newperms) {
+	this.changePermissions = function( filename, newperms ) {
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1561,32 +1927,35 @@ function IFM( params ) {
 	 * Show the remote upload dialog
 	 */
 	this.showRemoteUploadDialog = function() {
-		self.showModal( self.templates.remoteupload );
-		var form = $('#formRemoteUpload');
-		form.find( '#url' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'change keyup', function() {
-				$("#filename").val($(this).val().substr($(this).val().lastIndexOf("/")+1));
-			});
-		form.find( '#filename' )
-			.on( 'keypress', self.preventEnter )
-			.on( 'keyup', function() { $("#url").off( 'change keyup' ); });
-		form.find( '#buttonUpload' ).on( 'click', function() {
-			self.remoteUpload();
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
+		var form = document.forms.formRemoteUpload;
+		var urlChangeHandler = function( e ) {
+			form.elements.filename.value = e.target.value.substr( e.target.value.lastIndexOf( '/' ) + 1 );
+		};
+		form.elements.url.addEventListener( 'keypress', self.preventEnter );
+		form.elements.url.addEventListener( 'change', urlChangeHandler );
+		form.elements.url.addEventListener( 'keyup', urlChangeHandler );
+		form.elements.filename.addEventListener( 'keypress', self.preventEnter );
+		form.elements.filename.addEventListener( 'keyup', function( e ) {
+			form.elements.url.removeEventListener( 'change', urlChangeHandler );
+			form.elements.url.removeEventListener( 'keyup', urlChangeHandler );
 		});
-		form.find( '#buttonCancel' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonUpload' ) {
+				e.preventDefault();
+				self.remoteUpload( form.elements.url.value, form.elements.filename.value, form.elements.method.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Remote uploads a file
 	 */
-	this.remoteUpload = function() {
-		var filename = $("#formRemoteUpload #filename").val();
+	this.remoteUpload = function( url, filename, method ) {
 		var id = ifm.generateGuid();
 		$.ajax({
 			url: ifm.api,
@@ -1595,109 +1964,89 @@ function IFM( params ) {
 				api: "remoteUpload",
 				dir: ifm.currentDir,
 				filename: filename,
-				method: $("#formRemoteUpload input[name=method]:checked").val(),
-				url: encodeURI($("#url").val())
+				method: method,
+				url: encodeURI( url )
 			}),
 			dataType: "json",
 			success: function(data) {
-						if(data.status == "OK") {
-							ifm.showMessage("File successfully uploaded", "s");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be uploaded:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); },
-			complete: function() { ifm.task_done(id); }
+				if(data.status == "OK") {
+					self.showMessage( "File successfully uploaded", "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+			},
+			error: function() { self.showMessage("General error occured", "e"); },
+			complete: function() { self.task_done(id); }
 		});
-		ifm.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: "Remote upload: "+filename } );
 	};
 
 	/**
 	 * Shows the ajax request dialog
 	 */
 	this.showAjaxRequestDialog = function() {
-		self.showModal( self.templates.ajaxrequest );
-		var form = $('#formAjaxRequest');
-		form.find( '#ajaxurl' ).on( 'keypress', self.preventEnter );
-		form.find( '#buttonRequest' ).on( 'click', function() {
-			self.ajaxRequest();
-			return false;
-		});
-		form.find( '#buttonClose' ).on( 'click', function() {
-			self.hideModal();
-			return false;
+		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
+		var form = document.forms.formAjaxRequest;
+		form.elements.ajaxurl.addEventListener( 'keypress', self.preventEnter );
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonRequest' ) {
+				e.preventDefault();
+				self.ajaxRequest( form.elements.ajaxurl.value, form.elements.ajaxdata.value.replace( /\n/g, '&' ), form.elements.arMethod.value );
+			} else if( e.target.id == 'buttonClose' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
 		});
 	};
 
 	/**
 	 * Performs an ajax request
 	 */
-	this.ajaxRequest = function() {
+	this.ajaxRequest = function( url, data, method ) {
 		$.ajax({
-			url		: $("#ajaxurl").val(),
+			url	: url,
 			cache	: false,
-			data	: $('#ajaxdata').val().replace(/\n/g,"&"),
-			type    : $('#ajaxrequest input[name=arMethod]:checked').val(),
-			success	: function(response) { $("#ajaxresponse").text(response); },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); console.log(e); }
+			data	: data,
+			type    : method,
+			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
+			error	: function(e) { self.showMessage("Error: "+e, "e"); self.log(e); }
 		});
 	};
 
 	/**
-	 * Shows the delete dialog for multiple files
+	 * Shows the search dialog
 	 */
-	this.showMultiDeleteDialog = function() {
-		self.showModal( Mustache.render( self.templates.multidelete, { count: $('#filetable tr.selectedItem').length } ) );
-		var form = $('#formDeleteFiles');
-		form.find( '#buttonYes' ).on( 'click', function() {
-			self.multiDelete();
-			self.hideModal();
-			return false;
-		});
-		form.find( '#buttonNo' ).on( 'click', function() {
-			self.hideModal();
-			return false;
-		});
-	};
-
-	/**
-	 * Deletes multiple files
-	 */
-	this.multiDelete = function() {
-		var elements = $('#filetable tr.selectedItem');
-		var filenames = [];
-		for(var i=0;typeof(elements[i])!='undefined';filenames.push(elements[i++].getAttribute('data-filename')));
-		$.ajax({
-			url: self.api,
-			type: "POST",
-			data: ({
-				api: "multidelete",
-				dir: self.currentDir,
-				filenames: filenames
-			}),
-			dataType: "json",
-			success: function(data) {
-						if(data.status == "OK") {
-							if(data.errflag == 1)
-								ifm.showMessage("All files successfully deleted.", "s");
-							else if(data.errflag == 0)
-								ifm.showMessage("Some files successfully deleted. "+data.message);
-							else
-								ifm.showMessage("Files could not be deleted. "+data.message, "e");
-							ifm.refreshFileTable();
-						} else ifm.showMessage("Files could not be deleted:<br />"+data.message, "e");
-					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
-		});
-	};
-
 	this.showSearchDialog = function() {
-		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch } ) );
-		$( '#searchResults tbody' ).remove();
-		$( '#searchResults' ).append( Mustache.render( self.templates.searchresults, { items: self.search.data } ) );
-		$( '#searchPattern' ).on( 'keypress', function( e ) {
-			if( e.keyCode == 13 ) {
+		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
+
+		var updateResults = function( data ) {
+			self.log( 'updated search results' );
+			self.search.data = data;
+			var searchresults = document.getElementById( 'searchResults' );
+			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
+			searchresults.appendChild( document.createElement( 'tbody' ) );
+			searchresults.tBodies[0].innerHTML = Mustache.render( self.templates.searchresults, { items: self.search.data } );
+			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+					self.hideModal();
+				}
+			});
+			searchresults.tBodies[0].addEventListener( 'keypress', function( e ) {
+				if( e.target.classList.contains( 'searchitem' ) ) {
+					e.preventDefault();
+					e.target.click();
+				}
+			});
+		};
+
+		updateResults( self.search.data );
+
+		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				e.stopPropagation();
+				if( e.target.value.trim() === '' ) return;
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -1713,26 +2062,12 @@ function IFM( params ) {
 							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
 							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 						});
-						self.search.data = data;
-						$('#searchResults').html( Mustache.render( self.templates.searchresults, { items: data } ) );
+						updateResults( data );
 					}
 				});
 			}
 		});
-		$( document ).on( 'click', 'a.searchitem', function( e ) {
-			console.log( e );
-			e.preventDefault();
-			e.stopPropagation();
-			self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
-			self.hideModal();
-		});
-		$( document ).on( 'keypress', 'a.searchitem', function( e ) {
-			console.log( e );
-			e.preventDefault();
-			if( e.key == "Enter" )
-				e.target.click();
-		});
-	}
+	};
 
 	// --------------------
 	// helper functions
@@ -1745,26 +2080,32 @@ function IFM( params ) {
 	 * @param string t - message type (e: error, s: success)
 	 */
 	this.showMessage = function(m, t) {
-		var msgType = (t == "e")?"danger":(t == "s")?"success":"info";
+		var msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
 		var element = ( self.config.inline ) ? self.rootElement : "body";
 		$.notify(
-				{ message: m },
-				{ type: msgType, delay: 5000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+			{ message: m },
+			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
 		);
 	};
 
 	/**
 	 * Combines two path components
 	 *
-	 * @param string a - component 1
-	 * @param string b - component 2
+	 * @param {string} a - component 1
+	 * @param {string} b - component 2
+	 * @returns {string} - combined path
 	 */
 	this.pathCombine = function(a, b) {
-		if(a == "" && b == "") return "";
-		if(b[0] == "/") b = b.substring(1);
-		if(a == "") return b;
-		if(a[a.length-1] == "/") a = a.substring(0, a.length-1);
-		if(b == "") return a;
+		if ( a == "" && b == "" )
+			return "";
+		if( b[0] == "/" )
+			b = b.substring(1);
+		if( a == "" )
+			return b;
+		if( a[a.length-1] == "/" )
+			a = a.substring(0, a.length-1);
+		if( b == "" )
+			return a;
 		return a+"/"+b;
 	};
 
@@ -1774,18 +2115,28 @@ function IFM( params ) {
 	 * @param object e - click event
 	 */
 	this.preventEnter = function(e) {
-		if( e.keyCode == 13 ) return false;
-		else return true;
-	}
+		if( e.key == 'Enter' )
+			e.preventDefault();
+	};
 
 	/**
 	 * Checks if an element is part of an array
 	 *
-	 * @param obj needle - search item
-	 * @param array haystack - array to search
+	 * @param {object} needle - search item
+	 * @param {array} haystack - array to search
+	 * @returns {boolean}
 	 */
 	this.inArray = function(needle, haystack) {
-		for(var i = 0; i < haystack.length; i++) { if(haystack[i] == needle) return true; }	return false;
+		for( var i = 0; i < haystack.length; i++ )
+			if( haystack[i] == needle )
+				return true;
+		return false;
+	};
+
+	this.getNodesFromString = function( s ) {
+		var template = document.createElement( 'template');
+		template.innerHTML = s;
+		return template.content.childNodes[0];
 	};
 
 	/**
@@ -1795,28 +2146,30 @@ function IFM( params ) {
 	 */
 	this.task_add = function( task ) {
 		if( ! task.id ) {
-			console.log( "Error: No task id given.");
+			self.log( "Error: No task id given.");
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
-			$( document.body ).append( Mustache.render( self.templates.footer ) );
-			$( 'a[name=showAll]' ).on( 'click', function( e ) {
-				var f = $( 'footer' );
-				if( f.css( 'maxHeight' ) == '80%' ) {
-					f.css( 'maxHeight', '6em' );
-					f.css( 'overflow', 'hidden' );
-				} else {
-					f.css( 'maxHeight', '80%' );
-					f.css( 'overflow', 'scroll' );
+			var newFooter = self.getNodesFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
+			newFooter.addEventListener( 'click', function( e ) {
+				if( e.target.name == 'showAll' ) {
+					if( newFooter.style.maxHeight == '80%' ) {
+						newFooter.style.maxHeight = '6em';
+						newFooter.style.overflow = 'hidden';
+					} else {
+						newFooter.style.maxHeight = '80%';
+						newFooter.style.overflow = 'scroll';
+					}
 				}
 			});
-			$(document.body).css( 'padding-bottom', '6em' );
+			document.body.appendChild( newFooter );
+			document.body.style.paddingBottom = '6em';
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
-		var wq = $( "#waitqueue" );
-		wq.prepend( Mustache.render( self.templates.task, task ) );
-		$( 'span[name=taskCount]' ).text( wq.find( '>div' ).length );
+		var wq = document.getElementById( 'waitqueue' );
+		wq.prepend( self.getNodesFromString( Mustache.render( self.templates.task, task ) ) );
+		document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 	};
 
 	/**
@@ -1825,12 +2178,14 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_done = function( id ) {
-		$( '#wq-'+id ).remove();
-		if( $( '#waitqueue>div' ).length == 0) {
-			$( 'footer' ).remove();
-			$( document.body ).css( 'padding-bottom', '0' );
+		document.getElementById( 'wq-' + id ).remove();
+		var wq = document.getElementById( 'waitqueue' );
+		if( wq.children.length == 0 ) {
+			document.getElementsByTagName( 'footer' )[0].remove();
+			document.body.style.paddingBottom = 0;
+		} else {
+			document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 		}
-		$( 'span[name=taskCount]' ).text( $('#waitqueue>div').length );
 	};
 
 	/**
@@ -1840,7 +2195,9 @@ function IFM( params ) {
 	 * @param string id - task identifier
 	 */
 	this.task_update = function( progress, id ) {
-		$('#wq-'+id+' .progress-bar').css( 'width', progress+'%' ).attr( 'aria-valuenow', progress );
+		var progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
+		progbar.style.width = progress+'%';
+		progbar.setAttribute( 'aria-valuenow', progress );
 	};
 
 	/**
@@ -1848,32 +2205,31 @@ function IFM( params ) {
 	 *
 	 * @param object param - either an element id or a jQuery object
 	 */
-	this.highlightItem = function( param ) {
+	this.highlightItem = function( direction ) {
 		var highlight = function( el ) {
-			el.addClass( 'highlightedItem' ).siblings().removeClass( 'highlightedItem' );
-			el.find( 'a' ).first().focus();
+			[].slice.call( el.parentElement.children ).forEach( function( e ) {
+				e.classList.remove( 'highlightedItem' );
+			});
+			el.classList.add( 'highlightedItem' );
+			el.firstElementChild.firstElementChild.focus();
 			if( ! self.isElementInViewport( el ) ) {
 				var scrollOffset =  0;
-				if( param=="prev" )
+				if( direction=="prev" )
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
 					scrollOffset = el.offset().top - 55;
 				$('html, body').animate( { scrollTop: scrollOffset }, 200 );
 			}
 		};
-		if( param.jquery ) {
-			highlight( param );
-		} else {
-			var highlightedItem = $('.highlightedItem');
-			if( ! highlightedItem.length ) {
-				highlight( $('#filetable tbody tr:first-child') );
-			} else  {
-				var newItem = ( param=="next" ? highlightedItem.next() : highlightedItem.prev() );
 
-				if( newItem.is( 'tr' ) ) {
-					highlight( newItem );
-				}
-			}
+
+		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( ! highlightedItem ) {
+			highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
+		} else  {
+			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
+			if( newItem != null )
+				highlight( newItem );
 		}
 	};
 
@@ -1882,18 +2238,15 @@ function IFM( params ) {
 	 *
 	 * @param object el - element object
 	 */
-	this.isElementInViewport = function (el) {
-		if (typeof jQuery === "function" && el instanceof jQuery) {
-			el = el[0];
-		}
+	this.isElementInViewport = function( el ) {
 		var rect = el.getBoundingClientRect();
 		return (
-				rect.top >= 60 &&
+				rect.top >= 80 &&
 				rect.left >= 0 &&
-				rect.bottom <= ( (window.innerHeight || document.documentElement.clientHeight) ) &&
-				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+				rect.bottom <= ( ( window.innerHeight || document.documentElement.clientHeight ) ) &&
+				rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
 			   );
-	}
+	};
 
 	/**
 	 * Generates a GUID
@@ -1901,15 +2254,15 @@ function IFM( params ) {
 	this.generateGuid = function() {
 		var result, i, j;
 		result = '';
-		for(j=0; j<20; j++) {
-			i = Math.floor(Math.random()*16).toString(16).toUpperCase();
+		for( j = 0; j < 20; j++ ) {
+			i = Math.floor( Math.random() * 16 ).toString( 16 ).toUpperCase();
 			result = result + i;
 		}
 		return result;
 	};
 
 	/**
-	 * Logs a message if debug mode is on
+	 * Logs a message if debug mode is active
 	 *
 	 * @param string m - message text
 	 */
@@ -1918,15 +2271,6 @@ function IFM( params ) {
 			console.log( "IFM (debug): " + m );
 		}
 	};
-
-	/**
-	 * Encodes a string to use in HTML attributes
-	 *
-	 * @param string s - decoded string
-	 */
-	this.HTMLEncode = function( s ) {
-		return s.replace( /'/g, '&#39;').replace( /"/g, '&#43;');
-	}
 
 	/**
 	 * Encodes a string for use in the href attribute of an anchor.
@@ -1958,17 +2302,17 @@ function IFM( params ) {
 			.replace( '`', '%60' )
 			.replace( '\\', '%5C' )
 		;
-	}
+	};
 
 	/**
 	 * Handles the javascript pop states
 	 *
 	 * @param object event - event object
 	 */
-	this.historyPopstateHandler = function(event) {
+	this.historyPopstateHandler = function( e ) {
 		var dir = "";
-		if( event.state && event.state.dir )
-			dir = event.state.dir;
+		if( e.state && e.state.dir )
+			dir = e.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
 	};
 
@@ -1978,10 +2322,18 @@ function IFM( params ) {
 	 * @param object e - event object
 	 */
 	this.handleKeystrokes = function( e ) {
-		// bind 'del' key
-		if( $(e.target).closest('input')[0] || $(e.target).closest('textarea')[0] )
-			return;
+		var isFormElement = function( el ) {
+			do {
+				if( self.inArray( el.tagName, ['INPUT', 'TEXTAREA'] ) ) {
+					return true;
+				}
+			} while( ( el == el.parentElement ) !== false );
+			return false;
+		}
 
+		if( isFormElement( e.target ) ) return;
+
+		// global key events
 		switch( e.key ) {
 			case '/':
 				e.preventDefault();
@@ -2039,14 +2391,6 @@ function IFM( params ) {
 				self.changeDirectory( '..' );
 				return;
 				break;
-			case 'l':
-			case 'ArrowRight':
-				e.preventDefault();
-				var item = $('.highlightedItem');
-				if( item.hasClass('isDir') )
-					self.changeDirectory( item.data( 'filename' ) );
-				return;
-				break;
 			case 'j':
 			case 'ArrowDown':
 				e.preventDefault();
@@ -2059,84 +2403,93 @@ function IFM( params ) {
 				self.highlightItem('prev');
 				return;
 				break;
-			case 'Escape':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) && $('.highlightedItem').length ) {
-					e.preventDefault();
-					$('.highlightedItem').removeClass( 'highlightedItem' );
-				}
-				return;
-				break;
-			case ' ': // todo: make it work only when noting other is focused
-			case 'Enter':
-				if( $(':focus').is( '.clickable-row td:first-child a:first-child' ) ) { 
-					var trParent = $(':focus').parent().parent();
-					if( e.key == 'Enter' && trParent.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						e.stopPropagation();
-						self.changeDirectory( trParent.data( 'filename' ) );
-					} else if( e.key == ' ' && ! trParent.is( ':first-child' ) ) {
-						e.preventDefault();
-						e.stopPropagation();
-						var item = $('.highlightedItem');
-						if( item.is( 'tr' ) )
-							item.toggleClass( 'selectedItem' );
-					}
-				}
-				return;
-				break;
 		}
 
-		/**
-		 * Some operations do not work if the highlighted item is the parent
-		 * directory. In these cases the keybindings are ignored.
-		 */
-		if( $('.highlightedItem').data( 'filename' ) == ".." )
-			return;
+		// key events which need a highlighted item
+		var element = document.getElementsByClassName( 'highlightedItem' )[0];
+		if( element )
+			item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
+		else
+			item = false;
+
+		// Some operations do not work if the highlighted item is the parent
+		// directory. In these cases the keybindings are ignored.
+		var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+			.map( function( e ) { return self.fileCache.find( x => x.guid === e.children[0].children[0].id ) } );
 
 		switch( e.key ) {
 			case 'Delete':
-				if( self.config.delete ) {
-					if( $('#filetable tr.selectedItem').length > 0 ) {
+				if( self.config.delete )
+					if( selectedItems.length > 0 ) {
 						e.preventDefault();
-						self.showMultiDeleteDialog();
-					} else {
-						var item = $('.highlightedItem');
-						if( item.length )
-							self.showDeleteFileDialog( item.data( 'filename' ) );
-					}
-				}
+						self.showDeleteDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showDeleteDialog( item );
 				return;
 				break;
 			case 'c':
 			case 'm':
 				if( self.config.copymove ) {
-					var item = $('.highlightedItem');
-					if( item.length ) {
+					if( selectedItems.length > 0 ) {
 						e.preventDefault();
-						self.showCopyMoveDialog( item.data( 'filename' ) );
-					}
-				}
-				return;
-				break;
-			case 'e':
-				if( self.config.edit ) {
-					var item = $('.highlightedItem');
-					if( item.length && ! item.hasClass( 'isDir' ) ) {
-						e.preventDefault();
-						var action = item.data( 'eaction' );
-						switch( action ) {
-							case 'extract':
-								self.showExtractFileDialog( item.data( 'filename' ) );
-								break;
-							case 'edit':
-								self.editFile( item.data( 'filename' ) );
-						}
-					}
+						self.showCopyMoveDialog( selectedItems );
+					} else if( item && item.name !== '..' )
+						self.showCopyMoveDialog( item );
 				}
 				return;
 				break;
 		}
-	}
+
+		if( item )
+			switch( e.key ) {
+				case 'l':
+				case 'ArrowRight':
+					e.preventDefault();
+					if( item.type == "dir" )
+						self.changeDirectory( item.name );
+					return;
+					break;
+				case 'Escape':
+					if( element.children[0].children[0] == document.activeElement ) {
+						e.preventDefault();
+						element.classList.toggle( 'highlightedItem' );
+					}
+					return;
+					break;
+				case ' ':
+				case 'Enter':
+					if( element.children[0].children[0] == document.activeElement ) { 
+						if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
+							e.preventDefault();
+							e.stopPropagation();
+							self.changeDirectory( item.name );
+						} else if( e.key == ' ' && item.name != ".." ) {
+							e.preventDefault();
+							e.stopPropagation();
+							element.classList.toggle( 'selectedItem' );
+						}
+					}
+					return;
+					break;
+				case 'e':
+					if( self.config.edit && item.eaction == "edit" ) {
+						e.preventDefault();
+						self.editFile( item.name );
+					} else if( self.config.extract && item.eaction == "extract" ) {
+						e.preventDefault();
+						self.showExtractFileDialog( item.name );
+					}
+					return;
+					break;
+				case 'n':
+					e.preventDefault();
+					if( self.config.rename ) {
+						self.showRenameFileDialog( item.name );
+					}
+					return;
+					break;
+			}
+	};
 
 	/**
 	 * Initializes the application
@@ -2172,78 +2525,101 @@ function IFM( params ) {
 			success: function(d) {
 				self.templates = d;
 				self.log( "templates loaded" );
-				self.initApplication();
+				self.initLoadI18N();
 			},
 			error: function() {
 				throw new Error( "IFM: could not load templates" );
 			}
 		});
 	};
+
+	this.initLoadI18N = function() {
+		// load I18N from the backend
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "getI18N"
+			},
+			dataType: "json",
+			success: function(d) {
+				self.i18n = d;
+				self.log( "I18N loaded" );
+				self.initApplication();
+			},
+			error: function() {
+				throw new Error( "IFM: could not load I18N" );
+			}
+		});
+	};
 	
 	this.initApplication = function() {
-		self.rootElement.html(
-			Mustache.render(
+		self.rootElement.innerHTML = Mustache.render(
 				self.templates.app,
 				{
 					showpath: "/",
 					config: self.config,
+					i18n: self.i18n,
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
-				}
-			)
-		);
+				});
 		// bind static buttons
-		$("#refresh").click(function(){
-			self.refreshFileTable();
-		});
-		$("#createFile").click(function(){
-			self.showFileDialog();
-		});
-		$("#createDir").click(function(){
-			self.showCreateDirDialog();
-		});
-		$("#upload").click(function(){
-			self.showUploadFileDialog();
-		});
-		$('#currentDir').on( 'keypress', function (event) {
-			if( event.keyCode == 13 ) {
-				event.preventDefault();
-				self.changeDirectory( $(this).val(), { absolute: true } );
+		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if( self.config.createfile )
+			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
+		if( self.config.createdir )
+			document.getElementById( 'createDir' ).onclick = function() { self.showCreateDirDialog(); };
+		if( self.config.upload )
+			document.getElementById( 'upload' ).onclick = function() { self.showUploadFileDialog(); };
+		document.getElementById( 'currentDir' ).onkeypress = function( e ) {
+			if( e.keyCode == 13 ) {
+				e.preventDefault();
+				self.changeDirectory( e.target.value, { absolute: true } );
+				e.target.blur();
 			}
-		});
-		$('#buttonRemoteUpload').on( 'click', function() {
-			self.showRemoteUploadDialog();
-			return false;
-		});
-		$('#buttonAjaxRequest').on( 'click', function() {
-			self.showAjaxRequestDialog();
-			return false;
-		});
-		$(document).on( 'dragover', function( e ) {
-			e.preventDefault();
-			e.stopPropagation();
-			$('#filedropoverlay').css( 'display', 'block' );
-		});
-		$( '#filedropoverlay' )
-			.on( 'drop', function( e ) {
+		};
+		if( self.config.remoteupload )
+			document.getElementById( 'buttonRemoteUpload' ).onclick = function() { self.showRemoteUploadDialog(); };
+		if( self.config.ajaxrequest )
+			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
+		if( self.config.upload )
+			document.addEventListener( 'dragover', function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
-				var files = e.originalEvent.dataTransfer.files;
-				for( var i = 0; i < files.length; i++ ) {
-					self.uploadFile( files[i] );
-				}
-				$('#filedropoverlay').css( 'display', 'none' );
-			})
-			.on( 'dragleave', function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				$('#filedropoverlay').css( 'display', 'none' );
+				var div = document.getElementById( 'filedropoverlay' );
+				div.style.display = 'block';
+				div.ondrop = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					var files = e.dataTransfer.files;
+					for( var i = 0; i < files.length; i++ ) {
+						self.uploadFile( files[i] );
+					}
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
+				div.ondragleave = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+					if( e.target.id == 'filedropoverlay' )
+						e.target.style.display = 'none';
+					else if( e.target.parentElement.id == 'filedropoverlay' ) {
+						e.target.parentElement.style.display = 'none';
+					}
+				};
 			});
+		
 		// handle keystrokes
-		$(document).on( 'keydown', self.handleKeystrokes );
+		document.onkeydown = self.handleKeystrokes;
+
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
+
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
@@ -2253,7 +2629,7 @@ function IFM( params ) {
 	};
 
 	this.init = function( id ) {
-		self.rootElement = $('#'+id);
+		self.rootElement = document.getElementById( id );
 		this.initLoadConfig();
 	};
 }
@@ -2284,9 +2660,9 @@ function IFM( params ) {
 	private function handleRequest() {
 		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
-				echo json_encode( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
+				echo $this->jsonResponse( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
-				echo json_encode( array( "realpath" => "" ) );
+				echo $this->jsonResponse( array( "realpath" => "" ) );
 		}
 		elseif( $_REQUEST["api"] == "getFiles" ) {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) )
@@ -2300,7 +2676,9 @@ function IFM( params ) {
 		elseif( $_REQUEST["api"] == "getFolders" ) {
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
-			echo json_encode( $this->templates );
+			echo $this->jsonResponse( $this->templates );
+		} elseif( $_REQUEST["api"] == "getI18N" ) {
+			echo $this->jsonResponse( $this->i18n[$this->config['language']] );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
@@ -2312,7 +2690,7 @@ function IFM( params ) {
 					case "createDir": $this->createDir( $_REQUEST["dir"], $_REQUEST["dirname"] ); break;
 					case "saveFile": $this->saveFile( $_REQUEST ); break;
 					case "getContent": $this->getContent( $_REQUEST ); break;
-					case "delete": $this->deleteFile( $_REQUEST ); break;
+					case "delete": $this->deleteFiles( $_REQUEST ); break;
 					case "rename": $this->renameFile( $_REQUEST ); break;
 					case "download": $this->downloadFile( $_REQUEST ); break;
 					case "extract": $this->extractFile( $_REQUEST ); break;
@@ -2321,15 +2699,15 @@ function IFM( params ) {
 					case "changePermissions": $this->changePermissions( $_REQUEST ); break;
 					case "zipnload": $this->zipnload( $_REQUEST); break;
 					case "remoteUpload": $this->remoteUpload( $_REQUEST ); break;
-					case "multidelete": $this->deleteMultipleFiles( $_REQUEST ); break;
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
+					case "createArchive": $this->createArchive( $_REQUEST ); break;
 					default:
-						echo json_encode( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
 				}
 			} else {
-				print json_encode( array( "status" => "ERROR", "message" => "Invalid working directory" ) );
+				print $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid working directory" ) );
 			}
 		}
 		exit( 0 );
@@ -2434,8 +2812,8 @@ function IFM( params ) {
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
-		echo json_encode( $ret );
+		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
+		echo $this->jsonResponse( $ret );
 	}
 
 	private function getFolders( $d ) {
@@ -2458,12 +2836,12 @@ function IFM( params ) {
 					array(
 						0 => array(
 							"text" => "/ [root]",
-							"dataAttributes" => array( "path" => $this->getRootDir() )
+							"dataAttr" => array( "path" => $this->getRootDir() )
 						)
 					),
 					$ret
 				);
-			echo json_encode( $ret );
+			echo $this->jsonResponse( $ret );
 		}
 	}
 
@@ -2475,9 +2853,9 @@ function IFM( params ) {
 		}
 		try {
 			$results = $this->searchItemsRecursive( $d['pattern'] );
-			echo json_encode( $results );
+			echo $this->jsonResponse( $results );
 		} catch( Exception $e ) {
-			echo json_encode( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
 		}
 	}
 
@@ -2494,7 +2872,7 @@ function IFM( params ) {
 	}
 
 	private function getFolderTree( $d ) {
-		echo json_encode(
+		echo $this->jsonResponse(
 			array_merge(
 				array(
 					0 => array(
@@ -2533,38 +2911,38 @@ function IFM( params ) {
 
 	private function copyMove( $d ) {
 		if( $this->config['copymove'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
 			exit( 1 );
 		}
 		$this->chDirIfNecessary( $d['dir'] );
 		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid destination directory given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid destination directory given." ) );
 			exit( 1 );
 		}
 		if( ! file_exists( $d['filename'] ) || $d['filename'] == ".." ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given." ) );
 			exit( 1 );
 		}
 		if( $d['action'] == "copy" ) {
-			if( $this->copyr( $d['filename'], $d['destination'] ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
+			if( $this->xcopy( $d['filename'], $d['destination'] ) ) {
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
 				exit( 0 );
 			} else {
 				$err = error_get_last();
-				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
 				exit( 1 );
 			}
 		} elseif( $d['action'] == "move" ) {
 			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
 				exit( 0 );
 			} else {
 				$err = error_get_last();
-				echo json_encode( array( "status" => "ERROR", "message" => $err['message'] ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
 				exit( 1 );
 			}
 		} else {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid action given." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid action given." ) );
 			exit( 1 );
 		}
 	}
@@ -2572,26 +2950,26 @@ function IFM( params ) {
 	// creates a directory
 	private function createDir($w, $dn) {
 		if( $this->config['createdir'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to create directories.") );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create directories.") );
 			exit( 1 );
 		}
 		if( $dn == "" )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid directory name") );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name") );
 		elseif( ! $this->isFilenameValid( $dn ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid directory name" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name" ) );
 		else {
 			$this->chDirIfNecessary( $w );
 			if( @mkdir( $dn ) )
-				echo json_encode( array( "status" => "OK", "message" => "Directory successful created" ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "Directory successful created" ) );
 			else
-				echo json_encode( array( "status" => "ERROR", "message" => "Could not create directory" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create directory" ) );
 		}
 	}
 
 	// save a file
 	private function saveFile( $d ) {
 		if( ( file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['edit'] != 1 ) || ( ! file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['createfile'] != 1 ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
 			exit( 1 );
 		}
 		if( isset( $d['filename'] ) && $this->isFilenameValid( $d['filename'] ) ) {
@@ -2600,63 +2978,40 @@ function IFM( params ) {
 				// work around magic quotes
 				$content = get_magic_quotes_gpc() == 1 ? stripslashes( $d['content'] ) : $d['content'];
 				if( @file_put_contents( $d['filename'], $content ) !== false ) {
-					echo json_encode( array( "status" => "OK", "message" => "File successfully saved" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully saved" ) );
 				} else
-					echo json_encode( array( "status" => "ERROR", "message" => "Could not write content" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not write content" ) );
 			} else
-				echo json_encode( array( "status" => "ERROR", "message" => "Got no content" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Got no content" ) );
 		} else
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
 	}
 
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
 		if( $this->config['edit'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( isset( $d['filename'] ) && $this->isFilenameAllowed( $d['filename'] ) && file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
 					$content = utf8_encode( $content );
-				echo json_encode( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
-			} else echo json_encode( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
-		}
-	}
-
-	// deletes a file or a directory (recursive!)
-	private function deleteFile( array $d ) {
-		if( $this->config['delete'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
-		elseif( ! $this->isFilenameAllowed( $d['filename'] ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
-		else {
-			$this->chDirIfNecessary( $d['dir'] );
-			if( is_dir( $d['filename'] ) ) {
-				$res = $this->rec_rmdir( $d['filename'] );
-				if( $res != 0 )
-					echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
-				else
-				   echo json_encode( array( "status" => "OK", "message" => "Directoy successful deleted" ) );
-			} else {
-				if( @unlink( $d['filename'] ) )
-					echo json_encode( array( "status" => "OK", "message" => "File successful deleted" ) );
-				else
-					echo json_encode( array( "status"=>"ERROR", "message" => "File could not be deleted" ) );
-			}
+				echo $this->jsonResponse( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
+			} else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
 		}
 	}
 
 	// deletes a bunch of files or directories
-	private function deleteMultipleFiles( array $d ) {
-		if( $this->config['delete'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
+	private function deleteFiles( array $d ) {
+		if( $this->config['delete'] != 1 ) $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
 			foreach( $d['filenames'] as $file ) {
 				if( $this->isFilenameAllowed( $file ) ) {
-					if( is_dir($file) ) {
+					if( is_dir( $file ) ) {
 						$res = $this->rec_rmdir( $file );
 						if( $res != 0 )
 							array_push( $err, $file );
@@ -2673,14 +3028,14 @@ function IFM( params ) {
 				}
 			}
 			if( empty( $err ) ) {
-				echo json_encode( array( "status" => "OK", "message" => "Files deleted successfully", "errflag" => "1" ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => "Files deleted successfully", "errflag" => "1" ) );
 			}
 			else {
 				$errmsg = "The following files could not be deleted:<ul>";
 				foreach($err as $item)
 					$errmsg .= "<li>".$item."</li>";
 				$errmsg .= "</ul>";
-				echo json_encode( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
+				echo $this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
 			}
 		}
 	}
@@ -2688,22 +3043,22 @@ function IFM( params ) {
 	// renames a file
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
 		} elseif( ! $this->isFilenameValid( $d['filename'] ) ) {
-			echo json_encode( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
-				echo json_encode( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
 			elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
 			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
 			else {
 				if( @rename( $d['filename'], $d['newname'] ) )
-					echo json_encode( array( "status" => "OK", "message" => "File successful renamed" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successful renamed" ) );
 				else
-					echo json_encode( array( "status" => "ERROR", "message" => "File could not be renamed" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be renamed" ) );
 			}
 		}
 	}
@@ -2711,11 +3066,11 @@ function IFM( params ) {
 	// provides a file for downloading
 	private function downloadFile( array $d ) {
 		if( $this->config['download'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
-			echo json_encode( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
-			echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
 			$this->fileDownload( $d['filename'] );
@@ -2725,34 +3080,34 @@ function IFM( params ) {
 	// extracts a zip-archive
 	private function extractFile( array $d ) {
 		if( $this->config['extract'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "No valid archive found" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "No valid archive found" ) );
 				exit( 1 );
 			}
 			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
 				$d['targetdir'] = "./";
 			if( ! $this->isPathValid( $d['targetdir'] ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
 				exit( 1 );
 			}
 			if( ! is_dir( $d['targetdir'] ) && ! mkdir( $d['targetdir'], 0777, true ) ) {
-				echo json_encode( array( "status" => "ERROR","message" => "Could not create target directory." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Could not create target directory." ) );
 				exit( 1 );
 			}
 			if( substr( strtolower( $d['filename'] ), -4 ) == ".zip" ) {
 				if( ! IFMArchive::extractZip( $d['filename'], $d['targetdir'] ) ) {
-					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
 				} else {
-					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
 				}
 			} else {
 				if( ! IFMArchive::extractTar( $d['filename'], $d['targetdir'] ) ) {
-					echo json_encode( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
 				} else {
-					echo json_encode( array( "status" => "OK","message" => "File successfully extracted." ) );
+					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
 				}
 			} 
 		}
@@ -2761,35 +3116,35 @@ function IFM( params ) {
 	// uploads a file
 	private function uploadFile( array $d ) {
 		if( $this->config['upload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
 		elseif( !isset( $_FILES['file'] ) )
-			echo json_encode( array( "file" => $_FILE,"files" => $_FILES ) );
+			echo $this->jsonResponse( array( "file" => $_FILE,"files" => $_FILES ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
 			if( ! $this->isFilenameValid( $newfilename ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
 			else {
 				if( $_FILES['file']['tmp_name'] ) {
 					if( is_writable( getcwd( ) ) ) {
 						if( move_uploaded_file( $_FILES['file']['tmp_name'], $newfilename ) )
-							echo json_encode( array( "status" => "OK", "message" => "The file ".$_FILES['file']['name']." was uploaded successfully", "cd" => $d['dir'] ) );
+							echo $this->jsonResponse( array( "status" => "OK", "message" => "The file ".$_FILES['file']['name']." was uploaded successfully", "cd" => $d['dir'] ) );
 						else
-							echo json_encode( array( "status" => "ERROR", "message" => "File could not be uploaded" ) );
+							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded" ) );
 					}
 					else
-						echo json_encode( array( "status" => "ERROR", "message" => "File could not be uploaded since it has no permissions to write in this directory" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded since it has no permissions to write in this directory" ) );
 				} else
-					echo json_encode( array( "status" => "ERROR", "message" => "No file found" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No file found" ) );
 			}
 		}
 	}
 
 	// change permissions of a file
 	private function changePermissions( array $d ) {
-		if( $this->config['chmod'] != 1 ) echo json_encode( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
-		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo json_encode( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
-		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo json_encode( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
+		if( $this->config['chmod'] != 1 ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
+		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
+		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
 		else {
 			$this->chDirIfNecessary( $d['dir'] ); $chmod = $d["chmod"]; $cmi = true;
 			if( ! is_numeric( $chmod ) ) {
@@ -2814,12 +3169,12 @@ function IFM( params ) {
 			if( $cmi ) {
 				try {
 					chmod( $d["filename"], (int)octdec( $chmod ) );
-					echo json_encode( array( "status" => "OK", "message" => "Permissions changed successfully" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "Permissions changed successfully" ) );
 				} catch ( Exception $e ) {
-					echo json_encode( array( "status" => "ERROR", "message" => "Error while changing permissions" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Error while changing permissions" ) );
 				}
 			}
-			else echo json_encode( array( "status" => "ERROR", "message" => "Could not determine permission format" ) );
+			else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not determine permission format" ) );
 		}
 	}
 
@@ -2827,13 +3182,13 @@ function IFM( params ) {
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload( array $d ) {
 		if( $this->config['zipnload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Directory not found" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Directory not found" ) );
 			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
-				echo json_encode( array( "status" => "ERROR", "message" => "Filename not valid" ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Filename not valid" ) );
 			else {
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
@@ -2858,54 +3213,65 @@ function IFM( params ) {
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload( array $d ) {
 		if( $this->config['remoteupload'] != 1 )
-			echo json_encode( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
 		elseif( !isset( $d['method'] ) || !in_array( $d['method'], array( "curl", "file" ) ) )
-			echo json_encode( array( "status" => "error", "message" => "Invalid method given. Valid methods: ['curl', 'file']" ) );
+			echo $this->jsonResponse( array( "status" => "error", "message" => "Invalid method given. Valid methods: ['curl', 'file']" ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == false )
-			echo json_encode( array( "status" => "ERROR", "message" => "cURL extention not installed. Please install the cURL extention to use remote file upload." ) );
+			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "cURL extention not installed. Please install the cURL extention to use remote file upload." ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == true ) {
 			$filename = ( isset( $d['filename'] )&&$d['filename']!="" )?$d['filename']:"curl_".uniqid( );
 			$this->chDirIfNecessary( $d['dir'] );
 			$ch = curl_init( );
 			if( $ch ) {
 				if( $this->isFilenameValid( $filename ) == false )
-					echo json_encode( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
 				elseif( filter_var( $d['url'], FILTER_VALIDATE_URL ) === false )
-					echo json_encode( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
 				else {
 					$fp = fopen( $filename, "w" );
 					if( $fp ) {
 						if( !curl_setopt( $ch, CURLOPT_URL, $d['url'] ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
-							echo json_encode( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
+							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
 						else {
-							echo json_encode( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
+							echo $this->jsonResponse( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
 						}
 						curl_close( $ch );
 						fclose( $fp );
 					} else {
-						echo json_encode( array( "status" => "ERROR", "message" => "Failed to open file" ) );
+						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to open file" ) );
 					}
 				}
 			} else {
-				echo json_encode( array( "status" => "ERROR", "message" => "Failed to init cURL." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to init cURL." ) );
 			}
 		}
 		elseif( $d['method']=='file' ) {
 			$filename = ( isset( $d['filename'] ) && $d['filename']!="" ) ? $d['filename'] : "curl_".uniqid( );
 			if( $this->isFilenameValid( $filename ) == false )
-				echo json_encode( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
 			else {
 				$this->chDirIfNecessary( $d['dir'] );
 				try {
 					file_put_contents( $filename, file_get_contents( $d['url'] ) );
-					echo json_encode( array( "status" => "OK", "message" => "File successfully uploaded" ) );
+					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully uploaded" ) );
 				} catch( Exception $e ) {
-					echo json_encode( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+					echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
 				}
 			}
 		}
 		else
-			echo json_encode( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+			echo $this->jsonResponse( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+	}
+
+	private function createArchive( $d ) {
+//		if( $config['createarchive'] != 1 ) {
+//			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
+//			return false;
+//		}
+//		$this->chDirIfNecessary( $d['dir'] );
+//		switch( $d['format'] ) {
+//			case "zip":
+//				
 	}
 
 	/*
@@ -2913,7 +3279,7 @@ function IFM( params ) {
 	 */
 
 	private function log( $d ) {
-		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) : $d ), FILE_APPEND );
+		file_put_contents( $this->pathCombine( $this->getRootDir(), "debug.ifm.log" ), ( is_array( $d ) ? print_r( $d, true ) . "\n" : $d . "\n" ), FILE_APPEND );
 	}
 
 	private function jsonResponse( $array ) {
@@ -2979,9 +3345,9 @@ function IFM( params ) {
 			} else {
 				if( isset( $_POST["api"] ) ) {
 					if( $login_failed === true )
-						echo json_encode( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
+						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
 					else
-						echo json_encode( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
+						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
 				} else {
 					$this->loginForm($login_failed);
 				}
@@ -3000,10 +3366,13 @@ function IFM( params ) {
 				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
+				$this->log( "srcopt: $srcopt" );
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
+					$this->log( "file exists" );
 					$htpasswd = new Htpasswd( $srcopt );
 					return $htpasswd->verify( $user, $pass );
 				} else {
+					trigger_error( "IFM: Fatal: Credential file does not exist or is not readable" );
 					return false;
 				}
 				break;
@@ -3039,7 +3408,11 @@ function IFM( params ) {
 		if( $loginFailed ) 
 			$err = '<div class="alert alert-danger">Login failed.</div>';
 		$this->getHTMLHeader();
-		print str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
+		$html = str_replace( "{{i18n.username}}", $this->i18n[$this->config['language']]['username'], $html );
+		$html = str_replace( "{{i18n.password}}", $this->i18n[$this->config['language']]['password'], $html );
+		$html = str_replace( "{{i18n.login}}", $this->i18n[$this->config['language']]['login'], $html );
+		print $html;
 		$this->getHTMLFooter();
 	}
 
@@ -3167,50 +3540,19 @@ function IFM( params ) {
 		return 0;
 	}
 
-	/**
-	 * Copy a file, or recursively copy a folder and its contents
-	 *
-	 * @author      Aidan Lister <aidan@php.net>
-	 * @version     1.0.1
-	 * @link        http://aidanlister.com/2004/04/recursively-copying-directories-in-php/
-	 * @param       string   $source    Source path
-	 * @param       string   $dest      Destination path
-	 * @return      bool     Returns TRUE on success, FALSE on failure
-	 */
-	private function copyr( $source, $dest )
-	{
-		// Check for symlinks
-		if (is_link($source)) {
-			return symlink(readlink($source), $dest);
-		}
-
-		// Simple copy for a file
-		if (is_file($source)) {
-			$dest = ( is_dir( $dest ) ) ? $this->pathCombine( $dest, basename( $source ) ) : $dest;
-			return copy($source, $dest);
-		} else {
+	private function xcopy( $source, $dest ) {
+		$isDir = is_dir( $source );
+		if( $isDir )
 			$dest = $this->pathCombine( $dest, basename( $source ) );
-		}
+		if( ! is_dir( $dest ) )
+			mkdir($dest, 0777, true);
+		if( is_file( $source ) )
+			return copy( $source, $this->pathCombine( $dest, basename( $source ) ) );
 
-		// Make destination directory
-		if (!is_dir($dest)) {
-			mkdir($dest);
-		}
-
-		// Loop through the folder
-		$dir = dir($source);
-		while (false !== $entry = $dir->read()) {
-			// Skip pointers
-			if ($entry == '.' || $entry == '..') {
-				continue;
-			}
-
-			// Deep copy directories
-			$this->copyr("$source/$entry", "$dest/$entry");
-		}
-
-		// Clean up
-		$dir->close();
+		chdir( $source );
+		foreach( glob( '*' ) as $item )
+			$this->xcopy( $item, $dest );
+		chdir( '..' );
 		return true;
 	}
 

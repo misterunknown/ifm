@@ -1,21 +1,15 @@
 <form id="formFile">
 <div class="modal-body">
 	<fieldset>
-		<label>Filename:</label>
+		<label>{{i18n.filename}}:</label>
 		<input type="text" class="form-control" name="filename" value="{{filename}}"><br>
 		<div id="content" name="content"></div><br>
-		<button type="button" class="btn btn-default" id="editoroptions">editor options</button>
-		<div class="hide" id="editoroptions-head">options</div>
-		<div class="hide" id="editoroptions-content">
-			<input type="checkbox" id="editor-wordwrap"> word wrap</input><br>
-			<input type="checkbox" id="editor-softtabs"> use soft tabs</input>
-			<div class="input-group"><span class="input-group-addon">tabsize</span><input class="form-control" type="text" size="2" id="editor-tabsize"title="tabsize"></div>
-		</div>
+		<button type="button" class="btn btn-default" id="editoroptions">{{i18n.editor_options}}</button>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" id="buttonSave" class="btn btn-default">Save</button>
-	<button type="button" id="buttonSaveNotClose" class="btn btn-default">Save without closing</button>
-	<button type="button" id="buttonClose" class="btn btn-default">Close</button>
+	<button type="button" id="buttonSave" class="btn btn-default">{{i18n.save}}</button>
+	<button type="button" id="buttonSaveNotClose" class="btn btn-default">{{i18n.save_wo_close}}</button>
+	<button type="button" id="buttonClose" class="btn btn-default">{{i18n.close}}</button>
 </div>
 </form>

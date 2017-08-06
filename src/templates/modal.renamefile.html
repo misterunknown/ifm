@@ -1,10 +1,12 @@
-<div class="modal-body">
 <form id="formRenameFile">
+<div class="modal-body">
 	<fieldset>
-		<label>Rename {{filename}} to:</label>
-		<input class="form-control" type="text" name="newname" /><br>
-		<button class="btn btn-default" id="buttonRename">Rename</button>
-		<button class="btn btn-default" id="buttonCancel">Cancel</button>
+		<label>{{i18n.rename_filename}} {{filename}}:</label>
+		<input class="form-control" type="text" name="newname" value="" /><br>
 	</fieldset>
-</form>
 </div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
+</div>
+</form>

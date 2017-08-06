@@ -89,6 +89,8 @@ listed below:
 | `root_dir`         | `IFM_ROOT_DIR`             |
 | `tmp_dir`          | `IFM_TMP_DIR`              |
 | `defaulttimezone`  | `IFM_DEFAULTTIMEZONE`      |
+| `forbiddenchars`   | `IFM_FORBIDDENCHARS`       |
+| `language`         | `IFM_LANGUAGE`             |
 | `ajaxrequest`      | `IFM_API_AJAXREQUEST`      |
 | `chmod`            | `IFM_API_CHMOD`            |
 | `copymove`         | `IFM_API_COPYMOVE`         |
@@ -110,6 +112,7 @@ listed below:
 | `showhtdocs`       | `IFM_GUI_SHOWHTDOCS`       |
 | `showhiddenfiles`  | `IFM_GUI_SHOWHIDDENFILES`  |
 | `showpath`         | `IFM_GUI_SHOWPATH`         |
+| `contextmenu`      | `IFM_GUI_CONTEXTMENU`      |
 
 ## screenshots
 <a href="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png"><img src="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png" height="300px"></a>
