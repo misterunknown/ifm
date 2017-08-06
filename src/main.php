@@ -380,7 +380,7 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? "true" : "false";
+		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		echo $this->jsonResponse( $ret );
 	}
 
@@ -1118,9 +1118,8 @@ f00bar;
 			return copy( $source, $this->pathCombine( $dest, basename( $source ) ) );
 
 		chdir( $source );
-		foreach( glob( '*' ) as $item ) {
+		foreach( glob( '*' ) as $item )
 			$this->xcopy( $item, $dest );
-		}
 		chdir( '..' );
 		return true;
 	}
