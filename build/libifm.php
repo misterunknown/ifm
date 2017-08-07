@@ -2222,7 +2222,10 @@ function IFM( params ) {
 
 		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
 		if( ! highlightedItem ) {
-			highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
+			if( document.activeElement.classList.contains( 'ifmitem' ) )
+				highlight( document.activeElement.parentElement.parentElement );
+			else 
+				highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
 		} else  {
 			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
 			if( newItem != null )
