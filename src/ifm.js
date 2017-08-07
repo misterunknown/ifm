@@ -140,6 +140,7 @@ function IFM( params ) {
 				}
 			}
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
+				item.dragdrop = 'draggable="true"';
 				if( self.config.copymove )
 					item.button.push({
 						action: "copymove",
@@ -694,42 +695,38 @@ function IFM( params ) {
 	/**
 	 * Copy or moves a file
 	 * 
-	 * @params {string} source - name of the file
+	 * @params {string} sources - array of fileCache items
 	 * @params {string} destination - target directory
 	 * @params {string} action - action (copy|move)
 	 */
 	this.copyMove = function( sources, destination, action ) {
-		if( ! Array.isArray( sources ) )
-			sources = [sources];
-		sources.forEach( function( source ) {
-			var id = self.generateGuid();
-			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
-			$.ajax({
-				url: self.api,
-				type: "POST",
-				data: {
-					dir: self.currentDir,
-					api: "copyMove",
-					action: action,
-					filename: source.name,
-					destination: destination
-				},
-				dataType: "json",
-				success: function( data ) {
-					if( data.status == "OK" ) {
-						self.showMessage( data.message, "s" );
-					} else {
-						self.showMessage( data.message, "e" );
-					}
-					self.refreshFileTable();
-				},
-				error: function() {
-					self.showMessage( "General error occured.", "e" );
-				},
-				complete: function() {
-					self.task_done( id );
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " files to " + destination } );
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filenames: sources.map( function( e ) { return e.name } ),
+				destination: destination
+			},
+			dataType: "json",
+			success: function( data ) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
 				}
-			});
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( "General error occured.", "e" );
+			},
+			complete: function() {
+				self.task_done( id );
+			}
 		});
 	};
 
@@ -1554,34 +1551,94 @@ function IFM( params ) {
 		if( self.config.ajaxrequest )
 			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
 		if( self.config.upload )
-			document.addEventListener( 'dragover', function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				var div = document.getElementById( 'filedropoverlay' );
-				div.style.display = 'block';
-				div.ondrop = function( e ) {
+			document.addEventListener( 'drag', function( e ) {
+				if( e.dataTransfer.files.length > 0 ) {
 					e.preventDefault();
 					e.stopPropagation();
-					var files = e.dataTransfer.files;
-					for( var i = 0; i < files.length; i++ ) {
-						self.uploadFile( files[i] );
-					}
-					if( e.target.id == 'filedropoverlay' )
-						e.target.style.display = 'none';
-					else if( e.target.parentElement.id == 'filedropoverlay' ) {
-						e.target.parentElement.style.display = 'none';
-					}
-				};
-				div.ondragleave = function( e ) {
-					e.preventDefault();
-					e.stopPropagation();
-					if( e.target.id == 'filedropoverlay' )
-						e.target.style.display = 'none';
-					else if( e.target.parentElement.id == 'filedropoverlay' ) {
-						e.target.parentElement.style.display = 'none';
-					}
-				};
+					var div = document.getElementById( 'filedropoverlay' );
+					div.style.display = 'block';
+					div.ondrop = function( e ) {
+						e.preventDefault();
+						e.stopPropagation();
+						var files = e.dataTransfer.files;
+						for( var i = 0; i < files.length; i++ ) {
+							self.uploadFile( files[i] );
+						}
+						if( e.target.id == 'filedropoverlay' )
+							e.target.style.display = 'none';
+						else if( e.target.parentElement.id == 'filedropoverlay' ) {
+							e.target.parentElement.style.display = 'none';
+						}
+					};
+					div.ondragleave = function( e ) {
+						e.preventDefault();
+						e.stopPropagation();
+						if( e.target.id == 'filedropoverlay' )
+							e.target.style.display = 'none';
+						else if( e.target.parentElement.id == 'filedropoverlay' ) {
+							e.target.parentElement.style.display = 'none';
+						}
+					};
+				}
 			});
+
+		// drag and drop of filetable items
+		if( self.config.copymove ) {
+			document.addEventListener( 'dragstart', function( e ) {
+				var selectedItems = document.getElementsByClassName( 'selectedItem' );
+				var data;
+				if( selectedItems.length > 0 ) 
+					data = self.fileCache.filter(
+							x => self.inArray(
+								x.guid,
+								[].slice.call( selectedItems ).map( function( e ) { return e.dataset.id; } )
+							)
+						);
+				else 
+					data = self.fileCache.find( x => x.guid === e.target.dataset.id );
+				e.dataTransfer.setData( 'text/plain', JSON.stringify( data ) );
+				var dragImage = document.createElement( 'div' );
+				dragImage.style.display = 'inline';
+				dragImage.style.padding = '10px';
+				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> move '+( data.length || data.name );
+				document.body.appendChild( dragImage );
+				setTimeout(function() {
+					dragImage.remove();
+				});
+				e.dataTransfer.setDragImage( dragImage, 0, 0 );
+			});
+			document.addEventListener( 'dragover', function( e ) { e.preventDefault(); } );
+			document.addEventListener( 'dragenter', function( e ) {
+				if( e.target.parentElement.classList.contains( 'isDir' ) )
+					e.target.parentElement.classList.add( 'highlightedItem' );
+			});
+			document.addEventListener( 'dragleave', function( e ) {
+				if( e.target.parentElement.classList.contains( 'isDir' ) )
+					e.target.parentElement.classList.remove( 'highlightedItem' );
+			});
+			document.addEventListener( 'drop', function( e ) {
+				if( e.target.parentElement.classList.contains( 'isDir' ) ) {
+					try {
+						var source = JSON.parse( e.dataTransfer.getData( 'text' ) );
+						console.log( "source:" );
+						console.log( source );
+						var destination = self.fileCache.find( x => x.guid === e.target.firstElementChild.id );
+						if( ! Array.isArray( source ) )
+							source = [source];
+						if( source.find( x => x.name === destination.name ) )
+							self.showMessage( "Source and destination are equal." );
+						else
+							self.copyMove( source, destination.name, "move" );
+					} catch( e ) {
+						console.log( e );
+					} finally {
+						[].slice.call( document.getElementsByClassName( 'highlightedItem' ) ).forEach( function( e ) {
+							e.classList.remove( 'highlightedItem' );
+						});
+					}
+				}
+			});
+		}
 		
 		// handle keystrokes
 		document.onkeydown = self.handleKeystrokes;
