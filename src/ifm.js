@@ -244,7 +244,7 @@ function IFM( params ) {
 				},
 				actionsGroups:[
 					['edit', 'extract', 'rename'],
-					['copymove', 'download', 'delete']
+					['copymove', 'download', 'createarchive', 'delete']
 				],
 				actions: {
 					edit: {
@@ -306,6 +306,22 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-download",
 						isShown: function() { return !!self.config.download; }
+					},
+					createarchive: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'create archive <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'create archive';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCreateArchiveDialog( data.selected );
+							else
+								self.showCreateArchiveDialog( data.clicked );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
 					},
 					'delete': {
 						name: function( data ) {
@@ -1013,6 +1029,7 @@ function IFM( params ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
 				if( e.target.value.trim() === '' ) return;
+				document.getElementById( 'searchResults' ).tBodies[0].innerHTML = '<tr><td style="text-align:center;"><span class="icon icon-spin5 animate-spin"></span></td></tr>';
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -1032,6 +1049,72 @@ function IFM( params ) {
 					}
 				});
 			}
+		});
+	};
+
+	/**
+	 * Shows the create archive dialog
+	 */
+	this.showCreateArchiveDialog = function( items ) {
+		self.showModal( Mustache.render( self.templates.createarchive, { i18n: self.i18n } ) );
+
+		var form = document.forms.formCreateArchive;
+		form.elements.archivename.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createArchive( items, e.target.value );
+				self.hideModal();
+			}
+		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createArchive( items, form.elements.archivename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
+	};
+
+	this.createArchive = function( items, archivename ) {
+		var type = "";
+		if( archivename.substr( -3 ).toLowerCase() == "zip" )
+			type = "zip";
+		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
+			type = "tar";
+		else if( archivename.substr( -5 ).toLowerCase() == "tar.gz" )
+			type = "tar.gz";
+		else if( archivename.substr( -6 ).toLowerCase() == "tar.bz2" )
+			type = "tar.bz2";
+		else {
+			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
+			return;
+		}
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "Create archive "+archivename } );
+
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "createArchive",
+				dir: self.currentDir,
+				archivename: archivename,
+				filenames: items.map( function( e ) { return e.name; } ),
+				format: type
+			},
+			dataType: "json",
+			success: function( data ) {
+				if( data.status == "OK" ) {
+					self.showMessage( "Archive successfully created.", "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( data.message, "e" );
+			},
+			error: function() { self.showMessage( "General error occured.", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
