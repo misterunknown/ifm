@@ -14,7 +14,7 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '2.4.2';
+	const VERSION = '3.0.0';
 
 	private $defaultconfig = array(
 		// general config
@@ -40,6 +40,7 @@ class IFM {
 		"remoteupload" => 1,
 		"rename" => 1,
 		"zipnload" => 1,
+		"createarchive" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -86,6 +87,7 @@ class IFM {
 		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? intval( getenv('IFM_API_REMOTEUPLOAD') ) : $this->config['remoteupload'] ;
 		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? intval( getenv('IFM_API_RENAME') ) : $this->config['rename'] ;
 		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? intval( getenv('IFM_API_ZIPNLOAD') ) : $this->config['zipnload'] ;
+		$this->config['createarchive'] =  getenv('IFM_API_CREATEARCHIVE') !== false ? intval( getenv('IFM_API_CREATEARCHIVE') ) : $this->config['createarchive'] ;
 		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? intval( getenv('IFM_GUI_SHOWLASTMODIFIED') ) : $this->config['showlastmodified'] ;
 		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? intval( getenv('IFM_GUI_SHOWFILESIZE') ) : $this->config['showfilesize'] ;
 		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? intval( getenv('IFM_GUI_SHOWOWNER') ) : $this->config['showowner'] ;
@@ -123,6 +125,9 @@ f00bar;
 f00bar;
 		$templates['createdir'] = <<<'f00bar'
 @@@file:src/templates/modal.createdir.html@@@
+f00bar;
+		$templates['createarchive'] = <<<'f00bar'
+@@@file:src/templates/modal.createarchive.html@@@
 f00bar;
 		$templates['deletefile'] = <<<'f00bar'
 @@@file:src/templates/modal.deletefile.html@@@
@@ -242,6 +247,7 @@ f00bar;
 			$this->getConfig();
 		}
 		elseif( $_REQUEST["api"] == "getFolders" ) {
+			sleep( 5 );
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			$this->jsonResponse( $this->templates );
@@ -771,7 +777,7 @@ f00bar;
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -842,14 +848,41 @@ f00bar;
 	}
 
 	private function createArchive( $d ) {
-//		if( $config['createarchive'] != 1 ) {
-//			$this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
-//			return false;
-//		}
-//		$this->chDirIfNecessary( $d['dir'] );
-//		switch( $d['format'] ) {
-//			case "zip":
-//				
+		if( $this->config['createarchive'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
+			return false;
+		}
+		if( ! $this->isFilenameValid( $d['archivename'] ) ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid archive filename given." ) );
+			return false;
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		$filenames = array();
+		foreach( $d['filenames'] as $file )
+			if( ! $this->isFilenameValid( $file ) ) {
+				$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
+				exit( 1 );
+			} else 
+				array_push( $filenames, realpath( $file ) );
+		switch( $d['format'] ) {
+			case "zip":
+				if( IFMArchive::createZip( $filenames, $d['archivename'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );
+				break;
+			case "tar":
+			case "tar.gz":
+			case "tar.bz2":
+				if( IFMArchive::createTar( $filenames, $d['archivename'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );
+				break;
+			default:
+				$this->jsonResponse( array( "status" => "ERROR", "message" => "Unsupported archive format." ) );
+				break;
+		}
 	}
 
 	/*

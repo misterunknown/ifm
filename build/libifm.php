@@ -13,7 +13,7 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '2.4.2';
+	const VERSION = '3.0.0';
 
 	private $defaultconfig = array(
 		// general config
@@ -39,6 +39,7 @@ class IFM {
 		"remoteupload" => 1,
 		"rename" => 1,
 		"zipnload" => 1,
+		"createarchive" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -85,6 +86,7 @@ class IFM {
 		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? intval( getenv('IFM_API_REMOTEUPLOAD') ) : $this->config['remoteupload'] ;
 		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? intval( getenv('IFM_API_RENAME') ) : $this->config['rename'] ;
 		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? intval( getenv('IFM_API_ZIPNLOAD') ) : $this->config['zipnload'] ;
+		$this->config['createarchive'] =  getenv('IFM_API_CREATEARCHIVE') !== false ? intval( getenv('IFM_API_CREATEARCHIVE') ) : $this->config['createarchive'] ;
 		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? intval( getenv('IFM_GUI_SHOWLASTMODIFIED') ) : $this->config['showlastmodified'] ;
 		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? intval( getenv('IFM_GUI_SHOWFILESIZE') ) : $this->config['showfilesize'] ;
 		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? intval( getenv('IFM_GUI_SHOWOWNER') ) : $this->config['showowner'] ;
@@ -376,6 +378,21 @@ f00bar;
 </form>
 
 f00bar;
+		$templates['createarchive'] = <<<'f00bar'
+<form id="formCreateArchive">
+<div class="modal-body">
+	<fieldset>
+		<label>{{i18n.archivename}}:</label>
+		<input class="form-control" type="text" name="archivename" value="" />
+	</fieldset>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-default" id="buttonSave">{{i18n.save}}</button>
+	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
+</div>
+</form>
+
+f00bar;
 		$templates['deletefile'] = <<<'f00bar'
 <form id="formDeleteFiles">
 <div class="modal-body">
@@ -597,6 +614,7 @@ f00bar;
 		$i18n['de'] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
+    "archivename": "Name des Archivs",
     "cancel": "Abbrechen",
     "close": "Schließen",
     "copy": "Kopieren",
@@ -606,11 +624,11 @@ f00bar;
     "editor_options": "Editor Optionen",
     "extract": "Auspacken",
     "extract_filename": "Folgende Datei auspacken -",
-    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden -",
+    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",
     "file_edit_success": "Datei erfolgreich geändert / angelegt.",
-    "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden -",
+    "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden:",
     "file_new": "Neue Datei",
-    "file_save_confirm": "Soll diese Datei wirklich gelöscht werden -",
+    "file_save_confirm": "Soll diese Datei wirklich gelöscht werden:",
     "filename": "Dateiname",
     "filename_new": "Neuer Dateiname",
     "folder_new": "Neue Ordner",
@@ -1275,7 +1293,7 @@ function IFM( params ) {
 				},
 				actionsGroups:[
 					['edit', 'extract', 'rename'],
-					['copymove', 'download', 'delete']
+					['copymove', 'download', 'createarchive', 'delete']
 				],
 				actions: {
 					edit: {
@@ -1337,6 +1355,22 @@ function IFM( params ) {
 						},
 						iconClass: "icon icon-download",
 						isShown: function() { return !!self.config.download; }
+					},
+					createarchive: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return 'create archive <span class="badge">'+data.selected.length+'</span>';
+							else
+								return 'create archive';
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCreateArchiveDialog( data.selected );
+							else
+								self.showCreateArchiveDialog( data.clicked );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
 					},
 					'delete': {
 						name: function( data ) {
@@ -2044,6 +2078,7 @@ function IFM( params ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
 				if( e.target.value.trim() === '' ) return;
+				document.getElementById( 'searchResults' ).tBodies[0].innerHTML = '<tr><td style="text-align:center;"><span class="icon icon-spin5 animate-spin"></span></td></tr>';
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -2063,6 +2098,72 @@ function IFM( params ) {
 					}
 				});
 			}
+		});
+	};
+
+	/**
+	 * Shows the create archive dialog
+	 */
+	this.showCreateArchiveDialog = function( items ) {
+		self.showModal( Mustache.render( self.templates.createarchive, { i18n: self.i18n } ) );
+
+		var form = document.forms.formCreateArchive;
+		form.elements.archivename.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createArchive( items, e.target.value );
+				self.hideModal();
+			}
+		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createArchive( items, form.elements.archivename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
+	};
+
+	this.createArchive = function( items, archivename ) {
+		var type = "";
+		if( archivename.substr( -3 ).toLowerCase() == "zip" )
+			type = "zip";
+		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
+			type = "tar";
+		else if( archivename.substr( -5 ).toLowerCase() == "tar.gz" )
+			type = "tar.gz";
+		else if( archivename.substr( -6 ).toLowerCase() == "tar.bz2" )
+			type = "tar.bz2";
+		else {
+			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
+			return;
+		}
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: "Create archive "+archivename } );
+
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "createArchive",
+				dir: self.currentDir,
+				archivename: archivename,
+				filenames: items.map( function( e ) { return e.name; } ),
+				format: type
+			},
+			dataType: "json",
+			success: function( data ) {
+				if( data.status == "OK" ) {
+					self.showMessage( "Archive successfully created.", "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( data.message, "e" );
+			},
+			error: function() { self.showMessage( "General error occured.", "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
@@ -2734,6 +2835,7 @@ function IFM( params ) {
 			$this->getConfig();
 		}
 		elseif( $_REQUEST["api"] == "getFolders" ) {
+			sleep( 5 );
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			$this->jsonResponse( $this->templates );
@@ -3263,7 +3365,7 @@ function IFM( params ) {
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -3334,14 +3436,41 @@ function IFM( params ) {
 	}
 
 	private function createArchive( $d ) {
-//		if( $config['createarchive'] != 1 ) {
-//			$this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
-//			return false;
-//		}
-//		$this->chDirIfNecessary( $d['dir'] );
-//		switch( $d['format'] ) {
-//			case "zip":
-//				
+		if( $this->config['createarchive'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
+			return false;
+		}
+		if( ! $this->isFilenameValid( $d['archivename'] ) ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid archive filename given." ) );
+			return false;
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		$filenames = array();
+		foreach( $d['filenames'] as $file )
+			if( ! $this->isFilenameValid( $file ) ) {
+				$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
+				exit( 1 );
+			} else 
+				array_push( $filenames, realpath( $file ) );
+		switch( $d['format'] ) {
+			case "zip":
+				if( IFMArchive::createZip( $filenames, $d['archivename'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );
+				break;
+			case "tar":
+			case "tar.gz":
+			case "tar.bz2":
+				if( IFMArchive::createTar( $filenames, $d['archivename'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );
+				break;
+			default:
+				$this->jsonResponse( array( "status" => "ERROR", "message" => "Unsupported archive format." ) );
+				break;
+		}
 	}
 
 	/*
@@ -3702,38 +3831,42 @@ function IFM( params ) {
 
 }
 
-/* =======================================================================
+/**
+ * =======================================================================
  * Improved File Manager
  * ---------------------
  * License: This project is provided under the terms of the MIT LICENSE
  * http://github.com/misterunknown/ifm/blob/master/LICENSE
  * =======================================================================
  * 
- * zip class
- * 
- * this was adapted from http://php.net/manual/de/class.ziparchive.php#110719
+ * archive class
+ *
+ * This class provides support for various archive types for the IFM. It can
+ * create and extract the following formats:
+ * 	* zip
+ * 	* tar
+ * 	* tar.gz
+ * 	* tar.bz2
 */
 
 class IFMArchive {
+
 	/**
-	 * Add a folder to the zip file
+	 * Add a folder to an archive
 	 */
-	private static function folderToZip($folder, &$zipFile, $exclusiveLength) {
+	private static function addFolder( &$archive, $folder, $offset=0 ) {
+		if( $offset == 0 )
+			$offset = strlen( dirname( $folder ) ) + 1;
+		$archive->addEmptyDir( $folder, substr( $folder, $offset ) );
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
 			if( $f != '.' && $f != '..'  ) {
-				$filePath = "$folder/$f";
-				if( file_exists( $filePath ) && is_readable( $filePath ) ) {
-					// Remove prefix from file path before add to zip.
-					$localPath = substr($filePath, $exclusiveLength);
-					if( is_file( $filePath ) ) {
-						$zipFile->addFile( $filePath, $localPath );
-					} elseif( is_dir( $filePath ) ) {
-						// Add sub-directory.
-						$zipFile->addEmptyDir( $localPath );
-						self::folderToZip( $filePath, $zipFile, $exclusiveLength );
-					}
-				}
+				$filePath = $folder . '/' . $f;
+				if( file_exists( $filePath ) && is_readable( $filePath ) )
+					if( is_file( $filePath ) )
+						$archive->addFile( $filePath, substr( $filePath, $offset ) );
+					elseif( is_dir( $filePath ) )
+						self::addFolder( $archive, $filePath, $offset );
 			}
 		}
 		closedir( $handle );
@@ -3742,22 +3875,24 @@ class IFMArchive {
 	/**
 	 * Create a zip file
 	 */
-	public static function createZip( $src, $out, $root=false )
+	public static function createZip( $src, $out )
 	{
-		$z = new ZipArchive();
-		$z->open( $out, ZIPARCHIVE::CREATE);
-		if( $root ) {
-			self::folderToZip( realpath( $src ), $z, strlen( realpath( $src ) . '/' ) );
-		} else {
-			$z->addEmptyDir( basename( $src ) );
-			self::folderToZip( realpath( $src ), $z, strlen( dirname( $src ) . '/' ) );
-		}
+		$a = new ZipArchive();
+		$a->open( $out, ZIPARCHIVE::CREATE);
+
+		if( ! is_array( $src ) )
+			$src = array( $src );
+
+		foreach( $src as $s )
+			if( is_dir( $s ) )
+				self::addFolder( $a, $s );
+			elseif( is_file( $s ) )
+				$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) + 1 ) );
+
 		try {
-			if( ( $res = $z->close() ) !== true ) {
-				throw new Exception("Error while creating zip archive: ". $z->getStatusString());
-			}
+			return $a->close();
 		} catch ( Exception $e ) {
-			throw $e;
+			return false;
 		}
 	}
 
@@ -3765,17 +3900,38 @@ class IFMArchive {
 	 * Unzip a zip file
 	 */
 	public static function extractZip( $file, $destination="./" ) {
+		if( ! file_exists( $file ) )
+			return false;
 		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
 			$zip->extractTo( $destination );
 			$zip->close();
 			return true;
-		} else {
+		} else
 			return false;
-		}
 	}
 
+	/**
+	 * Creates a tar archive
+	 */
+	public static function createTar( $src, $out ) {
+		$tar = new PharData( $out );
+
+		if( ! is_array( $src ) )
+			$src = array( $src );
+
+		foreach( $src as $s )
+			if( is_dir( $s ) )
+				self::addFolder( $a, $s );
+			elseif( is_file( $s ) )
+				$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
+		return true;
+	}
+
+	/**
+	 * Extracts a tar archive
+	 */
 	public static function extractTar( $file, $destination="./" ) {
 		if( ! file_exists( $file ) )
 			return false;
@@ -3783,14 +3939,9 @@ class IFMArchive {
 		try {
 			$tar->extractTo( $destination, null, true );
 			return true;
-		} catch (Exception $e) {
+		} catch( Exception $e ) {
 			return false;
 		}
-	}
-
-	public static function createTar( $src, $out, $root=false ) {
-		$tar = new PharData( $out );
-		$tar->buildFromDirectory( $src );
 	}
 }
 /**
