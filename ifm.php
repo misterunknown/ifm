@@ -554,7 +554,7 @@ f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();
-		$i18n['en'] = <<<'f00bar'
+		$i18n["en"] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
     "cancel": "Cancel",
@@ -610,67 +610,8 @@ f00bar;
     "word_wrap": "Word Wrap"
 }
 f00bar;
-		$i18n['en'] = json_decode($i18n['en'], true);
-		$i18n['de'] = <<<'f00bar'
-{
-    "ajax_request": "AJAX Request",
-    "archivename": "Name des Archivs",
-    "cancel": "Abbrechen",
-    "close": "Schließen",
-    "copy": "Kopieren",
-    "data": "Daten",
-    "delete": "Löschen",
-    "directoryname": "Ordner Name",
-    "editor_options": "Editor Optionen",
-    "extract": "Auspacken",
-    "extract_filename": "Folgende Datei auspacken -",
-    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",
-    "file_edit_success": "Datei erfolgreich geändert / angelegt.",
-    "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden:",
-    "file_new": "Neue Datei",
-    "file_save_confirm": "Soll diese Datei wirklich gelöscht werden:",
-    "filename": "Dateiname",
-    "filename_new": "Neuer Dateiname",
-    "folder_new": "Neue Ordner",
-    "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
-    "github": "Besuche das Projekt auf GitHub",
-    "group": "Gruppe",
-    "last_modified": "Zuletzt geändert",
-    "login": "Anmeldung",
-    "logout": "Abmelden",
-    "method": "Methode",
-    "move": "Verschieben",
-    "options": "Optionen",
-    "owner": "Besitzer",
-    "password": "Passwort",
-    "path_content": "Inhalt von",
-    "permissions": "Berechtigungen",
-    "refresh": "Auffrischen",
-    "rename": "Umbenennen",
-    "rename_filename": "Folgende Datei umbenennen -",
-    "request": "Anfrage",
-    "response": "Antwort",
-    "save": "Speichen",
-    "save_wo_close": "Speichen ohne Schließen",
-    "search": "Suchen",
-    "search_pattern": "Muster",
-    "select_destination": "Zielort auswählen",
-    "size": "Größe",
-    "soft_tabs": "Leichte Tabulatoren",
-    "tab_size": "Tabulatoren Größe",
-    "tasks": "Aufgaben",
-    "toggle_nav": "Navigation umschalten",
-    "upload": "Hochladen",
-    "upload_drop": "Dateien zum hochladen hier hinziehen",
-    "upload_file": "Datei hochladen",
-    "upload_remote": "Hochladen von ausserhalb",
-    "upload_remote_url": "Entfernte URL zum hochladen",
-    "username": "Benutzername",
-    "word_wrap": "Zeilenumbruch"
-}
+$i18n["en"] = json_decode( $i18n["en"], true );
 
-f00bar;
-		$i18n['de'] = json_decode($i18n['de'], true);
 		$this->i18n = $i18n;
 	}
 
@@ -2840,7 +2781,12 @@ function IFM( params ) {
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			$this->jsonResponse( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
-			$this->jsonResponse( $this->i18n[$this->config['language']] );
+			if( isset( $this->i18n[$this->config['language']] ) )
+				$this->jsonResponse( $this->i18n[$this->config['language']] );
+			else {
+				foreach( $this->i18n as $lang ) break;
+				$this->jsonResponse( $lang );
+			}
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
