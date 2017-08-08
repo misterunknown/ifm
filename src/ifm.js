@@ -77,7 +77,7 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( taskid ); }
 		});
 	};
@@ -92,7 +92,7 @@ function IFM( params ) {
 			this.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( "Invalid data from server", "e" );
+			this.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -352,7 +352,7 @@ function IFM( params ) {
 				$( "#currentDir" ).val( self.currentDir );
 				if( config.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+encodeURIComponent( self.currentDir ) );
 			},
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -447,9 +447,9 @@ function IFM( params ) {
 						if( data.status == "OK" ) {
 							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
+						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 		self.fileChanged = false;
 	};
@@ -474,11 +474,11 @@ function IFM( params ) {
 							self.showFileDialog( data.data.filename, data.data.content );
 						}
 						else if( data.status == "OK" && data.data.content == null ) {
-							self.showMessage( "The content of this file cannot be fetched.", "e" );
+							self.showMessage( self.i18n.file_load_error, "e" );
 						}
-						else self.showMessage( "Error: "+data.message, "e" );
+						else self.showMessage( self.i18n.error +data.message, "e" );
 					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
+			error: function() { self.showMessage( self.i18n.file_display_error, "e" ); }
 		});
 	};
 
@@ -522,14 +522,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 					if( data.status == "OK" ) {
-						self.showMessage( "Directory sucessfully created.", "s" );
+						self.showMessage( self.i18n.folder_create_success, "s" );
 						self.refreshFileTable();
 					}
 					else {
-						self.showMessage( "Directory could not be created: "+data.message, "e" );
+						self.showMessage( self.i18n.folder_create_error +data.message, "e" );
 					}
 				},
-			error: function() { self.showMessage( "General error occured.", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -575,11 +575,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File(s) successfully deleted", "s" );
+							self.showMessage( self.i18n.file_delete_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File(s) could not be deleted", "e" );
+						} else self.showMessage( self.i18n.file_delete_error, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -628,11 +628,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 						if(data.status == "OK") {
-							ifm.showMessage("File successfully renamed", "s");
+							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be renamed: "+data.message, "e");
+						} else ifm.showMessage( self.i18n.file_rename_error +data.message, "e");
 					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
+			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -672,7 +672,7 @@ function IFM( params ) {
 					}
 				});
 			},
-			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+			error: function() { self.hideModal(); self.showMessage( self.i18n.folder_tree_load_error, "e" ) }
 		});
 		var form = document.forms.formCopyMove;
 		form.addEventListener( 'click', function( e ) {
@@ -703,7 +703,7 @@ function IFM( params ) {
 			sources = [sources];
 		sources.forEach( function( source ) {
 			var id = self.generateGuid();
-			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
+			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " " + self.i18n.file_copy_to + " " + destination } );
 			$.ajax({
 				url: self.api,
 				type: "POST",
@@ -724,7 +724,7 @@ function IFM( params ) {
 					self.refreshFileTable();
 				},
 				error: function() {
-					self.showMessage( "General error occured.", "e" );
+					self.showMessage( self.i18n.general_error, "e" );
 				},
 				complete: function() {
 					self.task_done( id );
@@ -787,11 +787,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully extracted", "s" );
+							self.showMessage( self.i18n.file_extract_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
+						} else self.showMessage( self.i18n.file_extract_error + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
@@ -852,11 +852,11 @@ function IFM( params ) {
 			},
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage("File successfully uploaded", "s");
+					self.showMessage( self.i18n.file_upload_success, "s");
 					if(data.cd == self.currentDir) self.refreshFileTable();
-				} else self.showMessage("File could not be uploaded: "+data.message, "e");
+				} else self.showMessage( self.i18n.file_upload_error +data.message, "e");
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add( { id: id, name: "Upload " + file.name } );
@@ -881,14 +881,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 				if( data.status == "OK" ) {
-					self.showMessage( "Permissions successfully changed.", "s" );
+					self.showMessage( self.i18n.permission_change_success, "s" );
 					self.refreshFileTable();
 				}
 				else {
-					self.showMessage( "Permissions could not be changed: "+data.message, "e");
+					self.showMessage( self.i18n.permission_change_error +data.message, "e");
 				}
 			},
-			error: function() { self.showMessage("General error occured.", "e"); }
+			error: function() { self.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -939,12 +939,12 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage( "File successfully uploaded", "s" );
+					self.showMessage( self.i18n.file_upload_success, "s" );
 					self.refreshFileTable();
 				} else
-					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+					self.showMessage( self.i18n.file_upload_error + data.message, "e" );
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add( { id: id, name: "Remote upload: "+filename } );
@@ -1477,7 +1477,7 @@ function IFM( params ) {
 				self.initLoadTemplates();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load configuration" );
+				throw new Error( self.i18n.load_config_error );
 			}
 		});
 	};
@@ -1497,7 +1497,7 @@ function IFM( params ) {
 				self.initLoadI18N();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load templates" );
+				throw new Error( self.i18n.load_template_error );
 			}
 		});
 	};
@@ -1517,7 +1517,7 @@ function IFM( params ) {
 				self.initApplication();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load I18N" );
+				throw new Error( self.i18n.load_text_error );
 			}
 		});
 	};

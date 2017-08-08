@@ -479,7 +479,7 @@ f00bar;
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonRename">{{i18n.rename_filename}}</button>
+	<button type="button" class="btn btn-default" id="buttonRename">{{i18n.file_rename}}</button>
 	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}} </button>
 </div>
 </form>
@@ -547,20 +547,42 @@ f00bar;
     "delete": "Delete",
     "directoryname": "Directory Name",
     "editor_options": "Editor Options",
+    "error": "Error:",
     "extract": "Extract",
     "extract_filename": "Extract file - ",
+    "file_copy_to": "to",
     "file_delete_confirm": "Do you really want to delete the following file -",
+    "file_delete_error": "File(s) could not be deleted",
+    "file_delete_success": "File(s) successfully deleted",
+    "file_display_error": "This file can not be displayed or edited",
     "file_edit_success": "File successfully edited / created.",
+    "file_extract_error": "File could not be extracted: ",
+    "file_extract_success": "File successfully extracted",
+    "file_load_error": "The content of this file cannot be fetched",
     "file_multi_delete_confirm": "Do you really want to delete these files -",
     "file_new": "New File",
+    "file_rename": "Rename File",
+    "file_rename_error": "File could not be renamed: ",
+    "file_rename_success": "File successfully renamed",
     "file_save_confirm": "Do you want to save the following file -",
+    "file_save_error": "File could not be edited or created: ",
+    "file_upload_error": "File could not be uploaded: ",
+    "file_upload_success": "File successfully uploaded",
     "filename": "Filename",
     "filename_new": "New Filename",
+    "folder_create_error": "Directory could not be created: ",
+    "folder_create_success": "Directory sucessfully created",
     "folder_new": "New Folder",
+    "folder_tree_load_error": "Error while fetching the folder tree",
     "footer": "IFM - improved file manager | ifm.php hidden |",
+    "general_error": "General error occured: No or broken response",
     "github": "Visit the project on GitHub",
     "group": "Group",
+    "invalid_data": "Invalid data from server",
     "last_modified": "Last Modified",
+    "load_config_error": "Could not load configuration",
+    "load_template_error": "Could not load templates",
+    "load_text_error": "Could not load texts",
     "login": "Login",
     "logout": "Log Off",
     "method": "Method",
@@ -569,6 +591,8 @@ f00bar;
     "owner": "Owner",
     "password": "Password",
     "path_content": "Content of",
+    "permission_change_error": "Permissions could not be changed: ",
+    "permission_change_success": "Permissions successfully changed",
     "permissions": "Permissions",
     "refresh": "Refresh",
     "rename": "Rename",
@@ -604,20 +628,42 @@ f00bar;
     "delete": "Löschen",
     "directoryname": "Ordner Name",
     "editor_options": "Editor Optionen",
+    "error": "Fehler:",
     "extract": "Auspacken",
     "extract_filename": "Folgende Datei auspacken -",
+    "file_copy_to": "zu",
     "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden -",
+    "file_delete_error": "Datei(en) konnten nicht gelöscht werden",
+    "file_delete_success": "Datei(en) erfolgreich gelöscht",
+    "file_display_error": "Die Datei kann nicht angezeigt oder geändert werden",
     "file_edit_success": "Datei erfolgreich geändert / angelegt.",
+    "file_extract_error": "Datei konnte nicht entpackt werden: ",
+    "file_extract_success": "Datei erfolgreich entpackt",
+    "file_load_error": "Der Inhalt der Datei konnte nicht geladen werden",
     "file_multi_delete_confirm": "Sollen diese Dateien wirklich gelöscht werden -",
     "file_new": "Neue Datei",
+    "file_rename": "Datei umbenennen",
+    "file_rename_error": "Datei konnte nicht umbenannt werden: ",
+    "file_rename_success": "Datei erfogreich umbenannt",
     "file_save_confirm": "Soll diese Datei wirklich gelöscht werden -",
+    "file_save_error": "Datei konnte nicht geändert oder angelegt werden: ",
+    "file_upload_error": "Datei konnte nicht hochgeladen werden: ",
+    "file_upload_success": "Datei erfolgreich hochgeladen",
     "filename": "Dateiname",
     "filename_new": "Neuer Dateiname",
+    "folder_create_error": "Verzeichnis konnte nicht angelegt werden: ",
+    "folder_create_success": "Verzeichnis erfolgreich angelegt",
     "folder_new": "Neue Ordner",
+    "folder_tree_load_error": "Fehler bei Laden des Verzeichnisbaums",
     "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
+    "general_error": "Genereller Fehler aufgetreten: Keine oder unvollständige Antwort",
     "github": "Besuche das Projekt auf GitHub",
     "group": "Gruppe",
+    "invalid_data": "Fehlerhafte Daten vom Server erhalten",
     "last_modified": "Zuletzt geändert",
+    "load_config_error": "Konfiguration konnte nicht geladen werden",
+    "load_template_error": "Vorlagen konnten nicht geladen werden",
+    "load_text_error": "Texte konnten nicht geladen werden",
     "login": "Anmeldung",
     "logout": "Abmelden",
     "method": "Methode",
@@ -626,6 +672,8 @@ f00bar;
     "owner": "Besitzer",
     "password": "Passwort",
     "path_content": "Inhalt von",
+    "permission_change_error": "Berechtigungen konnten nicht geändert werden: ",
+    "permission_change_success": "Berechtigungen erfolgreich geändert",
     "permissions": "Berechtigungen",
     "refresh": "Auffrischen",
     "rename": "Umbenennen",
@@ -1108,7 +1156,7 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( taskid ); }
 		});
 	};
@@ -1123,7 +1171,7 @@ function IFM( params ) {
 			this.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( "Invalid data from server", "e" );
+			this.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -1383,7 +1431,7 @@ function IFM( params ) {
 				$( "#currentDir" ).val( self.currentDir );
 				if( config.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+encodeURIComponent( self.currentDir ) );
 			},
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -1478,9 +1526,9 @@ function IFM( params ) {
 						if( data.status == "OK" ) {
 							self.showMessage( self.i18n.file_edit_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
+						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 		self.fileChanged = false;
 	};
@@ -1505,11 +1553,11 @@ function IFM( params ) {
 							self.showFileDialog( data.data.filename, data.data.content );
 						}
 						else if( data.status == "OK" && data.data.content == null ) {
-							self.showMessage( "The content of this file cannot be fetched.", "e" );
+							self.showMessage( self.i18n.file_load_error, "e" );
 						}
-						else self.showMessage( "Error: "+data.message, "e" );
+						else self.showMessage( self.i18n.error +data.message, "e" );
 					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
+			error: function() { self.showMessage( self.i18n.file_display_error, "e" ); }
 		});
 	};
 
@@ -1553,14 +1601,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 					if( data.status == "OK" ) {
-						self.showMessage( "Directory sucessfully created.", "s" );
+						self.showMessage( self.i18n.folder_create_success, "s" );
 						self.refreshFileTable();
 					}
 					else {
-						self.showMessage( "Directory could not be created: "+data.message, "e" );
+						self.showMessage( self.i18n.folder_create_error +data.message, "e" );
 					}
 				},
-			error: function() { self.showMessage( "General error occured.", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -1606,11 +1654,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File(s) successfully deleted", "s" );
+							self.showMessage( self.i18n.file_delete_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File(s) could not be deleted", "e" );
+						} else self.showMessage( self.i18n.file_delete_error, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -1659,11 +1707,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 						if(data.status == "OK") {
-							ifm.showMessage("File successfully renamed", "s");
+							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be renamed: "+data.message, "e");
+						} else ifm.showMessage( self.i18n.file_rename_error +data.message, "e");
 					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
+			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -1703,7 +1751,7 @@ function IFM( params ) {
 					}
 				});
 			},
-			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+			error: function() { self.hideModal(); self.showMessage( self.i18n.folder_tree_load_error, "e" ) }
 		});
 		var form = document.forms.formCopyMove;
 		form.addEventListener( 'click', function( e ) {
@@ -1734,7 +1782,7 @@ function IFM( params ) {
 			sources = [sources];
 		sources.forEach( function( source ) {
 			var id = self.generateGuid();
-			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
+			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " " + self.i18n.file_copy_to + " " + destination } );
 			$.ajax({
 				url: self.api,
 				type: "POST",
@@ -1755,7 +1803,7 @@ function IFM( params ) {
 					self.refreshFileTable();
 				},
 				error: function() {
-					self.showMessage( "General error occured.", "e" );
+					self.showMessage( self.i18n.general_error, "e" );
 				},
 				complete: function() {
 					self.task_done( id );
@@ -1818,11 +1866,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully extracted", "s" );
+							self.showMessage( self.i18n.file_extract_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
+						} else self.showMessage( self.i18n.file_extract_error + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
@@ -1883,11 +1931,11 @@ function IFM( params ) {
 			},
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage("File successfully uploaded", "s");
+					self.showMessage( self.i18n.file_upload_success, "s");
 					if(data.cd == self.currentDir) self.refreshFileTable();
-				} else self.showMessage("File could not be uploaded: "+data.message, "e");
+				} else self.showMessage( self.i18n.file_upload_error +data.message, "e");
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add( { id: id, name: "Upload " + file.name } );
@@ -1912,14 +1960,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 				if( data.status == "OK" ) {
-					self.showMessage( "Permissions successfully changed.", "s" );
+					self.showMessage( self.i18n.permission_change_success, "s" );
 					self.refreshFileTable();
 				}
 				else {
-					self.showMessage( "Permissions could not be changed: "+data.message, "e");
+					self.showMessage( self.i18n.permission_change_error +data.message, "e");
 				}
 			},
-			error: function() { self.showMessage("General error occured.", "e"); }
+			error: function() { self.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -1970,12 +2018,12 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage( "File successfully uploaded", "s" );
+					self.showMessage( self.i18n.file_upload_success, "s" );
 					self.refreshFileTable();
 				} else
-					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+					self.showMessage( self.i18n.file_upload_error + data.message, "e" );
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add( { id: id, name: "Remote upload: "+filename } );
@@ -2508,7 +2556,7 @@ function IFM( params ) {
 				self.initLoadTemplates();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load configuration" );
+				throw new Error( self.i18n.load_config_error );
 			}
 		});
 	};
@@ -2528,7 +2576,7 @@ function IFM( params ) {
 				self.initLoadI18N();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load templates" );
+				throw new Error( self.i18n.load_template_error );
 			}
 		});
 	};
@@ -2548,7 +2596,7 @@ function IFM( params ) {
 				self.initApplication();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load I18N" );
+				throw new Error( self.i18n.load_text_error );
 			}
 		});
 	};
