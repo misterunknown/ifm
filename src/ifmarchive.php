@@ -26,7 +26,7 @@ class IFMArchive {
 	private static function addFolder( &$archive, $folder, $offset=0 ) {
 		if( $offset == 0 )
 			$offset = strlen( dirname( $folder ) ) + 1;
-		$archive->addEmptyDir( $folder, substr( $folder, $offset ) );
+		$archive->addEmptyDir( substr( $folder, $offset ) );
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
 			if( $f != '.' && $f != '..'  ) {
@@ -84,18 +84,34 @@ class IFMArchive {
 	/**
 	 * Creates a tar archive
 	 */
-	public static function createTar( $src, $out ) {
-		$tar = new PharData( $out );
+	public static function createTar( $src, $out, $t ) {
+		$tmpf = substr( $out, 0, strlen( $out ) - strlen( $t ) ) . "tar";
+		$a = new PharData( $tmpf );
 
-		if( ! is_array( $src ) )
-			$src = array( $src );
+		try { 
+			if( ! is_array( $src ) )
+				$src = array( $src );
 
-		foreach( $src as $s )
-			if( is_dir( $s ) )
-				self::addFolder( $a, $s );
-			elseif( is_file( $s ) )
-				$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
-		return true;
+			foreach( $src as $s )
+				if( is_dir( $s ) )
+					self::addFolder( $a, $s );
+				elseif( is_file( $s ) )
+					$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
+			switch( $t ) {
+			case "tar.gz":
+				$a->compress( Phar::GZ );
+				@unlink( $tmpf );
+				break;
+			case "tar.bz2":
+				$a->compress( Phar::BZ2 );
+				@unlink( $tmpf );
+				break;
+			}
+			return true;
+		} catch( Exception $e ) {
+			@unlink( $tmpf );
+			return false;
+		}
 	}
 
 	/**

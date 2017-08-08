@@ -1086,9 +1086,9 @@ function IFM( params ) {
 			type = "zip";
 		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
 			type = "tar";
-		else if( archivename.substr( -5 ).toLowerCase() == "tar.gz" )
+		else if( archivename.substr( -6 ).toLowerCase() == "tar.gz" )
 			type = "tar.gz";
-		else if( archivename.substr( -6 ).toLowerCase() == "tar.bz2" )
+		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
 			type = "tar.bz2";
 		else {
 			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
