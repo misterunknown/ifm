@@ -240,7 +240,6 @@ f00bar;
 			$this->getConfig();
 		}
 		elseif( $_REQUEST["api"] == "getFolders" ) {
-			sleep( 5 );
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
 			$this->jsonResponse( $this->templates );
@@ -521,11 +520,11 @@ f00bar;
 			$this->jsonResponse( array( "status" => "OK", "message" => "File(s) $action successfully", "errflag" => "1" ) );
 		}
 		else {
-			$errmsg = "The following files could not be deleted:<ul>";
+			$errmsg = "The following files could not be copied/moved:<ul>";
 			foreach($err as $item)
 				$errmsg .= "<li>".$item."</li>";
 			$errmsg .= "</ul>";
-			$this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
+			$this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFlag ) );
 		}
 	}
 
