@@ -557,15 +557,20 @@ f00bar;
 		$i18n["en"] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
+    "archivename": "Name of the archive",
+    "archive_create_sucess": "Archive successfully created.",
     "cancel": "Cancel",
     "close": "Close",
     "copy": "Copy",
+    "create_archive": "Create archive",
     "data": "Data",
     "delete": "Delete",
     "directoryname": "Directory Name",
+    "download": "Download",
+    "edit": "edit",
     "editor_options": "Editor Options",
     "error": "Error:",
-    "extract": "Extract",
+    "extract": "extract",
     "extract_filename": "Extract file - ",
     "file_copy_to": "to",
     "file_delete_confirm": "Do you really want to delete the following file -",
@@ -596,6 +601,7 @@ f00bar;
     "github": "Visit the project on GitHub",
     "group": "Group",
     "invalid_data": "Invalid data from server",
+    "invalid_archive_format": "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.",
     "last_modified": "Last Modified",
     "load_config_error": "Could not load configuration",
     "load_template_error": "Could not load templates",
@@ -611,8 +617,8 @@ f00bar;
     "permission_change_error": "Permissions could not be changed: ",
     "permission_change_success": "Permissions successfully changed",
     "permissions": "Permissions",
-    "refresh": "Refresh",
-    "rename": "Rename",
+    "refresh": "refresh",
+    "rename": "rename",
     "rename_filename": "Rename file -",
     "request": "Request",
     "response": "Response",
@@ -633,22 +639,27 @@ f00bar;
     "username": "username",
     "word_wrap": "Word Wrap"
 }
+
 f00bar;
 $i18n["en"] = json_decode( $i18n["en"], true );
 $i18n["de"] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
     "archivename": "Name des Archivs",
+    "archive_create_sucess": "Archive successfully created.",
     "cancel": "Abbrechen",
     "close": "Schließen",
     "copy": "Kopieren",
+    "create_archive": "Archiv erstellen",
     "data": "Daten",
     "delete": "Löschen",
     "directoryname": "Ordner Name",
+    "download": "Download",
+    "edit": "Bearbeiten",
     "editor_options": "Editor Optionen",
     "error": "Fehler:",
-    "extract": "Auspacken",
-    "extract_filename": "Folgende Datei auspacken -",
+    "extract": "Entpacken",
+    "extract_filename": "Folgende Datei entpacken -",
     "file_copy_to": "zu",
     "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",
     "file_delete_error": "Datei(en) konnten nicht gelöscht werden",
@@ -681,6 +692,7 @@ $i18n["de"] = <<<'f00bar'
     "github": "Besuche das Projekt auf GitHub",
     "group": "Gruppe",
     "invalid_data": "Fehlerhafte Daten vom Server erhalten",
+    "invalid_archive_format": "Ungültiges Archiv-Format. Möglich sind zip, tar, tar.gz oder tar.bz2.",
     "last_modified": "Zuletzt geändert",
     "load_config_error": "Konfiguration konnte nicht geladen werden",
     "load_template_error": "Vorlagen konnten nicht geladen werden",
@@ -702,7 +714,7 @@ $i18n["de"] = <<<'f00bar'
     "request": "Anfrage",
     "response": "Antwort",
     "save": "Speichen",
-    "save_wo_close": "Speichen ohne Schließen",
+    "save_wo_close": "Speichen ohne schließen",
     "search": "Suchen",
     "search_pattern": "Muster",
     "select_destination": "Zielort auswählen",
@@ -719,7 +731,6 @@ $i18n["de"] = <<<'f00bar'
     "username": "Benutzername",
     "word_wrap": "Zeilenumbruch"
 }
-
 f00bar;
 $i18n["de"] = json_decode( $i18n["de"], true );
 
@@ -1168,7 +1179,7 @@ function IFM( params ) {
 	 */
 	this.refreshFileTable = function () {
 		var taskid = self.generateGuid();
-		self.task_add( { id: taskid, name: "Refresh" } );
+		self.task_add( { id: taskid, name: self.i18n.refresh } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1349,7 +1360,7 @@ function IFM( params ) {
 				],
 				actions: {
 					edit: {
-						name: "edit",
+						name: self.i18n.edit,
 						onClick: function( data ) {
 							self.editFile( data.clicked.name );
 						},
@@ -1359,7 +1370,7 @@ function IFM( params ) {
 						}
 					},
 					extract: {
-						name: "extract",
+						name: self.i18n.extract,
 						onClick: function( data ) {
 							self.showExtractFileDialog( data.clicked.name );
 						},
@@ -1369,7 +1380,7 @@ function IFM( params ) {
 						}
 					},
 					rename: {
-						name: "rename",
+						name: self.i18n.rename,
 						onClick: function( data ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
@@ -1379,9 +1390,9 @@ function IFM( params ) {
 					copymove: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'copy/move';
+								return self.i18n.copy+'/'+self.i18n.move;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -1395,9 +1406,9 @@ function IFM( params ) {
 					download: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'download <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'download';
+								return self.i18n.download;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -1411,9 +1422,9 @@ function IFM( params ) {
 					createarchive: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'create archive <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'create archive';
+								return self.i18n.create_archive;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -1427,9 +1438,9 @@ function IFM( params ) {
 					'delete': {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'delete <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'delete';
+								return self.i18n.delete;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -2063,7 +2074,7 @@ function IFM( params ) {
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: self.i18n.upload_remote+" "+filename } );
 	};
 
 	/**
@@ -2192,11 +2203,11 @@ function IFM( params ) {
 		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
 			type = "tar.bz2";
 		else {
-			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
+			self.showMessage( self.i18n.invalid_archive_format, "e" );
 			return;
 		}
 		var id = self.generateGuid();
-		self.task_add( { id: id, name: "Create archive "+archivename } );
+		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
 
 		$.ajax({
 			url: self.api,
@@ -2211,12 +2222,12 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 				if( data.status == "OK" ) {
-					self.showMessage( "Archive successfully created.", "s" );
+					self.showMessage( self.i18n.archive_create_success, "s" );
 					self.refreshFileTable();
 				} else
 					self.showMessage( data.message, "e" );
 			},
-			error: function() { self.showMessage( "General error occured.", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
@@ -2789,7 +2800,7 @@ function IFM( params ) {
 				var dragImage = document.createElement( 'div' );
 				dragImage.style.display = 'inline';
 				dragImage.style.padding = '10px';
-				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> move '+( data.length || data.name );
+				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> '+self.i18n.move+' '+( data.length || data.name );
 				document.body.appendChild( dragImage );
 				setTimeout(function() {
 					dragImage.remove();

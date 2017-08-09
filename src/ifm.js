@@ -67,7 +67,7 @@ function IFM( params ) {
 	 */
 	this.refreshFileTable = function () {
 		var taskid = self.generateGuid();
-		self.task_add( { id: taskid, name: "Refresh" } );
+		self.task_add( { id: taskid, name: self.i18n.refresh } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -248,7 +248,7 @@ function IFM( params ) {
 				],
 				actions: {
 					edit: {
-						name: "edit",
+						name: self.i18n.edit,
 						onClick: function( data ) {
 							self.editFile( data.clicked.name );
 						},
@@ -258,7 +258,7 @@ function IFM( params ) {
 						}
 					},
 					extract: {
-						name: "extract",
+						name: self.i18n.extract,
 						onClick: function( data ) {
 							self.showExtractFileDialog( data.clicked.name );
 						},
@@ -268,7 +268,7 @@ function IFM( params ) {
 						}
 					},
 					rename: {
-						name: "rename",
+						name: self.i18n.rename,
 						onClick: function( data ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
@@ -278,9 +278,9 @@ function IFM( params ) {
 					copymove: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'copy/move';
+								return self.i18n.copy+'/'+self.i18n.move;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -294,9 +294,9 @@ function IFM( params ) {
 					download: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'download <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'download';
+								return self.i18n.download;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -310,9 +310,9 @@ function IFM( params ) {
 					createarchive: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'create archive <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'create archive';
+								return self.i18n.create_archive;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -326,9 +326,9 @@ function IFM( params ) {
 					'delete': {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'delete <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'delete';
+								return self.i18n.delete;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -962,7 +962,7 @@ function IFM( params ) {
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: self.i18n.upload_remote+" "+filename } );
 	};
 
 	/**
@@ -1091,11 +1091,11 @@ function IFM( params ) {
 		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
 			type = "tar.bz2";
 		else {
-			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
+			self.showMessage( self.i18n.invalid_archive_format, "e" );
 			return;
 		}
 		var id = self.generateGuid();
-		self.task_add( { id: id, name: "Create archive "+archivename } );
+		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
 
 		$.ajax({
 			url: self.api,
@@ -1110,12 +1110,12 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 				if( data.status == "OK" ) {
-					self.showMessage( "Archive successfully created.", "s" );
+					self.showMessage( self.i18n.archive_create_success, "s" );
 					self.refreshFileTable();
 				} else
 					self.showMessage( data.message, "e" );
 			},
-			error: function() { self.showMessage( "General error occured.", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
@@ -1688,7 +1688,7 @@ function IFM( params ) {
 				var dragImage = document.createElement( 'div' );
 				dragImage.style.display = 'inline';
 				dragImage.style.padding = '10px';
-				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> move '+( data.length || data.name );
+				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> '+self.i18n.move+' '+( data.length || data.name );
 				document.body.appendChild( dragImage );
 				setTimeout(function() {
 					dragImage.remove();
