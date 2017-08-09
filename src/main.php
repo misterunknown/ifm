@@ -871,7 +871,7 @@ f00bar;
 			case "tar":
 			case "tar.gz":
 			case "tar.bz2":
-				if( IFMArchive::createTar( $filenames, $d['archivename'] ) )
+				if( IFMArchive::createTar( $filenames, $d['archivename'], $d['format'] ) )
 					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
 				else
 					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );

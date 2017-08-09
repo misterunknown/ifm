@@ -2187,9 +2187,9 @@ function IFM( params ) {
 			type = "zip";
 		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
 			type = "tar";
-		else if( archivename.substr( -5 ).toLowerCase() == "tar.gz" )
+		else if( archivename.substr( -6 ).toLowerCase() == "tar.gz" )
 			type = "tar.gz";
-		else if( archivename.substr( -6 ).toLowerCase() == "tar.bz2" )
+		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
 			type = "tar.bz2";
 		else {
 			self.showMessage( "Invalid archive format given. Use zip, tar, tar.gz or tar.bz2.", "e" );
@@ -3520,7 +3520,7 @@ function IFM( params ) {
 			case "tar":
 			case "tar.gz":
 			case "tar.bz2":
-				if( IFMArchive::createTar( $filenames, $d['archivename'] ) )
+				if( IFMArchive::createTar( $filenames, $d['archivename'], $d['format'] ) )
 					$this->jsonResponse( array( "status" => "OK", "message" => "Archive successfully created." ) );
 				else
 					$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create archive." ) );
@@ -3915,7 +3915,7 @@ class IFMArchive {
 	private static function addFolder( &$archive, $folder, $offset=0 ) {
 		if( $offset == 0 )
 			$offset = strlen( dirname( $folder ) ) + 1;
-		$archive->addEmptyDir( $folder, substr( $folder, $offset ) );
+		$archive->addEmptyDir( substr( $folder, $offset ) );
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
 			if( $f != '.' && $f != '..'  ) {
@@ -3973,18 +3973,34 @@ class IFMArchive {
 	/**
 	 * Creates a tar archive
 	 */
-	public static function createTar( $src, $out ) {
-		$tar = new PharData( $out );
+	public static function createTar( $src, $out, $t ) {
+		$tmpf = substr( $out, 0, strlen( $out ) - strlen( $t ) ) . "tar";
+		$a = new PharData( $tmpf );
 
-		if( ! is_array( $src ) )
-			$src = array( $src );
+		try { 
+			if( ! is_array( $src ) )
+				$src = array( $src );
 
-		foreach( $src as $s )
-			if( is_dir( $s ) )
-				self::addFolder( $a, $s );
-			elseif( is_file( $s ) )
-				$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
-		return true;
+			foreach( $src as $s )
+				if( is_dir( $s ) )
+					self::addFolder( $a, $s );
+				elseif( is_file( $s ) )
+					$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
+			switch( $t ) {
+			case "tar.gz":
+				$a->compress( Phar::GZ );
+				@unlink( $tmpf );
+				break;
+			case "tar.bz2":
+				$a->compress( Phar::BZ2 );
+				@unlink( $tmpf );
+				break;
+			}
+			return true;
+		} catch( Exception $e ) {
+			@unlink( $tmpf );
+			return false;
+		}
 	}
 
 	/**
