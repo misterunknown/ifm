@@ -1,6 +1,6 @@
 # IFM - improved file manager
 ## about
-The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP.
+The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP. You can test a [demo here](https://ifmdemo.misterunknown.de/). The credentials are the default credentials: `admin` as username and password.
 
 The IFM uses the following resources:
 * [ACE Editor](https://ace.c9.io)
