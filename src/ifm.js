@@ -197,7 +197,7 @@ function IFM( params ) {
 			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
 				e.stopPropagation();
 				e.preventDefault();
-				var item = self.fileCache.find( x =>  x.guid === e.target.parentElement.dataset.id );
+				var item = self.fileCache.find( function( x ) { if( x.guid === e.target.parentElement.dataset.id ) return x; } );
 				switch( e.target.parentElement.name.substr( 3 ) ) {
 					case "rename":
 						self.showRenameFileDialog( item.name );
@@ -462,7 +462,7 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( self.i18n.file_edit_success, "s" );
+							self.showMessage( self.i18n.file_save_success, "s" );
 							self.refreshFileTable();
 						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
 					},
@@ -1043,11 +1043,16 @@ function IFM( params ) {
 					},
 					dataType: "json",
 					success: function( data ) {
-						data.forEach( function(e) {
-							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
-							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
-						});
-						updateResults( data );
+						if( data.status == 'ERROR' ) {
+							self.hideModal();
+							self.showMessage( data.message, "e" );
+						} else {
+							data.forEach( function(e) {
+								e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+							});
+							updateResults( data );
+						}
 					}
 				});
 			}
@@ -1639,8 +1644,8 @@ function IFM( params ) {
 		if( self.config.ajaxrequest )
 			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
 		if( self.config.upload )
-			document.addEventListener( 'drag', function( e ) {
-				if( e.dataTransfer.files.length > 0 ) {
+			document.addEventListener( 'dragover', function( e ) {
+				if( Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 ) {
 					e.preventDefault();
 					e.stopPropagation();
 					var div = document.getElementById( 'filedropoverlay' );
@@ -1667,11 +1672,16 @@ function IFM( params ) {
 							e.target.parentElement.style.display = 'none';
 						}
 					};
+				} else {
+					var div = document.getElementById( 'filedropoverlay' );
+					if( div.style.display == 'block' )
+						div.stye.display == 'none';
 				}
 			});
 
 		// drag and drop of filetable items
 		if( self.config.copymove ) {
+			var isFile = function(e) { return Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 };
 			document.addEventListener( 'dragstart', function( e ) {
 				var selectedItems = document.getElementsByClassName( 'selectedItem' );
 				var data;
@@ -1680,8 +1690,8 @@ function IFM( params ) {
 							x => self.inArray(
 								x.guid,
 								[].slice.call( selectedItems ).map( function( e ) { return e.dataset.id; } )
-							)
-						);
+								)
+							);
 				else 
 					data = self.fileCache.find( x => x.guid === e.target.dataset.id );
 				e.dataTransfer.setData( 'text/plain', JSON.stringify( data ) );
@@ -1695,21 +1705,23 @@ function IFM( params ) {
 				});
 				e.dataTransfer.setDragImage( dragImage, 0, 0 );
 			});
-			document.addEventListener( 'dragover', function( e ) { e.preventDefault(); } );
+			document.addEventListener( 'dragover', function( e ) { if( ! isFile( e ) && e.target.parentElement.classList.contains( 'isDir' ) ) e.preventDefault(); } );
 			document.addEventListener( 'dragenter', function( e ) {
-				if( e.target.parentElement.classList.contains( 'isDir' ) )
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) )
 					e.target.parentElement.classList.add( 'highlightedItem' );
 			});
 			document.addEventListener( 'dragleave', function( e ) {
-				if( e.target.parentElement.classList.contains( 'isDir' ) )
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) )
 					e.target.parentElement.classList.remove( 'highlightedItem' );
 			});
 			document.addEventListener( 'drop', function( e ) {
-				if( e.target.parentElement.classList.contains( 'isDir' ) ) {
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) ) {
+					e.preventDefault();
+					e.stopPropagation();
 					try {
 						var source = JSON.parse( e.dataTransfer.getData( 'text' ) );
-						console.log( "source:" );
-						console.log( source );
+						self.log( "source:" );
+						self.log( source );
 						var destination = self.fileCache.find( x => x.guid === e.target.firstElementChild.id );
 						if( ! Array.isArray( source ) )
 							source = [source];
