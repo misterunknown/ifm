@@ -180,16 +180,17 @@ function IFM( params ) {
 		filetable.tBodies[0].addEventListener( 'click', function( e ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
-			else if( e.target.classList.contains( 'ifmitem' ) ) {
+			else if( e.target.classList.contains( 'ifmitem' ) || e.target.parentElement.classList.contains( 'ifmitem' ) ) {
 				e.stopPropagation();
 				e.preventDefault();
-				if( e.target.dataset.type == "dir" )
-					self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+				ifmitem = ( e.target.classList.contains( 'ifmitem' ) ? e.target : e.target.parentElement );
+				if( ifmitem.dataset.type == "dir" )
+					self.changeDirectory( ifmitem.parentElement.parentElement.dataset.filename );
 				else
 					if( self.config.isDocroot )
-						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, e.target.parentElement.parentElement.dataset.filename ) );
+						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
 					else
-						document.forms["d_"+e.target.id].submit();
+						document.forms["d_"+ifmitem.id].submit();
 			} else if( e.target.parentElement.name == 'start_download' ) {
 				e.stopPropagation();
 				e.preventDefault();
