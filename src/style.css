@@ -76,16 +76,16 @@ footer {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	background-color: #FFF;
-	filter: alpha(opacity=50);
-	-moz-opacity: 0.5;
-	opacity: 0.5;    
+	color: #FFF;
+	background-color: lightblue;
+	filter: alpha(opacity=70);
+	-moz-opacity: 0.7;
+	opacity: 0.7;
 }
 
 #filedropoverlay div {
     border-radius: 5px;
     color: #000;
-    background-color: #fff;
     position:relative;
     top:50%;
 	font-size: 6em;

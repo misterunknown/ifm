@@ -803,9 +803,9 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( self.i18n.file_extract_success, "s" );
+							self.showMessage( data.message, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( self.i18n.file_extract_error + data.message, "e" );
+						} else self.showMessage( data.message, "e" );
 					},
 			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
@@ -901,7 +901,7 @@ function IFM( params ) {
 					self.refreshFileTable();
 				}
 				else {
-					self.showMessage( self.i18n.permission_change_error +data.message, "e");
+					self.showMessage( data.message, "e");
 				}
 			},
 			error: function() { self.showMessage( self.i18n.general_error, "e"); }
