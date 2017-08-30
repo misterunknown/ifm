@@ -1016,7 +1016,14 @@ $i18n["de"] = json_decode( $i18n["de"], true );
  <?php print '</style>
 			<style type="text/css">';?> body {
 	padding-top: 70px;
-	overflow-y: scroll;
+	overflow-y: scroll !important;
+}
+
+/*
+ * This prevents the content from moving when opening a modal
+ */
+.modal-open {
+	padding-right: 0 !important;
 }
 
 .icon {
