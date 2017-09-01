@@ -14,8 +14,6 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '3.0.0';
-
 	private $defaultconfig = array(
 		// general config
 		"auth" => 0,
