@@ -1,7 +1,7 @@
 {
     "ajax_request": "AJAX request",
     "archivename": "Name of the archive",
-    "archive_create_sucess": "Archive successfully created.",
+    "archive_create_success": "Archive successfully created.",
     "archive_create_error": "Could not create archive.",
     "archive_invalid_format": "Invalid archive format given.",
     "cancel": "Cancel",
@@ -39,7 +39,7 @@
     "file_save_success": "File was saved successfully.",
     "file_save_confirm": "Do you want to save the following file -",
     "file_save_error": "File could not be edited or created: ",
-    "file_upload_error": "File could not be uploaded: ",
+    "file_upload_error": "File could not be uploaded.",
     "file_upload_success": "File successfully uploaded.",
     "filename": "Filename",
     "filename_new": "New Filename",

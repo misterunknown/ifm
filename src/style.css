@@ -34,7 +34,7 @@ img.imgpreview { max-width: 100%; }
 
 div#content { width: 100%; height: 350px; }
 
-input[name=newperms] { width: 7em; }
+input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -97,3 +97,5 @@ footer {
     top:50%;
 	font-size: 6em;
 }
+
+.td-permissions { width: 1px; }

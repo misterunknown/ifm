@@ -566,7 +566,7 @@ f00bar;
 			} else
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_save_error'] ) );
 		} else
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this-l['invalid_filename'] ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 	}
 
 	// gets the content of a file

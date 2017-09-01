@@ -870,7 +870,7 @@ function IFM( params ) {
 				if(data.status == "OK") {
 					self.showMessage( self.i18n.file_upload_success, "s");
 					if(data.cd == self.currentDir) self.refreshFileTable();
-				} else self.showMessage( self.i18n.file_upload_error +data.message, "e");
+				} else self.showMessage( data.message, "e");
 			},
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
@@ -1115,8 +1115,9 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: function( data ) {
+				console.log( data );
 				if( data.status == "OK" ) {
-					self.showMessage( self.i18n.archive_create_success, "s" );
+					self.showMessage( data.message, "s" );
 					self.refreshFileTable();
 				} else
 					self.showMessage( data.message, "e" );

@@ -278,8 +278,8 @@ f00bar;
 	<td>{{size}}</td>
 	{{/config.showfilesize}}
 	{{#config.showpermissions}}
-	<td class="hidden-xs">
-		<input type="text" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
+	<td class="hidden-xs td-permissions">
+		<input type="text" size="11" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
 	</td>
 	{{/config.showpermissions}}
 	{{#config.showowner}}
@@ -507,7 +507,7 @@ f00bar;
 <div class="modal-body">
 	<fieldset>
 		<label>{{i18n.search_pattern}}:</label>
-		<input type="text" class="form-control" id="searchPattern" name="pattern" value="{{lastSearch}}"><br>
+		<input type="text" class="form-control" id="searchPattern" name="pattern" autocomplete="off" value="{{lastSearch}}"><br>
 		<table id="searchResults" class="table">
 		</table>
 	</fieldset>
@@ -558,7 +558,7 @@ f00bar;
 {
     "ajax_request": "AJAX request",
     "archivename": "Name of the archive",
-    "archive_create_sucess": "Archive successfully created.",
+    "archive_create_success": "Archive successfully created.",
     "archive_create_error": "Could not create archive.",
     "archive_invalid_format": "Invalid archive format given.",
     "cancel": "Cancel",
@@ -596,7 +596,7 @@ f00bar;
     "file_save_success": "File was saved successfully.",
     "file_save_confirm": "Do you want to save the following file -",
     "file_save_error": "File could not be edited or created: ",
-    "file_upload_error": "File could not be uploaded: ",
+    "file_upload_error": "File could not be uploaded.",
     "file_upload_success": "File successfully uploaded.",
     "filename": "Filename",
     "filename_new": "New Filename",
@@ -669,7 +669,7 @@ $i18n["de"] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
     "archivename": "Name des Archivs",
-    "archive_create_sucess": "Das Archiv wurde erfolgreich erstellt.",
+    "archive_create_success": "Das Archiv wurde erfolgreich erstellt.",
     "archive_create_error": "Das Archiv konnte nicht erstellt werden.",
     "archive_invalid_format": "Ungültiges Archivformat angegeben.",
     "cancel": "Abbrechen",
@@ -706,8 +706,8 @@ $i18n["de"] = <<<'f00bar'
     "file_save_error": "Datei konnte nicht gespeichert werden.",
     "file_save_success": "Datei erfolgreich gespeichert.",
     "file_save_confirm": "Soll diese Datei wirklich gespeichert werden -",
-    "file_save_error": "Datei konnte nicht geÃ¤ndert oder angelegt werden: ",
-    "file_upload_error": "Datei konnte nicht hochgeladen werden: ",
+    "file_save_error": "Datei konnte nicht geändert oder angelegt werden: ",
+    "file_upload_error": "Datei konnte nicht hochgeladen werden.",
     "file_upload_success": "Datei erfolgreich hochgeladen",
     "filename": "Dateiname",
     "filename_new": "Neuer Dateiname",
@@ -1050,7 +1050,7 @@ img.imgpreview { max-width: 100%; }
 
 div#content { width: 100%; height: 350px; }
 
-input[name=newperms] { width: 7em; }
+input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -1113,6 +1113,8 @@ footer {
     top:50%;
 	font-size: 6em;
 }
+
+.td-permissions { width: 1px; }
  <?php print '</style>
 		';
 	}
@@ -2037,7 +2039,7 @@ function IFM( params ) {
 				if(data.status == "OK") {
 					self.showMessage( self.i18n.file_upload_success, "s");
 					if(data.cd == self.currentDir) self.refreshFileTable();
-				} else self.showMessage( self.i18n.file_upload_error +data.message, "e");
+				} else self.showMessage( data.message, "e");
 			},
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
@@ -2282,8 +2284,9 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: function( data ) {
+				console.log( data );
 				if( data.status == "OK" ) {
-					self.showMessage( self.i18n.archive_create_success, "s" );
+					self.showMessage( data.message, "s" );
 					self.refreshFileTable();
 				} else
 					self.showMessage( data.message, "e" );
@@ -3289,7 +3292,7 @@ function IFM( params ) {
 			} else
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_save_error'] ) );
 		} else
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this-l['invalid_filename'] ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 	}
 
 	// gets the content of a file
