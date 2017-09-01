@@ -1,6 +1,7 @@
 # IFM - improved file manager
 ## about
 The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP.
+<a href="https://misterunknown.de/static/ifmdemo.gif"><img src="https://misterunknown.de/static/ifmdemo.gif"></a>
 
 The IFM uses the following resources:
 * [ACE Editor](https://ace.c9.io)
