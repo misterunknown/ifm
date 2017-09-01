@@ -1,6 +1,13 @@
 body {
 	padding-top: 70px;
-	overflow-y: scroll;
+	overflow-y: scroll !important;
+}
+
+/*
+ * This prevents the content from moving when opening a modal
+ */
+.modal-open {
+	padding-right: 0 !important;
 }
 
 .icon {
@@ -27,7 +34,7 @@ img.imgpreview { max-width: 100%; }
 
 div#content { width: 100%; height: 350px; }
 
-input[name=newperms] { width: 7em; }
+input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -76,17 +83,19 @@ footer {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	background-color: #FFF;
-	filter: alpha(opacity=50);
-	-moz-opacity: 0.5;
-	opacity: 0.5;    
+	color: #FFF;
+	background-color: lightblue;
+	filter: alpha(opacity=70);
+	-moz-opacity: 0.7;
+	opacity: 0.7;
 }
 
 #filedropoverlay div {
     border-radius: 5px;
     color: #000;
-    background-color: #fff;
     position:relative;
     top:50%;
 	font-size: 6em;
 }
+
+.td-permissions { width: 1px; }

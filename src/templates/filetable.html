@@ -1,5 +1,5 @@
 {{#items}}
-<tr class="clickable-row {{rowclasses}}" data-filename="{{name}}" data-eaction="{{eaction}}">
+<tr class="clickable-row {{rowclasses}}" {{{dragdrop}}} data-id="{{guid}}" data-filename="{{name}}" data-eaction="{{eaction}}">
 	<td>
 		<a {{{href}}} tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
@@ -25,8 +25,8 @@
 	<td>{{size}}</td>
 	{{/config.showfilesize}}
 	{{#config.showpermissions}}
-	<td class="hidden-xs">
-		<input type="text" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
+	<td class="hidden-xs td-permissions">
+		<input type="text" size="11" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
 	</td>
 	{{/config.showpermissions}}
 	{{#config.showowner}}

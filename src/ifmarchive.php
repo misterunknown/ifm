@@ -1,37 +1,41 @@
 <?php
 
-/* =======================================================================
+/**
+ * =======================================================================
  * Improved File Manager
  * ---------------------
  * License: This project is provided under the terms of the MIT LICENSE
  * http://github.com/misterunknown/ifm/blob/master/LICENSE
  * =======================================================================
  * 
- * zip class
- * 
- * this was adapted from http://php.net/manual/de/class.ziparchive.php#110719
+ * archive class
+ *
+ * This class provides support for various archive types for the IFM. It can
+ * create and extract the following formats:
+ * 	* zip
+ * 	* tar
+ * 	* tar.gz
+ * 	* tar.bz2
 */
 
 class IFMArchive {
+
 	/**
-	 * Add a folder to the zip file
+	 * Add a folder to an archive
 	 */
-	private static function folderToZip($folder, &$zipFile, $exclusiveLength) {
+	private static function addFolder( &$archive, $folder, $offset=0 ) {
+		if( $offset == 0 )
+			$offset = strlen( dirname( $folder ) ) + 1;
+		$archive->addEmptyDir( substr( $folder, $offset ) );
 		$handle = opendir( $folder );
 		while( false !== $f = readdir( $handle ) ) {
 			if( $f != '.' && $f != '..'  ) {
-				$filePath = "$folder/$f";
-				if( file_exists( $filePath ) && is_readable( $filePath ) ) {
-					// Remove prefix from file path before add to zip.
-					$localPath = substr($filePath, $exclusiveLength);
-					if( is_file( $filePath ) ) {
-						$zipFile->addFile( $filePath, $localPath );
-					} elseif( is_dir( $filePath ) ) {
-						// Add sub-directory.
-						$zipFile->addEmptyDir( $localPath );
-						self::folderToZip( $filePath, $zipFile, $exclusiveLength );
-					}
-				}
+				$filePath = $folder . '/' . $f;
+				if( file_exists( $filePath ) && is_readable( $filePath ) )
+					if( is_file( $filePath ) )
+						$archive->addFile( $filePath, substr( $filePath, $offset ) );
+					elseif( is_dir( $filePath ) )
+						self::addFolder( $archive, $filePath, $offset );
 			}
 		}
 		closedir( $handle );
@@ -40,22 +44,24 @@ class IFMArchive {
 	/**
 	 * Create a zip file
 	 */
-	public static function createZip( $src, $out, $root=false )
+	public static function createZip( $src, $out )
 	{
-		$z = new ZipArchive();
-		$z->open( $out, ZIPARCHIVE::CREATE);
-		if( $root ) {
-			self::folderToZip( realpath( $src ), $z, strlen( realpath( $src ) . '/' ) );
-		} else {
-			$z->addEmptyDir( basename( $src ) );
-			self::folderToZip( realpath( $src ), $z, strlen( dirname( $src ) . '/' ) );
-		}
+		$a = new ZipArchive();
+		$a->open( $out, ZIPARCHIVE::CREATE);
+
+		if( ! is_array( $src ) )
+			$src = array( $src );
+
+		foreach( $src as $s )
+			if( is_dir( $s ) )
+				self::addFolder( $a, $s );
+			elseif( is_file( $s ) )
+				$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) + 1 ) );
+
 		try {
-			if( ( $res = $z->close() ) !== true ) {
-				throw new Exception("Error while creating zip archive: ". $z->getStatusString());
-			}
+			return $a->close();
 		} catch ( Exception $e ) {
-			throw $e;
+			return false;
 		}
 	}
 
@@ -63,17 +69,54 @@ class IFMArchive {
 	 * Unzip a zip file
 	 */
 	public static function extractZip( $file, $destination="./" ) {
+		if( ! file_exists( $file ) )
+			return false;
 		$zip = new ZipArchive;
 		$res = $zip->open( $file );
 		if( $res === true ) {
 			$zip->extractTo( $destination );
 			$zip->close();
 			return true;
-		} else {
+		} else
+			return false;
+	}
+
+	/**
+	 * Creates a tar archive
+	 */
+	public static function createTar( $src, $out, $t ) {
+		$tmpf = substr( $out, 0, strlen( $out ) - strlen( $t ) ) . "tar";
+		$a = new PharData( $tmpf );
+
+		try { 
+			if( ! is_array( $src ) )
+				$src = array( $src );
+
+			foreach( $src as $s )
+				if( is_dir( $s ) )
+					self::addFolder( $a, $s );
+				elseif( is_file( $s ) )
+					$a->addFile( $s, substr( $s, strlen( dirname( $s ) ) +1 ) ); 
+			switch( $t ) {
+			case "tar.gz":
+				$a->compress( Phar::GZ );
+				@unlink( $tmpf );
+				break;
+			case "tar.bz2":
+				$a->compress( Phar::BZ2 );
+				@unlink( $tmpf );
+				break;
+			}
+			return true;
+		} catch( Exception $e ) {
+			@unlink( $tmpf );
 			return false;
 		}
 	}
 
+	/**
+	 * Extracts a tar archive
+	 */
 	public static function extractTar( $file, $destination="./" ) {
 		if( ! file_exists( $file ) )
 			return false;
@@ -81,13 +124,8 @@ class IFMArchive {
 		try {
 			$tar->extractTo( $destination, null, true );
 			return true;
-		} catch (Exception $e) {
+		} catch( Exception $e ) {
 			return false;
 		}
-	}
-
-	public static function createTar( $src, $out, $root=false ) {
-		$tar = new PharData( $out );
-		$tar->buildFromDirectory( $src );
 	}
 }

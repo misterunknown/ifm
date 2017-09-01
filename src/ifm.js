@@ -67,7 +67,7 @@ function IFM( params ) {
 	 */
 	this.refreshFileTable = function () {
 		var taskid = self.generateGuid();
-		self.task_add( { id: taskid, name: "Refresh" } );
+		self.task_add( { id: taskid, name: self.i18n.refresh } );
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -77,7 +77,7 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: self.rebuildFileTable,
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( taskid ); }
 		});
 	};
@@ -92,7 +92,7 @@ function IFM( params ) {
 			this.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( "Invalid data from server", "e" );
+			this.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -140,6 +140,7 @@ function IFM( params ) {
 				}
 			}
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
+				item.dragdrop = 'draggable="true"';
 				if( self.config.copymove )
 					item.button.push({
 						action: "copymove",
@@ -179,16 +180,17 @@ function IFM( params ) {
 		filetable.tBodies[0].addEventListener( 'click', function( e ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
-			else if( e.target.classList.contains( 'ifmitem' ) ) {
+			else if( e.target.classList.contains( 'ifmitem' ) || e.target.parentElement.classList.contains( 'ifmitem' ) ) {
 				e.stopPropagation();
 				e.preventDefault();
-				if( e.target.dataset.type == "dir" )
-					self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+				ifmitem = ( e.target.classList.contains( 'ifmitem' ) ? e.target : e.target.parentElement );
+				if( ifmitem.dataset.type == "dir" )
+					self.changeDirectory( ifmitem.parentElement.parentElement.dataset.filename );
 				else
 					if( self.config.isDocroot )
-						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, e.target.parentElement.parentElement.dataset.filename ) );
+						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
 					else
-						document.forms["d_"+e.target.id].submit();
+						document.forms["d_"+ifmitem.id].submit();
 			} else if( e.target.parentElement.name == 'start_download' ) {
 				e.stopPropagation();
 				e.preventDefault();
@@ -196,7 +198,7 @@ function IFM( params ) {
 			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
 				e.stopPropagation();
 				e.preventDefault();
-				var item = self.fileCache.find( x =>  x.guid === e.target.parentElement.dataset.id );
+				var item = self.fileCache.find( function( x ) { if( x.guid === e.target.parentElement.dataset.id ) return x; } );
 				switch( e.target.parentElement.name.substr( 3 ) ) {
 					case "rename":
 						self.showRenameFileDialog( item.name );
@@ -243,11 +245,11 @@ function IFM( params ) {
 				},
 				actionsGroups:[
 					['edit', 'extract', 'rename'],
-					['copymove', 'download', 'delete']
+					['copymove', 'download', 'createarchive', 'delete']
 				],
 				actions: {
 					edit: {
-						name: "edit",
+						name: self.i18n.edit,
 						onClick: function( data ) {
 							self.editFile( data.clicked.name );
 						},
@@ -257,7 +259,7 @@ function IFM( params ) {
 						}
 					},
 					extract: {
-						name: "extract",
+						name: self.i18n.extract,
 						onClick: function( data ) {
 							self.showExtractFileDialog( data.clicked.name );
 						},
@@ -267,7 +269,7 @@ function IFM( params ) {
 						}
 					},
 					rename: {
-						name: "rename",
+						name: self.i18n.rename,
 						onClick: function( data ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
@@ -277,9 +279,9 @@ function IFM( params ) {
 					copymove: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'copy/move <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'copy/move';
+								return self.i18n.copy+'/'+self.i18n.move;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -293,9 +295,9 @@ function IFM( params ) {
 					download: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'download <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'download';
+								return self.i18n.download;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -306,12 +308,28 @@ function IFM( params ) {
 						iconClass: "icon icon-download",
 						isShown: function() { return !!self.config.download; }
 					},
+					createarchive: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
+							else
+								return self.i18n.create_archive;
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCreateArchiveDialog( data.selected );
+							else
+								self.showCreateArchiveDialog( data.clicked );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
+					},
 					'delete': {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return 'delete <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
 							else
-								return 'delete';
+								return self.i18n.delete;
 						},
 						onClick: function( data ) {
 							if( data.selected.length > 0 )
@@ -352,7 +370,7 @@ function IFM( params ) {
 				$( "#currentDir" ).val( self.currentDir );
 				if( config.pushState ) history.pushState( { dir: self.currentDir }, self.currentDir, "#"+encodeURIComponent( self.currentDir ) );
 			},
-			error: function() { self.showMessage( "General error occured: No or broken response", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -445,11 +463,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( self.i18n.file_edit_success, "s" );
+							self.showMessage( self.i18n.file_save_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be edited/created:" + data.message, "e" );
+						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 		self.fileChanged = false;
 	};
@@ -474,11 +492,11 @@ function IFM( params ) {
 							self.showFileDialog( data.data.filename, data.data.content );
 						}
 						else if( data.status == "OK" && data.data.content == null ) {
-							self.showMessage( "The content of this file cannot be fetched.", "e" );
+							self.showMessage( self.i18n.file_load_error, "e" );
 						}
-						else self.showMessage( "Error: "+data.message, "e" );
+						else self.showMessage( self.i18n.error +data.message, "e" );
 					},
-			error: function() { self.showMessage( "This file can not be displayed or edited.", "e" ); }
+			error: function() { self.showMessage( self.i18n.file_display_error, "e" ); }
 		});
 	};
 
@@ -522,14 +540,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 					if( data.status == "OK" ) {
-						self.showMessage( "Directory sucessfully created.", "s" );
+						self.showMessage( self.i18n.folder_create_success, "s" );
 						self.refreshFileTable();
 					}
 					else {
-						self.showMessage( "Directory could not be created: "+data.message, "e" );
+						self.showMessage( self.i18n.folder_create_error +data.message, "e" );
 					}
 				},
-			error: function() { self.showMessage( "General error occured.", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -575,11 +593,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File(s) successfully deleted", "s" );
+							self.showMessage( self.i18n.file_delete_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File(s) could not be deleted", "e" );
+						} else self.showMessage( self.i18n.file_delete_error, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); }
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
 	};
 
@@ -628,11 +646,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 						if(data.status == "OK") {
-							ifm.showMessage("File successfully renamed", "s");
+							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage("File could not be renamed: "+data.message, "e");
+						} else ifm.showMessage( self.i18n.file_rename_error +data.message, "e");
 					},
-			error: function() { ifm.showMessage("General error occured", "e"); }
+			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -672,7 +690,7 @@ function IFM( params ) {
 					}
 				});
 			},
-			error: function() { self.hideModal(); self.showMessage( "Error while fetching the folder tree.", "e" ) }
+			error: function() { self.hideModal(); self.showMessage( self.i18n.folder_tree_load_error, "e" ) }
 		});
 		var form = document.forms.formCopyMove;
 		form.addEventListener( 'click', function( e ) {
@@ -694,42 +712,40 @@ function IFM( params ) {
 	/**
 	 * Copy or moves a file
 	 * 
-	 * @params {string} source - name of the file
+	 * @params {string} sources - array of fileCache items
 	 * @params {string} destination - target directory
 	 * @params {string} action - action (copy|move)
 	 */
 	this.copyMove = function( sources, destination, action ) {
 		if( ! Array.isArray( sources ) )
 			sources = [sources];
-		sources.forEach( function( source ) {
-			var id = self.generateGuid();
-			self.task_add( { id: id, name: action.charAt(0).toUpperCase() + action.slice(1) + " " + source.name + " to " + destination } );
-			$.ajax({
-				url: self.api,
-				type: "POST",
-				data: {
-					dir: self.currentDir,
-					api: "copyMove",
-					action: action,
-					filename: source.name,
-					destination: destination
-				},
-				dataType: "json",
-				success: function( data ) {
-					if( data.status == "OK" ) {
-						self.showMessage( data.message, "s" );
-					} else {
-						self.showMessage( data.message, "e" );
-					}
-					self.refreshFileTable();
-				},
-				error: function() {
-					self.showMessage( "General error occured.", "e" );
-				},
-				complete: function() {
-					self.task_done( id );
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: self.i18n[action] + " " + ( sources.length > 1 ? sources.length : sources[0].name ) + " " + self.i18n.file_copy_to + " " + destination } );
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				dir: self.currentDir,
+				api: "copyMove",
+				action: action,
+				filenames: sources.map( function( e ) { return e.name } ),
+				destination: destination
+			},
+			dataType: "json",
+			success: function( data ) {
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+				} else {
+					self.showMessage( data.message, "e" );
 				}
-			});
+				self.refreshFileTable();
+			},
+			error: function() {
+				self.showMessage( self.i18n.general_error, "e" );
+			},
+			complete: function() {
+				self.task_done( id );
+			}
 		});
 	};
 
@@ -787,11 +803,11 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ) {
 						if( data.status == "OK" ) {
-							self.showMessage( "File successfully extracted", "s" );
+							self.showMessage( data.message, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( "File could not be extracted. Error: " + data.message, "e" );
+						} else self.showMessage( data.message, "e" );
 					},
-			error: function() { self.showMessage( "General error occured", "e" ); },
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
 			complete: function() { self.task_done( id ); }
 		});
 	};
@@ -852,11 +868,11 @@ function IFM( params ) {
 			},
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage("File successfully uploaded", "s");
+					self.showMessage( self.i18n.file_upload_success, "s");
 					if(data.cd == self.currentDir) self.refreshFileTable();
-				} else self.showMessage("File could not be uploaded: "+data.message, "e");
+				} else self.showMessage( data.message, "e");
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
 		self.task_add( { id: id, name: "Upload " + file.name } );
@@ -881,14 +897,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function( data ){
 				if( data.status == "OK" ) {
-					self.showMessage( "Permissions successfully changed.", "s" );
+					self.showMessage( self.i18n.permission_change_success, "s" );
 					self.refreshFileTable();
 				}
 				else {
-					self.showMessage( "Permissions could not be changed: "+data.message, "e");
+					self.showMessage( data.message, "e");
 				}
 			},
-			error: function() { self.showMessage("General error occured.", "e"); }
+			error: function() { self.showMessage( self.i18n.general_error, "e"); }
 		});
 	};
 
@@ -939,15 +955,15 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(data) {
 				if(data.status == "OK") {
-					self.showMessage( "File successfully uploaded", "s" );
+					self.showMessage( self.i18n.file_upload_success, "s" );
 					self.refreshFileTable();
 				} else
-					self.showMessage( "File could not be uploaded:<br />" + data.message, "e" );
+					self.showMessage( self.i18n.file_upload_error + data.message, "e" );
 			},
-			error: function() { self.showMessage("General error occured", "e"); },
+			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
 		});
-		self.task_add( { id: id, name: "Remote upload: "+filename } );
+		self.task_add( { id: id, name: self.i18n.upload_remote+" "+filename } );
 	};
 
 	/**
@@ -1016,6 +1032,7 @@ function IFM( params ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
 				if( e.target.value.trim() === '' ) return;
+				document.getElementById( 'searchResults' ).tBodies[0].innerHTML = '<tr><td style="text-align:center;"><span class="icon icon-spin5 animate-spin"></span></td></tr>';
 				self.search.lastSearch = e.target.value;
 				$.ajax({
 					url: self.api,
@@ -1027,14 +1044,86 @@ function IFM( params ) {
 					},
 					dataType: "json",
 					success: function( data ) {
-						data.forEach( function(e) {
-							e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
-							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
-						});
-						updateResults( data );
+						if( data.status == 'ERROR' ) {
+							self.hideModal();
+							self.showMessage( data.message, "e" );
+						} else {
+							data.forEach( function(e) {
+								e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+							});
+							updateResults( data );
+						}
 					}
 				});
 			}
+		});
+	};
+
+	/**
+	 * Shows the create archive dialog
+	 */
+	this.showCreateArchiveDialog = function( items ) {
+		self.showModal( Mustache.render( self.templates.createarchive, { i18n: self.i18n } ) );
+
+		var form = document.forms.formCreateArchive;
+		form.elements.archivename.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
+				e.preventDefault();
+				self.createArchive( items, e.target.value );
+				self.hideModal();
+			}
+		});
+		form.addEventListener( 'click', function( e ) {
+			if( e.target.id == 'buttonSave' ) {
+				e.preventDefault();
+				self.createArchive( items, form.elements.archivename.value );
+				self.hideModal();
+			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		}, false );
+	};
+
+	this.createArchive = function( items, archivename ) {
+		var type = "";
+		if( archivename.substr( -3 ).toLowerCase() == "zip" )
+			type = "zip";
+		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
+			type = "tar";
+		else if( archivename.substr( -6 ).toLowerCase() == "tar.gz" )
+			type = "tar.gz";
+		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
+			type = "tar.bz2";
+		else {
+			self.showMessage( self.i18n.invalid_archive_format, "e" );
+			return;
+		}
+		var id = self.generateGuid();
+		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
+
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "createArchive",
+				dir: self.currentDir,
+				archivename: archivename,
+				filenames: items.map( function( e ) { return e.name; } ),
+				format: type
+			},
+			dataType: "json",
+			success: function( data ) {
+				console.log( data );
+				if( data.status == "OK" ) {
+					self.showMessage( data.message, "s" );
+					self.refreshFileTable();
+				} else
+					self.showMessage( data.message, "e" );
+			},
+			error: function() { self.showMessage( self.i18n.general_error, "e" ); },
+			complete: function() { self.task_done( id ); }
 		});
 	};
 
@@ -1194,7 +1283,10 @@ function IFM( params ) {
 
 		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
 		if( ! highlightedItem ) {
-			highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
+			if( document.activeElement.classList.contains( 'ifmitem' ) )
+				highlight( document.activeElement.parentElement.parentElement );
+			else 
+				highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
 		} else  {
 			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
 			if( newItem != null )
@@ -1477,7 +1569,7 @@ function IFM( params ) {
 				self.initLoadTemplates();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load configuration" );
+				throw new Error( self.i18n.load_config_error );
 			}
 		});
 	};
@@ -1497,7 +1589,7 @@ function IFM( params ) {
 				self.initLoadI18N();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load templates" );
+				throw new Error( self.i18n.load_template_error );
 			}
 		});
 	};
@@ -1517,7 +1609,7 @@ function IFM( params ) {
 				self.initApplication();
 			},
 			error: function() {
-				throw new Error( "IFM: could not load I18N" );
+				throw new Error( self.i18n.load_text_error );
 			}
 		});
 	};
@@ -1555,33 +1647,100 @@ function IFM( params ) {
 			document.getElementById( 'buttonAjaxRequest' ).onclick = function() { self.showAjaxRequestDialog(); };
 		if( self.config.upload )
 			document.addEventListener( 'dragover', function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				var div = document.getElementById( 'filedropoverlay' );
-				div.style.display = 'block';
-				div.ondrop = function( e ) {
+				if( Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 ) {
 					e.preventDefault();
 					e.stopPropagation();
-					var files = e.dataTransfer.files;
-					for( var i = 0; i < files.length; i++ ) {
-						self.uploadFile( files[i] );
-					}
-					if( e.target.id == 'filedropoverlay' )
-						e.target.style.display = 'none';
-					else if( e.target.parentElement.id == 'filedropoverlay' ) {
-						e.target.parentElement.style.display = 'none';
-					}
-				};
-				div.ondragleave = function( e ) {
-					e.preventDefault();
-					e.stopPropagation();
-					if( e.target.id == 'filedropoverlay' )
-						e.target.style.display = 'none';
-					else if( e.target.parentElement.id == 'filedropoverlay' ) {
-						e.target.parentElement.style.display = 'none';
-					}
-				};
+					var div = document.getElementById( 'filedropoverlay' );
+					div.style.display = 'block';
+					div.ondrop = function( e ) {
+						e.preventDefault();
+						e.stopPropagation();
+						var files = e.dataTransfer.files;
+						for( var i = 0; i < files.length; i++ ) {
+							self.uploadFile( files[i] );
+						}
+						if( e.target.id == 'filedropoverlay' )
+							e.target.style.display = 'none';
+						else if( e.target.parentElement.id == 'filedropoverlay' ) {
+							e.target.parentElement.style.display = 'none';
+						}
+					};
+					div.ondragleave = function( e ) {
+						e.preventDefault();
+						e.stopPropagation();
+						if( e.target.id == 'filedropoverlay' )
+							e.target.style.display = 'none';
+						else if( e.target.parentElement.id == 'filedropoverlay' ) {
+							e.target.parentElement.style.display = 'none';
+						}
+					};
+				} else {
+					var div = document.getElementById( 'filedropoverlay' );
+					if( div.style.display == 'block' )
+						div.stye.display == 'none';
+				}
 			});
+
+		// drag and drop of filetable items
+		if( self.config.copymove ) {
+			var isFile = function(e) { return Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 };
+			document.addEventListener( 'dragstart', function( e ) {
+				var selectedItems = document.getElementsByClassName( 'selectedItem' );
+				var data;
+				if( selectedItems.length > 0 ) 
+					data = self.fileCache.filter(
+							x => self.inArray(
+								x.guid,
+								[].slice.call( selectedItems ).map( function( e ) { return e.dataset.id; } )
+								)
+							);
+				else 
+					data = self.fileCache.find( x => x.guid === e.target.dataset.id );
+				e.dataTransfer.setData( 'text/plain', JSON.stringify( data ) );
+				var dragImage = document.createElement( 'div' );
+				dragImage.style.display = 'inline';
+				dragImage.style.padding = '10px';
+				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> '+self.i18n.move+' '+( data.length || data.name );
+				document.body.appendChild( dragImage );
+				setTimeout(function() {
+					dragImage.remove();
+				});
+				e.dataTransfer.setDragImage( dragImage, 0, 0 );
+			});
+			document.addEventListener( 'dragover', function( e ) { if( ! isFile( e ) && e.target.parentElement.classList.contains( 'isDir' ) ) e.preventDefault(); } );
+			document.addEventListener( 'dragenter', function( e ) {
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) )
+					e.target.parentElement.classList.add( 'highlightedItem' );
+			});
+			document.addEventListener( 'dragleave', function( e ) {
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) )
+					e.target.parentElement.classList.remove( 'highlightedItem' );
+			});
+			document.addEventListener( 'drop', function( e ) {
+				if( ! isFile( e ) && e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'isDir' ) ) {
+					e.preventDefault();
+					e.stopPropagation();
+					try {
+						var source = JSON.parse( e.dataTransfer.getData( 'text' ) );
+						self.log( "source:" );
+						self.log( source );
+						var destination = self.fileCache.find( x => x.guid === e.target.firstElementChild.id );
+						if( ! Array.isArray( source ) )
+							source = [source];
+						if( source.find( x => x.name === destination.name ) )
+							self.showMessage( "Source and destination are equal." );
+						else
+							self.copyMove( source, destination.name, "move" );
+					} catch( e ) {
+						console.log( e );
+					} finally {
+						[].slice.call( document.getElementsByClassName( 'highlightedItem' ) ).forEach( function( e ) {
+							e.classList.remove( 'highlightedItem' );
+						});
+					}
+				}
+			});
+		}
 		
 		// handle keystrokes
 		document.onkeydown = self.handleKeystrokes;

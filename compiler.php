@@ -18,6 +18,21 @@ $IFM_BUILD_STANDALONE = "ifm.php";
 $IFM_BUILD_STANDALONE_COMPRESSED = "build/ifm.min.php";
 $IFM_BUILD_LIB_PHP = "build/libifm.php";
 
+$options = getopt( null, array( "language::" ) );
+$vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en" );
+$vars['defaultlanguage'] = $vars['languages'][0];
+$vars['languageincludes'] = "";
+foreach( $vars['languages'] as $l ) {
+	if( file_exists( "src/i18n/".$l.".json" ) ) 
+		$vars['languageincludes'] .=
+			'$i18n["'.$l.'"] = <<<\'f00bar\'' . "\n"
+			. file_get_contents( "src/i18n/".$l.".json" ) . "\n"
+			. 'f00bar;' . "\n"
+			. '$i18n["'.$l.'"] = json_decode( $i18n["'.$l.'"], true );' . "\n" ;
+	else
+		print "WARNING: Language file src/i18n/".$l.".json not found.\n";
+}
+
 /**
  * Concat PHP Files
  */
@@ -30,13 +45,20 @@ foreach( $IFM_SRC_PHP as $phpfile ) {
 $compiled = join( $compiled );
 
 /**
- * Process includes
+ * Process file includes
  */
 $includes = NULL;
 preg_match_all( "/\@\@\@file:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_ORDER );
-foreach( $includes as $file ) {
+foreach( $includes as $file )
 	$compiled = str_replace( $file[0], file_get_contents( $file[1] ), $compiled );
-}
+
+/**
+ * Process variable includes
+ */
+$includes = NULL;
+preg_match_all( "/\@\@\@vars:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_ORDER );
+foreach( $includes as $var )
+	$compiled = str_replace( $var[0], $vars[$var[1]], $compiled );
 
 /**
  * Build standalone script

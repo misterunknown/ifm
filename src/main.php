@@ -14,8 +14,6 @@ error_reporting( E_ALL );
 ini_set( 'display_errors', 'OFF' );
 
 class IFM {
-	const VERSION = '2.4.2';
-
 	private $defaultconfig = array(
 		// general config
 		"auth" => 0,
@@ -24,7 +22,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
-		"language" => "en",
+		"language" => "@@@vars:defaultlanguage@@@",
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -40,6 +38,7 @@ class IFM {
 		"remoteupload" => 1,
 		"rename" => 1,
 		"zipnload" => 1,
+		"createarchive" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -86,6 +85,7 @@ class IFM {
 		$this->config['remoteupload'] =  getenv('IFM_API_REMOTEUPLOAD') !== false ? intval( getenv('IFM_API_REMOTEUPLOAD') ) : $this->config['remoteupload'] ;
 		$this->config['rename'] =  getenv('IFM_API_RENAME') !== false ? intval( getenv('IFM_API_RENAME') ) : $this->config['rename'] ;
 		$this->config['zipnload'] =  getenv('IFM_API_ZIPNLOAD') !== false ? intval( getenv('IFM_API_ZIPNLOAD') ) : $this->config['zipnload'] ;
+		$this->config['createarchive'] =  getenv('IFM_API_CREATEARCHIVE') !== false ? intval( getenv('IFM_API_CREATEARCHIVE') ) : $this->config['createarchive'] ;
 		$this->config['showlastmodified'] =  getenv('IFM_GUI_SHOWLASTMODIFIED') !== false ? intval( getenv('IFM_GUI_SHOWLASTMODIFIED') ) : $this->config['showlastmodified'] ;
 		$this->config['showfilesize'] =  getenv('IFM_GUI_SHOWFILESIZE') !== false ? intval( getenv('IFM_GUI_SHOWFILESIZE') ) : $this->config['showfilesize'] ;
 		$this->config['showowner'] =  getenv('IFM_GUI_SHOWOWNER') !== false ? intval( getenv('IFM_GUI_SHOWOWNER') ) : $this->config['showowner'] ;
@@ -124,6 +124,9 @@ f00bar;
 		$templates['createdir'] = <<<'f00bar'
 @@@file:src/templates/modal.createdir.html@@@
 f00bar;
+		$templates['createarchive'] = <<<'f00bar'
+@@@file:src/templates/modal.createarchive.html@@@
+f00bar;
 		$templates['deletefile'] = <<<'f00bar'
 @@@file:src/templates/modal.deletefile.html@@@
 f00bar;
@@ -154,15 +157,13 @@ f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();
-		$i18n['en'] = <<<'f00bar'
-@@@file:src/i18n/en.json@@@
-f00bar;
-		$i18n['en'] = json_decode($i18n['en'], true);
-		$i18n['de'] = <<<'f00bar'
-@@@file:src/i18n/de.json@@@
-f00bar;
-		$i18n['de'] = json_decode($i18n['de'], true);
+		@@@vars:languageincludes@@@
 		$this->i18n = $i18n;
+		
+		if( in_array( $this->config['language'], array_keys( $this->i18n ) ) )
+			$this->l = $this->i18n[$this->config['language']];
+		else
+			$this->l = $this->i18n[0];
 	}
 
 	/**
@@ -228,9 +229,9 @@ f00bar;
 	private function handleRequest() {
 		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
-				echo $this->jsonResponse( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
+				$this->jsonResponse( array( "realpath" => $this->getValidDir( $_REQUEST["dir"] ) ) );
 			else
-				echo $this->jsonResponse( array( "realpath" => "" ) );
+				$this->jsonResponse( array( "realpath" => "" ) );
 		}
 		elseif( $_REQUEST["api"] == "getFiles" ) {
 			if( isset( $_REQUEST["dir"] ) && $this->isPathValid( $_REQUEST["dir"] ) )
@@ -244,9 +245,9 @@ f00bar;
 		elseif( $_REQUEST["api"] == "getFolders" ) {
 			$this->getFolders( $_REQUEST );
 		} elseif( $_REQUEST["api"] == "getTemplates" ) {
-			echo $this->jsonResponse( $this->templates );
+			$this->jsonResponse( $this->templates );
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
-			echo $this->jsonResponse( $this->i18n[$this->config['language']] );
+			$this->jsonResponse( $this->l );
 		} elseif( $_REQUEST["api"] == "logout" ) {
 			unset( $_SESSION );
 			session_destroy();
@@ -271,7 +272,7 @@ f00bar;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					case "createArchive": $this->createArchive( $_REQUEST ); break;
 					default:
-						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
+						$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
 				}
 			} else {
@@ -302,6 +303,7 @@ f00bar;
 	/*
 	   api functions
 	 */
+
 
 	private function getFiles( $dir ) {
 		$this->chDirIfNecessary( $dir );
@@ -381,7 +383,7 @@ f00bar;
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
-		echo $this->jsonResponse( $ret );
+		$this->jsonResponse( $ret );
 	}
 
 	private function getFolders( $d ) {
@@ -409,21 +411,21 @@ f00bar;
 					),
 					$ret
 				);
-			echo $this->jsonResponse( $ret );
+			$this->jsonResponse( $ret );
 		}
 	}
 
 	private function searchItems( $d ) {
 		$this->chDirIfNecessary( $d['dir'] );
 		if( strpos( $d['pattern'], '/' ) !== false ) {
-			echo json_decode( array( "status" => "ERROR", "message" => "Pattern must not contain slashes" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );
 		}
 		try {
 			$results = $this->searchItemsRecursive( $d['pattern'] );
-			echo $this->jsonResponse( $results );
+			$this->jsonResponse( $results );
 		} catch( Exception $e ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error'] . " " . $e->getMessage() ) );
 		}
 	}
 
@@ -440,7 +442,7 @@ f00bar;
 	}
 
 	private function getFolderTree( $d ) {
-		echo $this->jsonResponse(
+		$this->jsonResponse(
 			array_merge(
 				array(
 					0 => array(
@@ -479,65 +481,75 @@ f00bar;
 
 	private function copyMove( $d ) {
 		if( $this->config['copymove'] != 1 ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to copy or move files." ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 			exit( 1 );
 		}
 		$this->chDirIfNecessary( $d['dir'] );
 		if( ! isset( $d['destination'] ) || ! $this->isPathValid( realpath( $d['destination'] ) ) ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid destination directory given." ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
 			exit( 1 );
 		}
-		if( ! file_exists( $d['filename'] ) || $d['filename'] == ".." ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given." ) );
+		if( ! is_array( $d['filenames'] ) ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_params'] ) );
 			exit( 1 );
 		}
-		if( $d['action'] == "copy" ) {
-			if( $this->xcopy( $d['filename'], $d['destination'] ) ) {
-				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully copied." ) );
-				exit( 0 );
-			} else {
-				$err = error_get_last();
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
-				exit( 1 );
-			}
-		} elseif( $d['action'] == "move" ) {
-			if( rename( $d['filename'], $this->pathCombine( $d['destination'], basename( $d['filename'] ) ) ) ) {
-				echo $this->jsonResponse( array( "status" => "OK", "message" => "File(s) were successfully moved." ) );
-				exit( 0 );
-			} else {
-				$err = error_get_last();
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => $err['message'] ) );
-				exit( 1 );
-			}
-		} else {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid action given." ) );
+		if( ! in_array( $d['action'], array( 'copy', 'move' ) ) ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_action'] ) );
 			exit( 1 );
+		}
+		$err = array(); $errFlag = -1; // -1 -> all errors; 0 -> at least some errors; 1 -> no errors
+		foreach( $d['filenames'] as $file ) {
+			if( ! file_exists( $file ) || $file == ".." || ! $this->isFilenameValid( $file ) ) {
+				array_push( $err, $file );
+			}
+			if( $d['action'] == "copy" ) {
+				if( $this->xcopy( $file, $d['destination'] ) )
+					$errFlag = 0;
+				else
+					array_push( $err, $file );
+			} elseif( $d['action'] == "move" ) {
+				if( rename( $file, $this->pathCombine( $d['destination'], basename( $file ) ) ) )
+					$errFlag = 0;
+				else
+					array_push( $err, $file );
+			}
+		}
+		$action = ( $d['action'] == "copy" ? "copied" : "moved" );
+		if( empty( $err ) ) {
+			$this->jsonResponse( array( "status" => "OK", "message" => ( $d['action'] == "copy" ? $this->l['copy_success'] : $this->l['move_success'] ), "errflag" => "1" ) );
+		}
+		else {
+			$errmsg = ( $d['action'] == "copy" ? $this->l['copy_error'] : $this->l['move_error'] ) . "<ul>";
+			foreach( $err as $item )
+				$errmsg .= "<li>".$item."</li>";
+			$errmsg .= "</ul>";
+			$this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFlag ) );
 		}
 	}
 
 	// creates a directory
 	private function createDir($w, $dn) {
 		if( $this->config['createdir'] != 1 ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create directories.") );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 			exit( 1 );
 		}
 		if( $dn == "" )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name") );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
 		elseif( ! $this->isFilenameValid( $dn ) )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid directory name" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
 		else {
 			$this->chDirIfNecessary( $w );
 			if( @mkdir( $dn ) )
-				echo $this->jsonResponse( array( "status" => "OK", "message" => "Directory successful created" ) );
+				$this->jsonResponse( array( "status" => "OK", "message" => $this->l['folder_create_success'] ) );
 			else
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not create directory" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_create_error'] ) );
 		}
 	}
 
 	// save a file
 	private function saveFile( $d ) {
 		if( ( file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['edit'] != 1 ) || ( ! file_exists( $this->pathCombine( $d['dir'], $d['filename'] ) ) && $this->config['createfile'] != 1 ) ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit/create this file." ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 			exit( 1 );
 		}
 		if( isset( $d['filename'] ) && $this->isFilenameValid( $d['filename'] ) ) {
@@ -546,34 +558,34 @@ f00bar;
 				// work around magic quotes
 				$content = get_magic_quotes_gpc() == 1 ? stripslashes( $d['content'] ) : $d['content'];
 				if( @file_put_contents( $d['filename'], $content ) !== false ) {
-					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully saved" ) );
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_save_success'] ) );
 				} else
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not write content" ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_save_error'] ) );
 			} else
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Got no content" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_save_error'] ) );
 		} else
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 	}
 
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
 		if( $this->config['edit'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "You are not allowed to edit files." ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['npermissions'] ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( isset( $d['filename'] ) && $this->isFilenameAllowed( $d['filename'] ) && file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
 				if( function_exists( "mb_check_encoding" ) && ! mb_check_encoding( $content, "UTF-8" ) )
 					$content = utf8_encode( $content );
-				echo $this->jsonResponse( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
-			} else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File not found or not readable." ) );
+				$this->jsonResponse( array( "status" => "OK", "data" => array( "filename" => $d['filename'], "content" => $content ) ) );
+			} else $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_not_found'] ) );
 		}
 	}
 
 	// deletes a bunch of files or directories
 	private function deleteFiles( array $d ) {
-		if( $this->config['delete'] != 1 ) $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to delete files" ) );
+		if( $this->config['delete'] != 1 ) $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
@@ -596,14 +608,14 @@ f00bar;
 				}
 			}
 			if( empty( $err ) ) {
-				echo $this->jsonResponse( array( "status" => "OK", "message" => "Files deleted successfully", "errflag" => "1" ) );
+				$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_delete_success'], "errflag" => "1" ) );
 			}
 			else {
-				$errmsg = "The following files could not be deleted:<ul>";
+				$errmsg = $this->l['file_delete_error'] . "<ul>";
 				foreach($err as $item)
 					$errmsg .= "<li>".$item."</li>";
 				$errmsg .= "</ul>";
-				echo $this->jsonResponse( array( "status" => "OK", "message" => $errmsg, "flag" => $errFLAG ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $errmsg, "flag" => $errFLAG ) );
 			}
 		}
 	}
@@ -611,22 +623,22 @@ f00bar;
 	// renames a file
 	private function renameFile( array $d ) {
 		if( $this->config['rename'] != 1 ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to rename files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		} elseif( ! $this->isFilenameValid( $d['filename'] ) ) {
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid file name given" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 		} else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( strpos( $d['newname'], '/' ) !== false )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No slashes allowed in filenames" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['filename_slashes'] ) );
 			elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['newname'], 0, 3) == ".ht" || substr( $d['filename'], 0, 3 ) == ".ht" ) )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename this file" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 			elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['newname'], 0, 1) == "." || substr( $d['filename'], 0, 1 ) == "." ) )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to rename file" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 			else {
 				if( @rename( $d['filename'], $d['newname'] ) )
-					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successful renamed" ) );
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_rename_success'] ) );
 				else
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be renamed" ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_rename_error'] ) );
 			}
 		}
 	}
@@ -634,11 +646,11 @@ f00bar;
 	// provides a file for downloading
 	private function downloadFile( array $d ) {
 		if( $this->config['download'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message"=>"Not allowed to download htdocs" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message"=> $this->l['nopermissions'] ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to download hidden files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
 			$this->fileDownload( $d['filename'] );
@@ -648,34 +660,34 @@ f00bar;
 	// extracts a zip-archive
 	private function extractFile( array $d ) {
 		if( $this->config['extract'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to extract files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) ) {
-				echo $this->jsonResponse( array( "status" => "ERROR","message" => "No valid archive found" ) );
+				$this->jsonResponse( array( "status" => "ERROR","message" => $this->l['invalid_filename'] ) );
 				exit( 1 );
 			}
 			if( ! isset( $d['targetdir'] ) || trim( $d['targetdir'] ) == "" )
 				$d['targetdir'] = "./";
 			if( ! $this->isPathValid( $d['targetdir'] ) ) {
-				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Target directory is not valid." ) );
+				$this->jsonResponse( array( "status" => "ERROR","message" => $this->l['invalid_dir'] ) );
 				exit( 1 );
 			}
 			if( ! is_dir( $d['targetdir'] ) && ! mkdir( $d['targetdir'], 0777, true ) ) {
-				echo $this->jsonResponse( array( "status" => "ERROR","message" => "Could not create target directory." ) );
+				$this->jsonResponse( array( "status" => "ERROR","message" => $this->l['folder_create_error'] ) );
 				exit( 1 );
 			}
 			if( substr( strtolower( $d['filename'] ), -4 ) == ".zip" ) {
 				if( ! IFMArchive::extractZip( $d['filename'], $d['targetdir'] ) ) {
-					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					$this->jsonResponse( array( "status" => "ERROR","message" => $this->l['extract_error'] ) );
 				} else {
-					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
+					$this->jsonResponse( array( "status" => "OK","message" => $this->l['extract_success'] ) );
 				}
 			} else {
 				if( ! IFMArchive::extractTar( $d['filename'], $d['targetdir'] ) ) {
-					echo $this->jsonResponse( array( "status" => "ERROR","message" => "File could not be extracted" ) );
+					$this->jsonResponse( array( "status" => "ERROR","message" => $this->l['extract_error'] ) );
 				} else {
-					echo $this->jsonResponse( array( "status" => "OK","message" => "File successfully extracted." ) );
+					$this->jsonResponse( array( "status" => "OK","message" => $this->l['extract_success'] ) );
 				}
 			} 
 		}
@@ -684,35 +696,35 @@ f00bar;
 	// uploads a file
 	private function uploadFile( array $d ) {
 		if( $this->config['upload'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to upload files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		elseif( !isset( $_FILES['file'] ) )
-			echo $this->jsonResponse( array( "file" => $_FILE,"files" => $_FILES ) );
+			$this->jsonResponse( array( "file" => $_FILE,"files" => $_FILES ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
 			if( ! $this->isFilenameValid( $newfilename ) )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid filename given" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				if( $_FILES['file']['tmp_name'] ) {
 					if( is_writable( getcwd( ) ) ) {
 						if( move_uploaded_file( $_FILES['file']['tmp_name'], $newfilename ) )
-							echo $this->jsonResponse( array( "status" => "OK", "message" => "The file ".$_FILES['file']['name']." was uploaded successfully", "cd" => $d['dir'] ) );
+							$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_upload_success'], "cd" => $d['dir'] ) );
 						else
-							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded" ) );
+							$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_error'] ) );
 					}
 					else
-						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "File could not be uploaded since it has no permissions to write in this directory" ) );
+						$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_success'] ) );
 				} else
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No file found" ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_not_found'] ) );
 			}
 		}
 	}
 
 	// change permissions of a file
 	private function changePermissions( array $d ) {
-		if( $this->config['chmod'] != 1 ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No rights to change permissions" ) );
-		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not identify new permissions" ) );
-		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Not allowed to change the permissions" ) ); }
+		if( $this->config['chmod'] != 1 ) $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+		elseif( ! isset( $d["chmod"] )||$d['chmod']=="" ) $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['permission_parse_error'] ) );
+		elseif( ! $this->isPathValid( $this->pathCombine( $d['dir'],$d['filename'] ) ) ) { $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) ); }
 		else {
 			$this->chDirIfNecessary( $d['dir'] ); $chmod = $d["chmod"]; $cmi = true;
 			if( ! is_numeric( $chmod ) ) {
@@ -737,12 +749,12 @@ f00bar;
 			if( $cmi ) {
 				try {
 					chmod( $d["filename"], (int)octdec( $chmod ) );
-					echo $this->jsonResponse( array( "status" => "OK", "message" => "Permissions changed successfully" ) );
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['permission_change_success'] ) );
 				} catch ( Exception $e ) {
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Error while changing permissions" ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['permission_change_error'] ) );
 				}
 			}
-			else echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Could not determine permission format" ) );
+			else $this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['permission_parse_error'] ) );
 		}
 	}
 
@@ -750,18 +762,18 @@ f00bar;
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload( array $d ) {
 		if( $this->config['zipnload'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to download directories" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermission'] ) );
 		else {
 			$this->chDirIfNecessary( $d['dir'] );
 			if( ! file_exists( $d['filename'] ) )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Directory not found" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
 			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Filename not valid" ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
 				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile, ( $d['filename'] == "." ) );
+					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -770,7 +782,7 @@ f00bar;
 					}
 					$this->fileDownload( $dfile, $d['filename'] . ".zip" );
 				} catch ( Exception $e ) {
-					echo "An error occured: " . $e->getMessage();
+					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
 					if( file_exists( $dfile ) ) @unlink( $dfile );
 				}
@@ -781,65 +793,92 @@ f00bar;
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload( array $d ) {
 		if( $this->config['remoteupload'] != 1 )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to remote upload files" ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		elseif( !isset( $d['method'] ) || !in_array( $d['method'], array( "curl", "file" ) ) )
-			echo $this->jsonResponse( array( "status" => "error", "message" => "Invalid method given. Valid methods: ['curl', 'file']" ) );
+			$this->jsonResponse( array( "status" => "error", "message" => $this->l['invalid_params'] ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == false )
-			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "cURL extention not installed. Please install the cURL extention to use remote file upload." ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error']." cURL extention not installed." ) );
 		elseif( $d['method']=="curl" && $this->checkCurl( ) == true ) {
 			$filename = ( isset( $d['filename'] )&&$d['filename']!="" )?$d['filename']:"curl_".uniqid( );
 			$this->chDirIfNecessary( $d['dir'] );
 			$ch = curl_init( );
 			if( $ch ) {
 				if( $this->isFilenameValid( $filename ) == false )
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 				elseif( filter_var( $d['url'], FILTER_VALIDATE_URL ) === false )
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => "The passed URL is not valid" ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_url'] ) );
 				else {
 					$fp = fopen( $filename, "w" );
 					if( $fp ) {
 						if( !curl_setopt( $ch, CURLOPT_URL, $d['url'] ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
-							echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to set options and execute cURL" ) );
+							$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error']." ".curl_error( $ch ) ) );
 						else {
-							echo $this->jsonResponse( array( "status" => "OK", "message" => "File sucessfully uploaded" ) );
+							$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_upload_success'] ) );
 						}
 						curl_close( $ch );
 						fclose( $fp );
 					} else {
-						echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to open file" ) );
+						$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_open_error'] ) );
 					}
 				}
 			} else {
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "Failed to init cURL." ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error']." curl init" ) );
 			}
 		}
 		elseif( $d['method']=='file' ) {
 			$filename = ( isset( $d['filename'] ) && $d['filename']!="" ) ? $d['filename'] : "curl_".uniqid( );
 			if( $this->isFilenameValid( $filename ) == false )
-				echo $this->jsonResponse( array( "status" => "ERROR", "message" => "This filename is not valid." ) );
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				$this->chDirIfNecessary( $d['dir'] );
 				try {
 					file_put_contents( $filename, file_get_contents( $d['url'] ) );
-					echo $this->jsonResponse( array( "status" => "OK", "message" => "File successfully uploaded" ) );
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_upload_success'] ) );
 				} catch( Exception $e ) {
-					echo $this->jsonResponse( array( "status" => "ERROR", "message" => $e->getMessage() ) );
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error'] . " " . $e->getMessage() ) );
 				}
 			}
 		}
 		else
-			echo $this->jsonResponse( array( "status" => "error", "message" => "Corrupt parameter data" ) );
+			$this->jsonResponse( array( "status" => "error", "message" => $this->l['invalid_params'] ) );
 	}
 
 	private function createArchive( $d ) {
-//		if( $config['createarchive'] != 1 ) {
-//			echo $this->jsonResponse( array( "status" => "ERROR", "message" => "No permission to create archives" ) );
-//			return false;
-//		}
-//		$this->chDirIfNecessary( $d['dir'] );
-//		switch( $d['format'] ) {
-//			case "zip":
-//				
+		if( $this->config['createarchive'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+			return false;
+		}
+		if( ! $this->isFilenameValid( $d['archivename'] ) ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
+			return false;
+		}
+		$this->chDirIfNecessary( $d['dir'] );
+		$filenames = array();
+		foreach( $d['filenames'] as $file )
+			if( ! $this->isFilenameValid( $file ) ) {
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
+				exit( 1 );
+			} else 
+				array_push( $filenames, realpath( $file ) );
+		switch( $d['format'] ) {
+			case "zip":
+				if( IFMArchive::createZip( $filenames, $d['archivename'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['archive_create_success'] ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['archive_create_error'] ) );
+				break;
+			case "tar":
+			case "tar.gz":
+			case "tar.bz2":
+				if( IFMArchive::createTar( $filenames, $d['archivename'], $d['format'] ) )
+					$this->jsonResponse( array( "status" => "OK", "message" => $this->l['archive_create_success'] ) );
+				else
+					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['archive_create_error'] ) );
+				break;
+			default:
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['archive_invalid_format'] ) );
+				break;
+		}
 	}
 
 	/*
@@ -878,7 +917,7 @@ f00bar;
 				break;
 			}
 
-			$this->jsonResponse( array( "status" => "ERROR", "message" => "Could not encode json: " . $err ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['json_encode_error'] . " " . $err ) );
 		} else {
 			echo $json;
 		}
@@ -913,9 +952,9 @@ f00bar;
 			} else {
 				if( isset( $_POST["api"] ) ) {
 					if( $login_failed === true )
-						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
+						$this->jsonResponse( array( "status"=>"ERROR", "message"=>"authentication failed" ) );
 					else
-						echo $this->jsonResponse( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
+						$this->jsonResponse( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
 				} else {
 					$this->loginForm($login_failed);
 				}
@@ -962,9 +1001,8 @@ f00bar;
 						$authenticated = false;
 					}
 					ldap_unbind( $ds );
-				} else {
+				} else
 					$authenticated = false;
-				}
 				return $authenticated;
 				break;
 		}
@@ -974,12 +1012,12 @@ f00bar;
 	private function loginForm($loginFailed=false) {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-danger">Login failed.</div>';
+			$err = '<div class="alert alert-danger">'.$this->l['login_failed'].'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
-		$html = str_replace( "{{i18n.username}}", $this->i18n[$this->config['language']]['username'], $html );
-		$html = str_replace( "{{i18n.password}}", $this->i18n[$this->config['language']]['password'], $html );
-		$html = str_replace( "{{i18n.login}}", $this->i18n[$this->config['language']]['login'], $html );
+		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
+		$html = str_replace( "{{i18n.password}}", $this->l['password'], $html );
+		$html = str_replace( "{{i18n.login}}", $this->l['login'], $html );
 		print $html;
 		$this->getHTMLFooter();
 	}
