@@ -1,7 +1,6 @@
 # IFM - improved file manager
 ## about
 The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP.
-<a href="https://misterunknown.de/static/ifmdemo.gif"><img src="https://misterunknown.de/static/ifmdemo.gif"></a>
 
 The IFM uses the following resources:
 * [ACE Editor](https://ace.c9.io)
@@ -67,13 +66,11 @@ See [authentication](https://github.com/misterunknown/ifm/wiki/Authentication).
 The docker image is based on alpine 3.5 for a small image footprint, with necessary apache, php and supporting packages installed and exposes port 80
 
 ### build image
-
 Run the following command from the top source dir:
 
 `docker build -t ifm .`
 
 ### run image
-
 The script is installed inside the image at `/var/www/html/index.php`. Its default configuration is unchanged, thus it will display the contents of the document root (`/var/www/html`)
 
 Here is an example of how to start up a container with this image:
