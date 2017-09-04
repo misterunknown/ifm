@@ -2173,20 +2173,19 @@ function IFM( params ) {
 
 		var updateResults = function( data ) {
 			self.log( 'updated search results' );
-			self.search.data = data;
 			var searchresults = document.getElementById( 'searchResults' );
 			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
 			searchresults.appendChild( document.createElement( 'tbody' ) );
 			searchresults.tBodies[0].innerHTML = Mustache.render( self.templates.searchresults, { items: self.search.data } );
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
-				if( e.target.classList.contains( 'searchitem' ) ) {
+				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory( e.target.dataset.folder || e.target.parentNode.dataset.folder, { absolute: true } );
+					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.foldera ), { absolute: true } );
 					self.hideModal();
 				}
 			});
 			searchresults.tBodies[0].addEventListener( 'keypress', function( e ) {
-				if( e.target.classList.contains( 'searchitem' ) ) {
+				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
 					e.target.click();
 				}
@@ -2219,6 +2218,8 @@ function IFM( params ) {
 								e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
 								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 							});
+							self.search.data = data;
+							if( self.search.data ) self.search.data.currentDir = self.currentDir;
 							updateResults( data );
 						}
 					}
