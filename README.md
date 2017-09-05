@@ -31,7 +31,8 @@ The IFM uses the following resources:
     * curl (for remote upload)
     * json
     * openssl (for remote uploads from https sources)
-    * phar (for tar support)
+    * phar
+    * posix
     * zip
     * zlib
 
@@ -54,8 +55,11 @@ By default, it is not allowed to show or edit the `.htaccess` file. This is beca
 * <kbd>F</kbd> - new file
 * <kbd>D</kbd> - new directory
 * <kbd>c</kbd><kbd>m</kbd> - show copy/move dialog
-* <kbd>space</kbd> - select a highlighted item
-* <kbd>del</kbd> - delete selected files
+* <kbd>/</kbd> - search
+* <kbd>a</kbd> - ajax request
+* <kbd>n</kbd> - rename file
+* <kbd>Space</kbd> - select a highlighted item
+* <kbd>Del</kbd> - delete selected files
 * <kbd>Enter</kbd> - open a file or change to the directory
 
 ## configuration
