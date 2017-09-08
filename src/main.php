@@ -977,9 +977,7 @@ f00bar;
 				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
-				$this->log( "srcopt: $srcopt" );
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
-					$this->log( "file exists" );
 					$htpasswd = new Htpasswd( $srcopt );
 					return $htpasswd->verify( $user, $pass );
 				} else {
