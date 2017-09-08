@@ -57,8 +57,6 @@ class IFM {
 	public $mode = "";
 
 	public function __construct( $config=array() ) {
-		if( session_status() !== PHP_SESSION_ACTIVE )
-			session_start();
 
 		// load the default config
 		$this->config = $this->defaultconfig;
@@ -3662,7 +3660,13 @@ function IFM( params ) {
 	}
 
 	public function checkAuth() {
-		if( $this->config['auth'] == 1 && ( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) ) {
+		if( $this->config['auth'] == 0 )
+			return true;
+
+		if( session_status() !== PHP_SESSION_ACTIVE )
+			session_start();
+
+		if( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) {
 			$login_failed = false;
 			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
 				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
