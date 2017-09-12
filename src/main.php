@@ -974,7 +974,8 @@ f00bar;
 		switch( $src ) {
 			case "inline":
 				list( $uname, $hash ) = explode( ":", $srcopt );
-				return password_verify( $pass, trim( $hash ) ) ? ( $uname == $user ) : false;
+				$htpasswd = new Htpasswd();
+				return $htpasswd->verifyPassword( $pass, $hash ) ? ( $uname == $user ) : false;
 				break;
 			case "file":
 				if( @file_exists( $srcopt ) && @is_readable( $srcopt ) ) {
