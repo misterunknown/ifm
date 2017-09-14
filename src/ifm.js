@@ -950,7 +950,7 @@ function IFM( params ) {
 				dir: ifm.currentDir,
 				filename: filename,
 				method: method,
-				url: encodeURI( url )
+				url: url
 			}),
 			dataType: "json",
 			success: function(data) {

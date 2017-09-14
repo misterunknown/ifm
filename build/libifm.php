@@ -2120,7 +2120,7 @@ function IFM( params ) {
 				dir: ifm.currentDir,
 				filename: filename,
 				method: method,
-				url: encodeURI( url )
+				url: url
 			}),
 			dataType: "json",
 			success: function(data) {
@@ -3540,7 +3540,7 @@ function IFM( params ) {
 				else {
 					$fp = fopen( $filename, "w" );
 					if( $fp ) {
-						if( !curl_setopt( $ch, CURLOPT_URL, $d['url'] ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
+						if( !curl_setopt( $ch, CURLOPT_URL, urldecode( $d['url'] ) ) || !curl_setopt( $ch, CURLOPT_FILE, $fp ) || !curl_setopt( $ch, CURLOPT_HEADER, 0 ) || !curl_exec( $ch ) )
 							$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['error']." ".curl_error( $ch ) ) );
 						else {
 							$this->jsonResponse( array( "status" => "OK", "message" => $this->l['file_upload_success'] ) );
