@@ -189,6 +189,10 @@ f00bar;
 			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
 		';
+		print '<style type="text/css"> /* additional styles for standalone or inline mode */';
+		if( $this->mode != "standalone" ) { ?> @@@file:src/style.inline.css@@@ <?php }
+		else { ?> @@@file:src/style.standalone.css@@@ <?php }
+		print '</style>';
 	}
 
 	public function getJS() {
@@ -247,7 +251,7 @@ f00bar;
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
 			$this->jsonResponse( $this->l );
 		} elseif( $_REQUEST["api"] == "logout" ) {
-			unset( $_SESSION );
+			unset( $_SESSION['ifmauth'] );
 			session_destroy();
 			header( "Location: " . strtok( $_SERVER["REQUEST_URI"], '?' ) );
 			exit( 0 );
@@ -379,7 +383,7 @@ f00bar;
 
 	private function getConfig() {
 		$ret = $this->config;
-		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
+		$ret['inline'] = ( $this->mode != "standalone" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		$this->jsonResponse( $ret );
 	}
@@ -939,19 +943,19 @@ f00bar;
 		if( session_status() !== PHP_SESSION_ACTIVE )
 			session_start();
 
-		if( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) {
+		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
 			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
 				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
-					$_SESSION['auth'] = true;
+					$_SESSION['ifmauth'] = true;
 				}
 				else {
-					$_SESSION['auth'] = false;
+					$_SESSION['ifmauth'] = false;
 					$login_failed = true;
 				}
 			}
 
-			if( isset( $_SESSION['auth'] ) && $_SESSION['auth'] === true ) {
+			if( isset( $_SESSION['ifmauth'] ) && $_SESSION['ifmauth'] === true ) {
 				return true;
 			} else {
 				if( isset( $_POST["api"] ) ) {

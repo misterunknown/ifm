@@ -1010,12 +1010,7 @@ $i18n["de"] = json_decode( $i18n["de"], true );
   }
 }
  <?php print '</style>
-			<style type="text/css">';?> body {
-	padding-top: 70px;
-	overflow-y: scroll !important;
-}
-
-/*
+			<style type="text/css">';?> /*
  * This prevents the content from moving when opening a modal
  */
 .modal-open {
@@ -1039,14 +1034,14 @@ $i18n["de"] = json_decode( $i18n["de"], true );
 	text-decoration: none;
 }
 
-a { cursor: pointer !important; }
-a.ifmitem:focus { outline: 0 }
+#ifm a { cursor: pointer !important; }
+#ifm a.ifmitem:focus { outline: 0 }
 
-img.imgpreview { max-width: 100%; }
+#ifm img.imgpreview { max-width: 100%; }
 
-div#content { width: 100%; height: 350px; }
+#ifm div#content { width: 100%; height: 350px; }
 
-input[name=newpermissions] { padding: 6px 8px; }
+#ifm input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -1065,7 +1060,7 @@ div.ifminfo div.panel-body { padding: 5px !important; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
-footer {
+#ifm footer {
 	position: fixed;
 	padding-top: 1em;
 	border-top: 1px;
@@ -1110,9 +1105,19 @@ footer {
 	font-size: 6em;
 }
 
-.td-permissions { width: 1px; }
+#filetable .td-permissions { width: 1px; }
  <?php print '</style>
 		';
+		print '<style type="text/css"> /* additional styles for standalone or inline mode */';
+		if( $this->mode != "standalone" ) { ?> nav .container { width: auto !important; }
+#ifm .container { width: auto !important; }
+ <?php }
+		else { ?> body {
+	padding-top: 70px;
+	overflow-y: scroll !important;
+}
+ <?php }
+		print '</style>';
 	}
 
 	public function getJS() {
@@ -2974,7 +2979,7 @@ function IFM( params ) {
 		} elseif( $_REQUEST["api"] == "getI18N" ) {
 			$this->jsonResponse( $this->l );
 		} elseif( $_REQUEST["api"] == "logout" ) {
-			unset( $_SESSION );
+			unset( $_SESSION['ifmauth'] );
 			session_destroy();
 			header( "Location: " . strtok( $_SERVER["REQUEST_URI"], '?' ) );
 			exit( 0 );
@@ -3106,7 +3111,7 @@ function IFM( params ) {
 
 	private function getConfig() {
 		$ret = $this->config;
-		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
+		$ret['inline'] = ( $this->mode != "standalone" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		$this->jsonResponse( $ret );
 	}
@@ -3666,19 +3671,19 @@ function IFM( params ) {
 		if( session_status() !== PHP_SESSION_ACTIVE )
 			session_start();
 
-		if( ! isset( $_SESSION['auth'] ) || $_SESSION['auth'] !== true ) {
+		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
 			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
 				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
-					$_SESSION['auth'] = true;
+					$_SESSION['ifmauth'] = true;
 				}
 				else {
-					$_SESSION['auth'] = false;
+					$_SESSION['ifmauth'] = false;
 					$login_failed = true;
 				}
 			}
 
-			if( isset( $_SESSION['auth'] ) && $_SESSION['auth'] === true ) {
+			if( isset( $_SESSION['ifmauth'] ) && $_SESSION['ifmauth'] === true ) {
 				return true;
 			} else {
 				if( isset( $_POST["api"] ) ) {

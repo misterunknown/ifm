@@ -1,8 +1,3 @@
-body {
-	padding-top: 70px;
-	overflow-y: scroll !important;
-}
-
 /*
  * This prevents the content from moving when opening a modal
  */
@@ -27,14 +22,14 @@ body {
 	text-decoration: none;
 }
 
-a { cursor: pointer !important; }
-a.ifmitem:focus { outline: 0 }
+#ifm a { cursor: pointer !important; }
+#ifm a.ifmitem:focus { outline: 0 }
 
-img.imgpreview { max-width: 100%; }
+#ifm img.imgpreview { max-width: 100%; }
 
-div#content { width: 100%; height: 350px; }
+#ifm div#content { width: 100%; height: 350px; }
 
-input[name=newpermissions] { padding: 6px 8px; }
+#ifm input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -53,7 +48,7 @@ div.ifminfo div.panel-body { padding: 5px !important; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
-footer {
+#ifm footer {
 	position: fixed;
 	padding-top: 1em;
 	border-top: 1px;
@@ -98,4 +93,4 @@ footer {
 	font-size: 6em;
 }
 
-.td-permissions { width: 1px; }
+#filetable .td-permissions { width: 1px; }
