@@ -3438,7 +3438,7 @@ function IFM( params ) {
 							$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_error'] ) );
 					}
 					else
-						$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_success'] ) );
+						$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_error'] ) );
 				} else
 					$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_not_found'] ) );
 			}
