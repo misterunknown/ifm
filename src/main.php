@@ -189,10 +189,6 @@ f00bar;
 			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
 		';
-		print '<style type="text/css"> /* additional styles for standalone or inline mode */';
-		if( $this->mode != "standalone" ) { ?> @@@file:src/style.inline.css@@@ <?php }
-		else { ?> @@@file:src/style.standalone.css@@@ <?php }
-		print '</style>';
 	}
 
 	public function getJS() {

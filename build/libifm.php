@@ -1010,7 +1010,12 @@ $i18n["de"] = json_decode( $i18n["de"], true );
   }
 }
  <?php print '</style>
-			<style type="text/css">';?> /*
+			<style type="text/css">';?> body {
+	padding-top: 70px;
+	overflow-y: scroll !important;
+}
+
+/*
  * This prevents the content from moving when opening a modal
  */
 .modal-open {
@@ -1034,14 +1039,14 @@ $i18n["de"] = json_decode( $i18n["de"], true );
 	text-decoration: none;
 }
 
-#ifm a { cursor: pointer !important; }
-#ifm a.ifmitem:focus { outline: 0 }
+a { cursor: pointer !important; }
+a.ifmitem:focus { outline: 0 }
 
-#ifm img.imgpreview { max-width: 100%; }
+img.imgpreview { max-width: 100%; }
 
-#ifm div#content { width: 100%; height: 350px; }
+div#content { width: 100%; height: 350px; }
 
-#ifm input[name=newpermissions] { padding: 6px 8px; }
+input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -1060,7 +1065,7 @@ div.ifminfo div.panel-body { padding: 5px !important; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
-#ifm footer {
+footer {
 	position: fixed;
 	padding-top: 1em;
 	border-top: 1px;
@@ -1105,19 +1110,9 @@ div.ifminfo div.panel-body { padding: 5px !important; }
 	font-size: 6em;
 }
 
-#filetable .td-permissions { width: 1px; }
+.td-permissions { width: 1px; }
  <?php print '</style>
 		';
-		print '<style type="text/css"> /* additional styles for standalone or inline mode */';
-		if( $this->mode != "standalone" ) { ?> nav .container { width: auto !important; }
-#ifm .container { width: auto !important; }
- <?php }
-		else { ?> body {
-	padding-top: 70px;
-	overflow-y: scroll !important;
-}
- <?php }
-		print '</style>';
 	}
 
 	public function getJS() {
