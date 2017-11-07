@@ -1,4 +1,16 @@
 # IFM - improved file manager
+## contents
+ - [about](#about)
+ - [features](#features)
+ - [requirements](#requirements)
+ - [installation](#installation)
+ - [security information](#security-information)
+ - [keybindings](#keybindings)
+ - [configuration](#configuration)
+ - [docker](#docker)
+ - [screenshots](#screenshots)
+ - [issues](#issues)
+
 ## about
 The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP. You can test a [demo here](https://ifmdemo.misterunknown.de/). The credentials are the default credentials: `admin` as username and password.
 
