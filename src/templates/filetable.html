@@ -1,5 +1,11 @@
 {{#items}}
 <tr class="clickable-row {{rowclasses}}" {{{dragdrop}}} data-id="{{guid}}" data-filename="{{name}}" data-eaction="{{eaction}}">
+	{{#fixtop}}
+	<td data-order="{{fixtop}}"></td>
+	{{/fixtop}}
+	{{^fixtop}}
+	<td data-order="0"></td>
+	{{/fixtop}}
 	<td>
 		<a {{{href}}} tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
@@ -22,7 +28,7 @@
 	<td>{{lastmodified}}</td>
 	{{/config.showlastmodified}}
 	{{#config.showfilesize}}
-	<td>{{size}}</td>
+	<td data-order="{{size_raw}}">{{size}}</td>
 	{{/config.showfilesize}}
 	{{#config.showpermissions}}
 	<td class="hidden-xs td-permissions">
