@@ -547,6 +547,14 @@ f00bar;
 </form>
 
 f00bar;
+		$templates['savequestion'] = <<<'f00bar'
+<div id="savequestion">
+	<label>{{i18n.file_save_confirm}}?</label><br>
+	<button id="buttonSave">{{i18n.save}}</button>
+	<button id="buttonDismiss">{{i18n.cancel}}</button>
+</div>
+
+f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();
@@ -1183,6 +1191,10 @@ function IFM( params ) {
 	this.fileCache = [];		// holds the current set of files
 	this.search = {};		// holds the last search query, as well as the search results
 
+	// This indicates if the modal was closed by a button or not, to prevent the user
+	// from accidentially close it while editing a file.
+	this.isModalClosedByButton = false;
+
 	/**
 	 * Shows a bootstrap modal
 	 *
@@ -1209,7 +1221,13 @@ function IFM( params ) {
 		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
 		// events require jquery, as they cannot be handled by addEventListener()
 		$(modal)
-			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
+			.on( 'hide.bs.modal', function( e ) {
+				if( document.forms.formFile && self.fileChanged && !self.isModalClosedByButton ) {
+					console.log( "Prevented closing modal, as the file was changed an no button was clicked." );
+					e.preventDefault();
+				} else 
+					$(this).remove();
+			})
 			.on( 'shown.bs.modal', function( e ) {
 				var formElements = $(this).find('input, button');
 				if( formElements.length > 0 ) {
@@ -1223,8 +1241,8 @@ function IFM( params ) {
 	 * Hides a the current bootstrap modal
 	 */
 	this.hideModal = function() {
-		// Hide the modal via jquery to get the hide.bs.modal event triggered
-		$('#ifmmodal').modal('hide');
+		$( '#ifmmodal' ).modal( 'hide' );
+		self.isModalClosedByButton = false;
 	};
 
 	/**
@@ -1556,12 +1574,14 @@ function IFM( params ) {
 			if( e.target.id == "buttonSave" ) {
 				e.preventDefault();
 				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+				self.isModalClosedByButton = true;
 				self.hideModal();
 			} else if( e.target.id == "buttonSaveNotClose" ) {
 				e.preventDefault();
 				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
 			} else if( e.target.id == "buttonClose" ) {
 				e.preventDefault();
+				self.isModalClosedByButton = true;
 				self.hideModal();
 			}
 		});
