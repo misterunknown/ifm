@@ -185,6 +185,7 @@ f00bar;
 		print '
 			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
+			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
@@ -198,6 +199,7 @@ f00bar;
 				<script>';?> @@@file:src/includes/bootstrap.min.js@@@ <?php print '</script>
 				<script>';?> @@@file:src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
 				<script>';?> @@@file:src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
+				<script>';?> @@@file:src/includes/datatables.min.js@@@ <?php print '</script>
 				<script>';?> @@@file:src/includes/BootstrapMenu.min.js@@@ <?php print '</script>
 				<script>';?> @@@file:src/includes/mustache.min.js@@@ <?php print '</script>
 				<script>';?> @@@file:src/ifm.js@@@ <?php print '</script>
@@ -350,11 +352,16 @@ f00bar;
 		}
 		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
 		if( $this->config['showfilesize'] == 1 ) {
-			$item["size"] = filesize( $name );
-			if( $item["size"] > 1073741824 ) $item["size"] = round( ( $item["size"]/1073741824 ), 2 ) . " GB";
-			elseif($item["size"]>1048576)$item["size"] = round( ( $item["size"]/1048576 ), 2 ) . " MB";
-			elseif($item["size"]>1024)$item["size"] = round( ( $item["size"]/1024 ), 2 ) . " KB";
-			else $item["size"] = $item["size"] . " Byte";
+			if( $item['type'] == "dir" ) {
+				$item['size_raw'] = 0;
+				$item['size'] = "";
+			} else {
+				$item["size_raw"] = filesize( $name );
+				if( $item["size_raw"] > 1073741824 ) $item["size"] = round( ( $item["size_raw"]/1073741824 ), 2 ) . " GB";
+				elseif($item["size_raw"]>1048576)$item["size"] = round( ( $item["size_raw"]/1048576 ), 2 ) . " MB";
+				elseif($item["size_raw"]>1024)$item["size"] = round( ( $item["size_raw"]/1024 ), 2 ) . " KB";
+				else $item["size"] = $item["size_raw"] . " Byte";
+			}
 		}
 		if( $this->config['showpermissions'] > 0 ) {
 			if( $this->config['showpermissions'] == 1 ) $item["fileperms"] = substr( decoct( fileperms( $name ) ), -3 );

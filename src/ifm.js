@@ -18,6 +18,12 @@ function IFM( params ) {
 	this.fileCache = [];		// holds the current set of files
 	this.search = {};		// holds the last search query, as well as the search results
 
+	// This indicates if the modal was closed by a button or not, to prevent the user
+	// from accidentially close it while editing a file.
+	this.isModalClosedByButton = false;
+
+	this.datatable = null; // Reference for the data table
+
 	/**
 	 * Shows a bootstrap modal
 	 *
@@ -44,7 +50,13 @@ function IFM( params ) {
 		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
 		// events require jquery, as they cannot be handled by addEventListener()
 		$(modal)
-			.on( 'hide.bs.modal', function( e ) { $(this).remove(); })
+			.on( 'hide.bs.modal', function( e ) {
+				if( document.forms.formFile && self.fileChanged && !self.isModalClosedByButton ) {
+					console.log( "Prevented closing modal because the file was changed and no button was clicked." );
+					e.preventDefault();
+				} else
+					$(this).remove();
+			})
 			.on( 'shown.bs.modal', function( e ) {
 				var formElements = $(this).find('input, button');
 				if( formElements.length > 0 ) {
@@ -59,7 +71,8 @@ function IFM( params ) {
 	 */
 	this.hideModal = function() {
 		// Hide the modal via jquery to get the hide.bs.modal event triggered
-		$('#ifmmodal').modal('hide');
+		$( '#ifmmodal' ).modal( 'hide' );
+		self.isModalClosedByButton = false;
 	};
 
 	/**
@@ -98,6 +111,8 @@ function IFM( params ) {
 		data.forEach( function( item ) {
 			item.guid = self.generateGuid();
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
+			if( item.name == ".." )
+				item.fixtop = 100;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.download.currentDir = self.currentDir;
@@ -165,12 +180,28 @@ function IFM( params ) {
 		// save items to file cache
 		self.fileCache = data;
 
+
 		// build new tbody and replace the old one with the new
 		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
 		var filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
+
+		if( self.datatable ) self.datatable.destroy();
+		self.datatable = $('#filetable').DataTable({
+			paging: false,
+			info: false,
+			autoWidth: false,
+			columnDefs: [
+				{ "orderable": false, "targets": ["th-download","th-permissions","th-buttons"] }
+			],
+			orderFixed: [0, 'desc'],
+			language: {
+				"search": self.i18n.filter
+			}
+		});
+
 
 		// add event listeners
 		filetable.tBodies[0].addEventListener( 'keypress', function( e ) {
@@ -391,12 +422,14 @@ function IFM( params ) {
 			if( e.target.id == "buttonSave" ) {
 				e.preventDefault();
 				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
+				self.isModalClosedByButton = true;
 				self.hideModal();
 			} else if( e.target.id == "buttonSaveNotClose" ) {
 				e.preventDefault();
 				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
 			} else if( e.target.id == "buttonClose" ) {
 				e.preventDefault();
+				self.isModalClosedByButton = true;
 				self.hideModal();
 			}
 		});
@@ -1626,6 +1659,7 @@ function IFM( params ) {
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
 				});
+
 		// bind static buttons
 		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
 		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };

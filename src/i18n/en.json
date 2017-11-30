@@ -44,6 +44,7 @@
     "filename": "Filename",
     "filename_new": "New Filename",
     "filename_slashes": "The filename must not contain slashes.",
+    "filter": "Filter",
     "folder_create_error": "Directory could not be created: ",
     "folder_create_success": "Directory sucessfully created.",
     "folder_new": "New Folder",

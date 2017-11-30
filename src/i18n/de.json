@@ -44,6 +44,7 @@
     "filename": "Dateiname",
     "filename_new": "Neuer Dateiname",
     "filename_slashes": "Der Dateiname darf keine Schrägstriche enthalten.",
+    "filter": "Filtern",
     "folder_create_error": "Verzeichnis konnte nicht angelegt werden.",
     "folder_create_success": "Verzeichnis erfolgreich angelegt.",
     "folder_new": "Neue Ordner",
