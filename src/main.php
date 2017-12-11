@@ -271,6 +271,7 @@ f00bar;
 					case "searchItems": $this->searchItems( $_REQUEST ); break;
 					case "getFolderTree": $this->getFolderTree( $_REQUEST ); break;
 					case "createArchive": $this->createArchive( $_REQUEST ); break;
+					case "proxy": $this->downloadFile( $_REQUEST, false ); break;
 					default:
 						$this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid api action given" ) );
 						break;
@@ -649,7 +650,7 @@ f00bar;
 	}
 
 	// provides a file for downloading
-	private function downloadFile( array $d ) {
+	private function downloadFile( array $d, $forceDL=true ) {
 		if( $this->config['download'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
@@ -658,7 +659,10 @@ f00bar;
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		else {
 			$this->chDirIfNecessary( $d["dir"] );
-			$this->fileDownload( $d['filename'] );
+			if( ! is_file( $d['filename' ] ) )
+				http_response_code( 404 );
+			else 
+				$this->fileDownload( array( "file" => $d['filename'], "forceDL" => $forceDL ) );
 		}
 	}
 
@@ -785,7 +789,7 @@ f00bar;
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( $dfile, $d['filename'] . ".zip" );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
@@ -1228,16 +1232,24 @@ f00bar;
 		else return true;
 	}
 
-	private function fileDownload( $file, $name="" ) {
+	private function fileDownload( array $options ) {
+		if( $options['forceDL'] )
+			$content_type = "application/octet-stream";
+		else
+			$content_type = mime_content_type( $options['file'] );
+
+		if( ! isset( $options['name'] ) || trim( $options['name'] ) == "" )
+			$options['name'] = basename( $options['file'] );
+
 		header( 'Content-Description: File Transfer' );
-		header( 'Content-Type: application/octet-stream' );
-		header( 'Content-Disposition: attachment; filename="' . ( trim( $name ) == "" ? basename( $file ) : $name ) . '"' );
+		header( 'Content-Type: ' . $content_type );
+		header( 'Content-Disposition: attachment; filename="' . $options['name'] . '"' );
 		header( 'Expires: 0' );
 		header( 'Cache-Control: must-revalidate' );
 		header( 'Pragma: public' );
-		header( 'Content-Length: ' . filesize( $file ) );
+		header( 'Content-Length: ' . filesize( $options['file'] ) );
 
-		$file_stream = fopen( $file, 'rb' );
+		$file_stream = fopen( $options['file'], 'rb' );
 		$stdout_stream = fopen('php://output', 'wb');
 
 		stream_copy_to_stream($file_stream, $stdout_stream);
