@@ -93,6 +93,12 @@ class IFM {
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
 
+		// optional settings
+		if( getenv('IFM_SESSION_LIFETIME') !== false )
+			$this->config['session_lifetime'] = getenv('IFM_SESSION_LIFETIME');
+		if( getenv('IFM_FORCE_SESSION_LIFETIME') !== false )
+			$this->config['session_lifetime'] = getenv('IFM_FORCE_SESSION_LIFETIME');
+
 		// load config from passed array
 		$this->config = array_merge( $this->config, $config );
 
@@ -3958,8 +3964,15 @@ function IFM( params ) {
 		if( $this->config['auth'] == 0 )
 			return true;
 
-		if( session_status() !== PHP_SESSION_ACTIVE )
+		if( session_status() !== PHP_SESSION_ACTIVE ) {
+			if( isset( $this->config['session_lifetime'] ) )
+				ini_set( 'session.gc_maxlifetime', $this->config['session_lifetime'] );
+			if( isset( $this->config['force_session_lifetime'] ) && $this->config['force_session_lifetime'] ) {
+				ini_set( 'session.gc_divisor', 1 );
+				ini_set( 'session.gc_probability', 1 );
+			}
 			session_start();
+		}
 
 		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
