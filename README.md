@@ -41,6 +41,7 @@ The IFM uses the following resources:
   * extensions
     * bz2
     * curl (for remote upload)
+    * fileinfo
     * json
     * openssl (for remote uploads from https sources)
     * phar
