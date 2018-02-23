@@ -145,7 +145,7 @@ function IFM( params ) {
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && ( item.mime_type.substr( 0, 4 ) == "text" || item.mime_type.indexOf( "xml" ) !== false ) ) {
+				} else if( self.config.edit && ( item.mime_type.substr( 0, 4 ) == "text" || item.mime_type.indexOf( "xml" ) != -1 ) ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
