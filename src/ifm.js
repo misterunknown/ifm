@@ -145,7 +145,7 @@ function IFM( params ) {
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1 && ! self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
+				} else if( self.config.edit && item.mime_type.substr( 0, 4 ) == "text" ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",

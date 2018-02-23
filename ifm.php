@@ -1565,7 +1565,7 @@ function IFM( params ) {
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && item.icon.indexOf( 'file-image' ) == -1 && ! self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
+				} else if( self.config.edit && item.mime_type.substr( 0, 4 ) == "text" ) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
@@ -3367,6 +3367,7 @@ function IFM( params ) {
 				$type = substr( strrchr( $name, "." ), 1 );
 			$item["icon"] = $this->getTypeIcon( $type );
 			$item["ext"] = strtolower($type);
+			$item["mime_type"] = mime_content_type( $name );
 		}
 		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
 		if( $this->config['showfilesize'] == 1 ) {
