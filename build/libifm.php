@@ -158,7 +158,7 @@ class IFM {
 			</div>
 		</nav>
 		<div id="filedropoverlay">
-			<div>{{i18n.upload_drop}}</div>
+			<h1>{{i18n.upload_drop}}</h1>
 		</div>
 		<div class="container">
 			<table id="filetable" class="table">
@@ -1138,14 +1138,16 @@ footer {
 	filter: alpha(opacity=70);
 	-moz-opacity: 0.7;
 	opacity: 0.7;
+	z-index: 6000;
 }
 
-#filedropoverlay div {
+#filedropoverlay h1 {
     border-radius: 5px;
     color: #000;
     position:relative;
     top:50%;
 	font-size: 6em;
+	pointer-events: none;
 }
 
 .td-permissions { width: 1px; }
@@ -3128,9 +3130,6 @@ function IFM( params ) {
 						e.stopPropagation();
 						if( e.target.id == 'filedropoverlay' )
 							e.target.style.display = 'none';
-						else if( e.target.parentElement.id == 'filedropoverlay' ) {
-							e.target.parentElement.style.display = 'none';
-						}
 					};
 				} else {
 					var div = document.getElementById( 'filedropoverlay' );

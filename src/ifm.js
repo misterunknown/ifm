@@ -1708,9 +1708,6 @@ function IFM( params ) {
 						e.stopPropagation();
 						if( e.target.id == 'filedropoverlay' )
 							e.target.style.display = 'none';
-						else if( e.target.parentElement.id == 'filedropoverlay' ) {
-							e.target.parentElement.style.display = 'none';
-						}
 					};
 				} else {
 					var div = document.getElementById( 'filedropoverlay' );
