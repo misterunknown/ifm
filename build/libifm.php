@@ -1138,7 +1138,7 @@ footer {
 	filter: alpha(opacity=70);
 	-moz-opacity: 0.7;
 	opacity: 0.7;
-	z-index: 6000;
+	z-index: 1000;
 }
 
 #filedropoverlay h1 {
@@ -1567,7 +1567,14 @@ function IFM( params ) {
 						icon: "icon icon-archive",
 						title: "extract"
 					});
-				} else if( self.config.edit && ( item.mime_type.substr( 0, 4 ) == "text" || item.mime_type.indexOf( "xml" ) != -1 ) ) {
+				} else if(
+					self.config.edit &&
+					(
+						item.mime_type.substr( 0, 4 ) == "text"
+						|| item.mime_type.indexOf( "xml" ) != -1
+						|| item.mime_type == "inode/x-empty"
+					)
+				) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
