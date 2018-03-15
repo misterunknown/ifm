@@ -1260,7 +1260,7 @@ f00bar;
 	}
 
 	private function fileDownload( array $options ) {
-		if( $options['forceDL'] )
+		if( isset( $options['forceDL'] ) && $options['forceDL'] )
 			$content_type = "application/octet-stream";
 		else
 			$content_type = mime_content_type( $options['file'] );

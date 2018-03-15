@@ -70,6 +70,7 @@ class IFM {
 		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
+		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
 		$this->config['ajaxrequest'] =  getenv('IFM_API_AJAXREQUEST') !== false ? intval( getenv('IFM_API_AJAXREQUEST') ) : $this->config['ajaxrequest'] ;
 		$this->config['chmod'] =  getenv('IFM_API_CHMOD') !== false ? intval( getenv('IFM_API_CHMOD') ) : $this->config['chmod'] ;
 		$this->config['copymove'] =  getenv('IFM_API_COPYMOVE') !== false ? intval( getenv('IFM_API_COPYMOVE') ) : $this->config['copymove'] ;
@@ -4277,7 +4278,7 @@ function IFM( params ) {
 	}
 
 	private function fileDownload( array $options ) {
-		if( $options['forceDL'] )
+		if( isset( $options['forceDL'] ) && $options['forceDL'] )
 			$content_type = "application/octet-stream";
 		else
 			$content_type = mime_content_type( $options['file'] );
