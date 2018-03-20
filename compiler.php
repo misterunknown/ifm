@@ -8,17 +8,22 @@
 
 chdir( realpath( dirname( __FILE__ ) ) );
 
+// php source files
 $IFM_SRC_PHP = array(
 	0 => "src/main.php",
 	1 => "src/ifmarchive.php",
 	2 => "src/htpasswd.php"
 );
 
-$IFM_BUILD_STANDALONE = "ifm.php";
-$IFM_BUILD_STANDALONE_COMPRESSED = "build/ifm.min.php";
-$IFM_BUILD_LIB_PHP = "build/libifm.php";
+// output files
+define( "IFM_STANDALONE",    "ifm.php" );
+define( "IFM_STANDALONE_GZ", "build/ifm.min.php" );
+define( "IFM_LIB",           "build/libifm.php" );
 
+// get options
 $options = getopt( null, array( "language::" ) );
+
+// process languages
 $vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en" );
 $vars['defaultlanguage'] = $vars['languages'][0];
 $vars['languageincludes'] = "";
@@ -53,6 +58,23 @@ foreach( $includes as $file )
 	$compiled = str_replace( $file[0], file_get_contents( $file[1] ), $compiled );
 
 /**
+ * Process ace includes
+ */
+$includes = NULL;
+$vars['ace_includes'] = "";
+preg_match_all( "/\@\@\@acedir:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_ORDER );
+foreach( $includes as $dir ) {
+	$dircontent = "";
+	foreach( glob( $dir[1]."/*" ) as $file ) {
+		if( is_file( $file ) && is_readable( $file ) ) {
+			$vars['ace_includes'] .= "|" . substr( basename( $file ), 0, strrpos( basename( $file ), "." ) );
+			$dircontent .= file_get_contents( $file )."\n\n";
+		}
+	}
+	$compiled = str_replace( $dir[0], $dircontent, $compiled );
+}
+
+/**
  * Process variable includes
  */
 $includes = NULL;
@@ -61,10 +83,11 @@ foreach( $includes as $var )
 	$compiled = str_replace( $var[0], $vars[$var[1]], $compiled );
 
 /**
- * Build standalone script
+ * Build versions
  */
-file_put_contents( $IFM_BUILD_STANDALONE, $compiled );
-file_put_contents( $IFM_BUILD_STANDALONE, '
+// build standalone ifm
+file_put_contents( IFM_STANDALONE, $compiled );
+file_put_contents( IFM_STANDALONE, '
 /**
  * start IFM
  */
@@ -72,12 +95,13 @@ $ifm = new IFM();
 $ifm->run();
 ', FILE_APPEND );
 
-/**
- * Build compressed standalone script
- * file_put_contents( $IFM_BUILD_STANDALONE_COMPRESSED, '<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>' . gzencode( file_get_contents( "ifm.php", false, null, 5 ) ) );
+/* // build compressed ifm
+file_put_contents(
+	IFM_STANDALONE_GZ,
+	'<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>'
+	. gzencode( file_get_contents( "ifm.php", false, null, 5 ) )
+);
  */
 
-/**
- * Build library
- */
-file_put_contents( $IFM_BUILD_LIB_PHP, $compiled );
+// build lib
+file_put_contents( IFM_LIB, $compiled );

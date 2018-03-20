@@ -1,3 +1,4 @@
 .*.swp
 *.zip
 misc
+src/includes/ace/*
