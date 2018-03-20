@@ -485,6 +485,10 @@ function IFM( params ) {
 								self.editor.setOption( 'tabSize', e.srcElement.value );
 							}
 						});
+					else if( el.id == "editor-syntax" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.getSession().setMode( e.target.value );
+						});
 				});
 				return content;
 			}

@@ -484,9 +484,9 @@ f00bar;
 > {{i18n.soft_tabs}}</input>
 <div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
 {{#ace_includes}}
-<select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" name="folder_id">
+<select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" id="editor-syntax">
 	{{#modes}}
-	<option value="mode-{{.}}" {{{ace_mode_selected}}}>{{.}}</option>
+	<option value="ace/mode/{{.}}" {{{ace_mode_selected}}}>{{.}}</option>
 	{{/modes}}
 </select>
 {{/ace_includes}}
@@ -1939,6 +1939,10 @@ function IFM( params ) {
 								e.preventDefault();
 								self.editor.setOption( 'tabSize', e.srcElement.value );
 							}
+						});
+					else if( el.id == "editor-syntax" )
+						el.addEventListener( 'change', function( e ) {
+							self.editor.getSession().setMode( e.target.value );
 						});
 				});
 				return content;
