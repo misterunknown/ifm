@@ -1953,7 +1953,6 @@ function IFM( params ) {
 		self.editor.on("change", function() { self.fileChanged = true; });
 		if( self.inArray( "ext-modelist", self.ace.files ) ) {
 			var mode = ace.require( "ace/ext/modelist" ).getModeForPath( filename ).mode;
-			console.log( "Modus (erkannt): "+mode );
 			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
 				self.editor.getSession().setMode( mode );
 		}
