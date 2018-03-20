@@ -454,14 +454,21 @@ function IFM( params ) {
 				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
 
 				var aceSession = self.editor.getSession();
-				var template = document.createElement( 'template');
-				template.innerHTML = Mustache.render( self.templates.file_editoroptions, {
-					wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
-					softtabs: aceSession.getOption( 'useSoftTabs' ),
-					tabsize: aceSession.getOption( 'tabSize' ),
-					i18n: self.i18n
-				});
-				var content = template.content.childNodes;
+				var content = self.getNodesFromString(
+					Mustache.render(
+						self.templates.file_editoroptions,
+						{
+							wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
+							softtabs: aceSession.getOption( 'useSoftTabs' ),
+							tabsize: aceSession.getOption( 'tabSize' ),
+							ace_includes: self.ace,
+							ace_mode_selected: function() {
+								return ( aceSession.$modeId == "ace/mode/"+this ) ? 'selected="selected"' : '';
+							},
+							i18n: self.i18n
+						}
+					)
+				);
 				content.forEach( function( el ) {
 					if( el.id == "editor-wordwrap" )
 						el.addEventListener( 'change', function( e ) {
@@ -489,6 +496,11 @@ function IFM( params ) {
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
+		if( self.inArray( "ext-modelist", self.ace.files ) ) {
+			var mode = ace.require( "ace/ext/modelist" ).getModeForPath( filename ).mode;
+			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
+				self.editor.getSession().setMode( mode );
+		}
 	};
 
 	/**
@@ -1236,10 +1248,16 @@ function IFM( params ) {
 		return false;
 	};
 
-	this.getNodesFromString = function( s ) {
+	this.getNodeFromString = function( s ) {
 		var template = document.createElement( 'template');
 		template.innerHTML = s;
 		return template.content.childNodes[0];
+	};
+
+	this.getNodesFromString = function( s ) {
+		var template = document.createElement( 'template');
+		template.innerHTML = s;
+		return template.content.childNodes;
 	};
 
 	/**
@@ -1253,7 +1271,7 @@ function IFM( params ) {
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
-			var newFooter = self.getNodesFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
+			var newFooter = self.getNodeFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
 			newFooter.addEventListener( 'click', function( e ) {
 				if( e.target.name == 'showAll' ) {
 					if( newFooter.style.maxHeight == '80%' ) {
@@ -1271,7 +1289,7 @@ function IFM( params ) {
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
 		var wq = document.getElementById( 'waitqueue' );
-		wq.prepend( self.getNodesFromString( Mustache.render( self.templates.task, task ) ) );
+		wq.prepend( self.getNodeFromString( Mustache.render( self.templates.task, task ) ) );
 		document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 	};
 
@@ -1610,6 +1628,14 @@ function IFM( params ) {
 			dataType: "json",
 			success: function(d) {
 				self.config = d;
+				if( self.config.ace_includes ) {
+					self.ace = {};
+					self.ace.files = self.config.ace_includes.split( '|' ).filter( x => x != "" );
+					self.ace.modes = self.ace.files
+						.filter( function(f){ if( f.substr(0,5)=="mode-" ) return f; } )
+						.map( function(f){ return f.substr(5); } )
+					self.ace.modes.unshift( "text" );
+				}
 				self.log( "configuration loaded" );
 				self.initLoadTemplates();
 			},

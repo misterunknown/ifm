@@ -105,6 +105,12 @@ class IFM {
 		// load config from passed array
 		$this->config = array_merge( $this->config, $config );
 
+		// get list of ace includes
+		$this->config['ace_includes'] = <<<'f00bar'
+@@@vars:ace_includes@@@
+f00bar;
+
+		// templates
 		$templates = array();
 		$templates['app'] = <<<'f00bar'
 @@@file:src/templates/app.html@@@
@@ -201,17 +207,20 @@ f00bar;
 	}
 
 	public function getJS() {
-		print '
-				<script>';?> @@@file:src/includes/ace.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/jquery.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/bootstrap.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/bootstrap-notify.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/bootstrap-treeview.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/datatables.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/BootstrapMenu.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/includes/mustache.min.js@@@ <?php print '</script>
-				<script>';?> @@@file:src/ifm.js@@@ <?php print '</script>
-		';
+		echo <<<'f00bar'
+<script>
+			@@@file:src/includes/jquery.min.js@@@
+			@@@file:src/includes/bootstrap.min.js@@@
+			@@@file:src/includes/bootstrap-notify.min.js@@@
+			@@@file:src/includes/bootstrap-treeview.min.js@@@
+			@@@file:src/includes/datatables.min.js@@@
+			@@@file:src/includes/BootstrapMenu.min.js@@@
+			@@@file:src/includes/mustache.min.js@@@
+			@@@file:src/includes/ace.js@@@
+			@@@acedir:src/includes/ace@@@
+			@@@file:src/ifm.js@@@
+</script>
+f00bar;
 	}
 
 	public function getHTMLHeader() {
