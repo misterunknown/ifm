@@ -4167,8 +4167,8 @@ function IFM( params ) {
 			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": return 'icon icon-file-image'; break;
 			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
 			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": return 'icon icon-file-code'; break;
-			case "doc": case "dotx": case "md": case "odf": case "odt": case "rtf": case "txt": return 'icon icon-file-word'; break;
-			case "csv": case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
+			case "doc": case "docx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
+			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
 			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
 			case "pdf": return 'icon icon-file-pdf'; break;
 			case "tgz":	case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
