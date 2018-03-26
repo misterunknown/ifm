@@ -9,3 +9,10 @@
  	{{/softtabs}}
 > {{i18n.soft_tabs}}</input>
 <div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
+{{#ace_includes}}
+<select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" id="editor-syntax">
+	{{#modes}}
+	<option value="ace/mode/{{.}}" {{{ace_mode_selected}}}>{{.}}</option>
+	{{/modes}}
+</select>
+{{/ace_includes}}
