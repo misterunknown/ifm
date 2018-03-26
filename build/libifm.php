@@ -3985,6 +3985,12 @@ function IFM( params ) {
 		if( $this->config['auth'] == 0 )
 			return true;
 
+		if( isset( $_SERVER['HTTP_X_IFM_AUTH'] ) && ! empty( $_SERVER['HTTP_X_IFM_AUTH'] ) ) {
+			$cred = split( ":", base64_decode( $_SERVER['HTTP_X_IFM_AUTH'] ) );
+			if( count( $cred ) == 2 && $this->checkCredentials( $cred[0], $cred[1] ) )
+				return true;
+		}
+
 		if( session_status() !== PHP_SESSION_ACTIVE ) {
 			if( isset( $this->config['session_lifetime'] ) )
 				ini_set( 'session.gc_maxlifetime', $this->config['session_lifetime'] );
