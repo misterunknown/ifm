@@ -1572,10 +1572,12 @@ function IFM( params ) {
 				} else if(
 					self.config.edit &&
 					(
-						item.mime_type.substr( 0, 4 ) == "text"
-						|| item.mime_type == "inode/x-empty"
-						|| item.mime_type.indexOf( "xml" ) != -1
-						|| item.mime_type.indexOf( "json" ) != -1
+						typeof item.mime_type === "string" && (
+							item.mime_type.substr( 0, 4 ) == "text"
+							|| item.mime_type == "inode/x-empty"
+							|| item.mime_type.indexOf( "xml" ) != -1
+							|| item.mime_type.indexOf( "json" ) != -1
+						)
 					)
 				) {
 					item.eaction = "edit";
