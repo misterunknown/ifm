@@ -192,7 +192,7 @@ function IFM( params ) {
 
 
 		// build new tbody and replace the old one with the new
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n, api: self.api } );
 		var filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );

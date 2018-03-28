@@ -278,7 +278,7 @@ f00bar;
 	</td>
 	{{#config.download}}
 	<td>
-		<form id="d_{{guid}}">
+		<form id="d_{{guid}}" action="{{api}}" method="post">
 			<input type="hidden" name="dir" value="{{download.currentDir}}">
 			<input type="hidden" name="filename" value="{{download.name}}">
 			<input type="hidden" name="api" value="{{download.action}}">
@@ -1631,7 +1631,7 @@ function IFM( params ) {
 
 
 		// build new tbody and replace the old one with the new
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n } );
+		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n, api: self.api } );
 		var filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );
