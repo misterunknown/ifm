@@ -3463,7 +3463,7 @@ f00bar;
 
 	private function getConfig() {
 		$ret = $this->config;
-		$ret['inline'] = ( $this->mode != "standalone" ) ? true : false;
+		$ret['inline'] = ( $this->mode == "api" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		$this->jsonResponse( $ret );
 	}
@@ -4209,7 +4209,7 @@ f00bar;
 	}
 
 	private function chDirIfNecessary($d) {
-		if( substr( getcwd(), strlen( $this->getScriptRoot() ) ) != $this->getValidDir($d) ) {
+		if( substr( getcwd(), strlen( $this->getScriptRoot() ) ) != $this->getValidDir($d) && !empty( $d ) ) {
 			chdir( $d );
 		}
 	}
