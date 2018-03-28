@@ -406,7 +406,7 @@ f00bar;
 
 	private function getConfig() {
 		$ret = $this->config;
-		$ret['inline'] = ( $this->mode == "api" ) ? true : false;
+		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		$this->jsonResponse( $ret );
 	}
