@@ -3796,7 +3796,7 @@ f00bar;
 		if( $this->config['upload'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		elseif( !isset( $_FILES['file'] ) )
-			$this->jsonResponse( array( "file" => $_FILE,"files" => $_FILES ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['file_upload_error'] ) );
 		else {
 			$newfilename = ( isset( $d["newfilename"] ) && $d["newfilename"]!="" ) ? $d["newfilename"] : $_FILES['file']['name'];
 			if( ! $this->isFilenameValid( $newfilename ) )
