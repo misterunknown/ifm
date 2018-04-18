@@ -1435,6 +1435,17 @@ function IFM( params ) {
 	};
 
 	/**
+	 * Handles the javascript onbeforeunload event
+	 *
+	 * @param object event - event object
+	 */
+	this.onbeforeunloadHandler = function( e ) {
+		if( document.getElementById( 'waitqueue' ) ) {
+			return self.i18n.remaining_tasks;
+		}
+	};
+
+	/**
 	 * Handles the javascript pop states
 	 *
 	 * @param object event - event object
@@ -1822,6 +1833,9 @@ function IFM( params ) {
 
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
+
+		// handle window.onbeforeunload
+		window.onbeforeunload = self.onbeforeunloadHandler;
 
 		// load initial file table
 		if( window.location.hash ) {

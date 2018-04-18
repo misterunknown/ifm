@@ -678,6 +678,7 @@ f00bar;
     "soft_tabs": "Soft Tabs",
     "tab_size": "Tab Size",
     "tasks": "Tasks",
+	"remaining_tasks": "There are remaining tasks. Do you really want to reload?",
     "toggle_nav": "Toggle navigation",
     "upload": "Upload",
     "upload_drop": "Drop files to upload",
@@ -790,6 +791,7 @@ $i18n["de"] = <<<'f00bar'
     "soft_tabs": "Leichte Tabulatoren",
     "tab_size": "Tabulatoren Größe",
     "tasks": "Aufgaben",
+	"remaining_tasks": "Es gibt noch laufende Prozesse. Wollen Sie wirklich neu laden?",
     "toggle_nav": "Navigation umschalten",
     "upload": "Hochladen",
     "upload_drop": "Dateien zum hochladen hier ablegen",
@@ -2874,6 +2876,17 @@ function IFM( params ) {
 	};
 
 	/**
+	 * Handles the javascript onbeforeunload event
+	 *
+	 * @param object event - event object
+	 */
+	this.onbeforeunloadHandler = function( e ) {
+		if( document.getElementById( 'waitqueue' ) ) {
+			return self.i18n.remaining_tasks;
+		}
+	};
+
+	/**
 	 * Handles the javascript pop states
 	 *
 	 * @param object event - event object
@@ -3261,6 +3274,9 @@ function IFM( params ) {
 
 		// handle history manipulation
 		window.onpopstate = self.historyPopstateHandler;
+
+		// handle window.onbeforeunload
+		window.onbeforeunload = self.onbeforeunloadHandler;
 
 		// load initial file table
 		if( window.location.hash ) {

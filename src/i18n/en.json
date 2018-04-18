@@ -97,6 +97,7 @@
     "soft_tabs": "Soft Tabs",
     "tab_size": "Tab Size",
     "tasks": "Tasks",
+	"remaining_tasks": "There are remaining tasks. Do you really want to reload?",
     "toggle_nav": "Toggle navigation",
     "upload": "Upload",
     "upload_drop": "Drop files to upload",

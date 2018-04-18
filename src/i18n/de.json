@@ -97,6 +97,7 @@
     "soft_tabs": "Leichte Tabulatoren",
     "tab_size": "Tabulatoren Größe",
     "tasks": "Aufgaben",
+	"remaining_tasks": "Es gibt noch laufende Prozesse. Wollen Sie wirklich neu laden?",
     "toggle_nav": "Navigation umschalten",
     "upload": "Hochladen",
     "upload_drop": "Dateien zum hochladen hier ablegen",
