@@ -1166,6 +1166,9 @@ function IFM( params ) {
 		var id = self.generateGuid();
 		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
 
+		if( ! Array.isArray( items ) )
+			items = [items];
+
 		$.ajax({
 			url: self.api,
 			type: "POST",
