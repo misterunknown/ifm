@@ -12,7 +12,7 @@
  - [issues](#issues)
 
 ## about
-The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP. You can test a [demo here](https://ifmdemo.misterunknown.de/). The credentials are the default credentials: `admin` as username and password.
+The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP. You can test a [demo here](https://ifmdemo.gitea.de/). The credentials are the default credentials: `admin` as username and password.
 
 <a href="https://youtu.be/owJepSas19Y"><img src="https://img.youtube.com/vi/owJepSas19Y/hqdefault.jpg"></a>
 
