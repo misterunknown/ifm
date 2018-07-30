@@ -502,7 +502,7 @@ function IFM( params ) {
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
-		if( self.inArray( "ext-modelist", self.ace.files ) ) {
+		if( self.ace && self.inArray( "ext-modelist", self.ace.files ) ) {
 			var mode = ace.require( "ace/ext/modelist" ).getModeForPath( filename ).mode;
 			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
 				self.editor.getSession().setMode( mode );
