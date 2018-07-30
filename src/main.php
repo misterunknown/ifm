@@ -50,7 +50,8 @@ class IFM {
 		"showhtdocs" => 0,
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
-		"contextmenu" => 1
+		"contextmenu" => 1,
+		"disable_mime_detection" => 0
 	);
 
 	private $config = array();
@@ -368,7 +369,8 @@ f00bar;
 				$type = substr( strrchr( $name, "." ), 1 );
 			$item["icon"] = $this->getTypeIcon( $type );
 			$item["ext"] = strtolower($type);
-			$item["mime_type"] = mime_content_type( $name );
+			if( !$this->config['disable_mime_detection'] )
+				$item["mime_type"] = mime_content_type( $name );
 		}
 		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
 		if( $this->config['showfilesize'] == 1 ) {

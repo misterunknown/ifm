@@ -148,11 +148,14 @@ function IFM( params ) {
 				} else if(
 					self.config.edit &&
 					(
-						typeof item.mime_type === "string" && (
-							item.mime_type.substr( 0, 4 ) == "text"
-							|| item.mime_type == "inode/x-empty"
-							|| item.mime_type.indexOf( "xml" ) != -1
-							|| item.mime_type.indexOf( "json" ) != -1
+						self.config.disable_mime_detection ||
+						(
+							typeof item.mime_type === "string" && (
+								item.mime_type.substr( 0, 4 ) == "text"
+								|| item.mime_type == "inode/x-empty"
+								|| item.mime_type.indexOf( "xml" ) != -1
+								|| item.mime_type.indexOf( "json" ) != -1
+							)
 						)
 					)
 				) {
