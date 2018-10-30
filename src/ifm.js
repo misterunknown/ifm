@@ -117,7 +117,7 @@ function IFM( params ) {
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.download.currentDir = self.currentDir;
 			if( self.config.isDocroot )
-				item.href = 'href="'+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) )+'"';
+				item.link = self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
