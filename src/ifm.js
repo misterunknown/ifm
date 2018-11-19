@@ -323,6 +323,12 @@ function IFM( params ) {
 						iconClass: "icon icon-terminal",
 						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
 					},
+					copylink: {
+						name: self.i18n.copylink,
+						onClick: function( data ) { self.copyToClipboard( window.location.origin+"/"+data.clicked.link ); },
+						iconClass: "icon icon-link-ext",
+						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
+					},
 					copymove: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
@@ -1270,6 +1276,27 @@ function IFM( params ) {
 		var template = document.createElement( 'template');
 		template.innerHTML = s;
 		return template.content.childNodes;
+	};
+
+	// copypasted from https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
+	this.copyToClipboard = function( str ) {
+		const el = document.createElement('textarea');
+		el.value = str;
+		el.setAttribute('readonly', '');
+		el.style.position = 'absolute';
+		el.style.left = '-9999px';
+		document.body.appendChild(el);
+		const selected =
+			document.getSelection().rangeCount > 0
+			? document.getSelection().getRangeAt(0)
+			: false;
+		el.select();
+		document.execCommand('copy');
+		document.body.removeChild(el);
+		if (selected) {
+			document.getSelection().removeAllRanges();
+			document.getSelection().addRange(selected);
+		}
 	};
 
 	/**
