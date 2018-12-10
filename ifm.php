@@ -17,7 +17,7 @@ class IFM {
 		// general config
 		"auth" => 0,
 		"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
-		"root_dir" => "",
+		"root_dir" => "/var/www/sites/test.misterunknown.de/htdocs",
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
@@ -1770,9 +1770,9 @@ function IFM( params ) {
 					},
 					copylink: {
 						name: self.i18n.copylink,
-						onClick: function( data ) { self.copyToClipboard( window.location.origin+"/"+data.clicked.link ); },
+						onClick: function( data ) { self.copyToClipboard( self.getClipboardLink( data.clicked.link ) ); },
 						iconClass: "icon icon-link-ext",
-						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
+						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." && !self.config.root_dir ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -2721,6 +2721,13 @@ function IFM( params ) {
 
 		return d.toLocaleString();
 	};
+
+	this.getClipboardLink = function( relpath ) {
+		var link = window.location.origin;
+		link += window.location.pathname.substr( 0, window.location.pathname.lastIndexOf( "/" ) );
+		link = self.pathCombine( link, relpath );
+		return link;
+	}
 
 	this.getNodeFromString = function( s ) {
 		var template = document.createElement( 'template');
