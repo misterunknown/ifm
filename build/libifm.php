@@ -290,7 +290,7 @@ f00bar;
 	</td>
 	{{/config.download}}
 	{{#config.showlastmodified}}
-	<td>{{lastmodified}}</td>
+	<td data-order="{{lastmodified}}">{{lastmodified_hr}}</td>
 	{{/config.showlastmodified}}
 	{{#config.showfilesize}}
 	<td data-order="{{size_raw}}">{{size}}</td>
@@ -1560,6 +1560,7 @@ function IFM( params ) {
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.download.currentDir = self.currentDir;
+			item.lastmodified_hr = self.formatDate( item.lastmodified );
 			if( self.config.isDocroot )
 				item.link = self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 			if( ! self.config.chmod )
@@ -2710,6 +2711,17 @@ function IFM( params ) {
 		return false;
 	};
 
+	/**
+	 * Formats a date from an unix timestamp
+	 *
+	 * @param {integer} timestamp - UNIX timestamp
+	 */
+	this.formatDate = function( timestamp ) {
+		var d = new Date( timestamp * 1000 );
+
+		return d.toLocaleString();
+	};
+
 	this.getNodeFromString = function( s ) {
 		var template = document.createElement( 'template');
 		template.innerHTML = s;
@@ -2727,10 +2739,10 @@ function IFM( params ) {
 		const el = document.createElement('textarea');
 		el.value = str;
 		el.setAttribute('readonly', '');
-		el.style.position = 'absolute';                 
+		el.style.position = 'absolute';
 		el.style.left = '-9999px';
 		document.body.appendChild(el);
-		const selected =            
+		const selected =
 			document.getSelection().rangeCount > 0
 			? document.getSelection().getRangeAt(0)
 			: false;
@@ -3480,7 +3492,7 @@ f00bar;
 			if( !$this->config['disable_mime_detection'] )
 				$item["mime_type"] = mime_content_type( $name );
 		}
-		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
+		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = filemtime( $name ); }
 		if( $this->config['showfilesize'] == 1 ) {
 			if( $item['type'] == "dir" ) {
 				$item['size_raw'] = 0;

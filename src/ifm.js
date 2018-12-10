@@ -116,6 +116,7 @@ function IFM( params ) {
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.download.currentDir = self.currentDir;
+			item.lastmodified_hr = self.formatDate( item.lastmodified );
 			if( self.config.isDocroot )
 				item.link = self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 			if( ! self.config.chmod )
@@ -1264,6 +1265,17 @@ function IFM( params ) {
 			if( haystack[i] == needle )
 				return true;
 		return false;
+	};
+
+	/**
+	 * Formats a date from an unix timestamp
+	 *
+	 * @param {integer} timestamp - UNIX timestamp
+	 */
+	this.formatDate = function( timestamp ) {
+		var d = new Date( timestamp * 1000 );
+
+		return d.toLocaleString();
 	};
 
 	this.getNodeFromString = function( s ) {

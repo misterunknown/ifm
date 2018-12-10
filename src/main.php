@@ -372,7 +372,7 @@ f00bar;
 			if( !$this->config['disable_mime_detection'] )
 				$item["mime_type"] = mime_content_type( $name );
 		}
-		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = date( "d.m.Y, G:i e", filemtime( $name ) ); }
+		if( $this->config['showlastmodified'] == 1 ) { $item["lastmodified"] = filemtime( $name ); }
 		if( $this->config['showfilesize'] == 1 ) {
 			if( $item['type'] == "dir" ) {
 				$item['size_raw'] = 0;
