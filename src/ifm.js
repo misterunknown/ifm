@@ -292,7 +292,7 @@ function IFM( params ) {
 					return data;
 				},
 				actionsGroups:[
-					['edit', 'extract', 'rename'],
+					['edit', 'extract', 'rename', 'copylink'],
 					['copymove', 'download', 'createarchive', 'delete']
 				],
 				actions: {
