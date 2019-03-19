@@ -1,4 +1,7 @@
-ifm.php		-diff
-ifm.min.php	-diff
-build/*		-diff
-src/includes/ace.js -diff
+ifm.php			-diff
+ifm.min.php		-diff
+build/*			-diff
+src/includes/ace.js	-diff
+
+src			export-ignore
+compiler.php		export-ignore
