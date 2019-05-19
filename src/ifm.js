@@ -1481,9 +1481,10 @@ function IFM( params ) {
 			.replace( /\^/g, '%5E' )
 			.replace( /\[/g, '%5B' )
 			.replace( /\]/g, '%5D' )
-			.replace( /`/g, '%60' )
 			.replace( /\\/g, '%5C' )
+			.replace( /`/g, '%60' )
 		;
+		// ` <- this comment prevents the vim syntax highlighting from breaking -.-
 	};
 
 	/**
