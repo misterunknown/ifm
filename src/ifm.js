@@ -52,7 +52,7 @@ function IFM( params ) {
 		$(modal)
 			.on( 'hide.bs.modal', function( e ) {
 				if( document.forms.formFile && self.fileChanged && !self.isModalClosedByButton ) {
-					console.log( "Prevented closing modal because the file was changed and no button was clicked." );
+					self.log( "Prevented closing modal because the file was changed and no button was clicked." );
 					e.preventDefault();
 				} else
 					$(this).remove();
@@ -327,7 +327,6 @@ function IFM( params ) {
 					copylink: {
 						name: self.i18n.copylink,
 						onClick: function( data ) {
-							console.log( "CopyLink-Function: This was the original link: "+data.clicked.link );
 							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
 								self.copyToClipboard( data.clicked.link );
 							else
@@ -1197,7 +1196,7 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: function( data ) {
-				console.log( data );
+				self.log( data );
 				if( data.status == "OK" ) {
 					self.showMessage( data.message, "s" );
 					self.refreshFileTable();
@@ -1243,13 +1242,10 @@ function IFM( params ) {
 
 		if( args.length == 0 )
 			return "";
-		console.log( args.length );
 
 		first = "";
 		while( first.length < 1 )
 			first = args.shift();
-
-		console.log("First: "+first);
 
 		first = first.replace( /\/+$/g, '' );
 		if( !args.length )
@@ -1257,7 +1253,6 @@ function IFM( params ) {
 
 		args.forEach( (v, i) => args[i] = v.replace( /^\/*|\/*$/g, '' ) ); // */
 		args.unshift( first );
-		console.log( args.join('/'));
 		return args.join( '/' );
 	};
 
@@ -1889,7 +1884,7 @@ function IFM( params ) {
 						else
 							self.copyMove( source, destination.name, "move" );
 					} catch( e ) {
-						console.log( e );
+						self.log( e );
 					} finally {
 						[].slice.call( document.getElementsByClassName( 'highlightedItem' ) ).forEach( function( e ) {
 							e.classList.remove( 'highlightedItem' );
