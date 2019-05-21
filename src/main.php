@@ -979,7 +979,7 @@ f00bar;
 			return true;
 
 		if( isset( $_SERVER['HTTP_X_IFM_AUTH'] ) && ! empty( $_SERVER['HTTP_X_IFM_AUTH'] ) ) {
-			$cred = split( ":", base64_decode( $_SERVER['HTTP_X_IFM_AUTH'] ) );
+			$cred = explode( ":", base64_decode( str_replace( "Basic ", "", $_SERVER['HTTP_X_IFM_AUTH'] ) ) );
 			if( count( $cred ) == 2 && $this->checkCredentials( $cred[0], $cred[1] ) )
 				return true;
 		}
