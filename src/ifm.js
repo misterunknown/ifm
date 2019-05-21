@@ -115,10 +115,7 @@ function IFM( params ) {
 				item.fixtop = 100;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
-			item.download.currentDir = self.currentDir;
 			item.lastmodified_hr = self.formatDate( item.lastmodified );
-			if( self.config.isDocroot )
-				item.link = self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
@@ -168,6 +165,13 @@ function IFM( params ) {
 					});
 				}
 			}
+			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			if( self.config.isDocroot )
+				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
+			else if( self.config.download && self.config.zipnload )
+				item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			else
+				item.link = '#';
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				item.dragdrop = 'draggable="true"';
 				if( self.config.copymove )
@@ -226,16 +230,12 @@ function IFM( params ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
 			else if( e.target.classList.contains( 'ifmitem' ) || e.target.parentElement.classList.contains( 'ifmitem' ) ) {
-				e.stopPropagation();
-				e.preventDefault();
 				ifmitem = ( e.target.classList.contains( 'ifmitem' ) ? e.target : e.target.parentElement );
-				if( ifmitem.dataset.type == "dir" )
+				if( ifmitem.dataset.type == "dir" ) {
+					e.stopPropagation();
+					e.preventDefault();
 					self.changeDirectory( ifmitem.parentElement.parentElement.dataset.filename );
-				else
-					if( self.config.isDocroot )
-						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
-					else
-						document.forms["d_"+ifmitem.id].submit();
+				}
 			} else if( e.target.parentElement.name == 'start_download' ) {
 				e.stopPropagation();
 				e.preventDefault();
@@ -326,9 +326,15 @@ function IFM( params ) {
 					},
 					copylink: {
 						name: self.i18n.copylink,
-						onClick: function( data ) { self.copyToClipboard( self.getClipboardLink( data.clicked.link ) ); },
+						onClick: function( data ) {
+							console.log( "CopyLink-Function: This was the original link: "+data.clicked.link );
+							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
+								self.copyToClipboard( data.clicked.link );
+							else
+								self.copyToClipboard( self.pathCombine( window.location.origin, data.clicked.link ) );
+						},
 						iconClass: "icon icon-link-ext",
-						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." && !self.config.root_dir ); }
+						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -1229,18 +1235,30 @@ function IFM( params ) {
 	 * @param {string} b - component 2
 	 * @returns {string} - combined path
 	 */
-	this.pathCombine = function(a, b) {
-		if ( a == "" && b == "" )
+	this.pathCombine = function() {
+		if( !arguments.length )
 			return "";
-		if( b[0] == "/" )
-			b = b.substring(1);
-		if( a == "" )
-			return b;
-		if( a[a.length-1] == "/" )
-			a = a.substring(0, a.length-1);
-		if( b == "" )
-			return a;
-		return a+"/"+b;
+		var args = Array.prototype.slice.call(arguments);
+		args = args.filter( x => typeof x === 'string' );
+
+		if( args.length == 0 )
+			return "";
+		console.log( args.length );
+
+		first = "";
+		while( first.length < 1 )
+			first = args.shift();
+
+		console.log("First: "+first);
+
+		first = first.replace( /\/+$/g, '' );
+		if( !args.length )
+			return first;
+
+		args.forEach( (v, i) => args[i] = v.replace( /^\/*|\/*$/g, '' ) ); // */
+		args.unshift( first );
+		console.log( args.join('/'));
+		return args.join( '/' );
 	};
 
 	/**

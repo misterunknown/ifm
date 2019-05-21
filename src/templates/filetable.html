@@ -14,14 +14,7 @@
 	</td>
 	{{#config.download}}
 	<td>
-		<form id="d_{{guid}}" action="{{api}}" method="post">
-			<input type="hidden" name="dir" value="{{download.currentDir}}">
-			<input type="hidden" name="filename" value="{{download.name}}">
-			<input type="hidden" name="api" value="{{download.action}}">
-		</form>
-		<a tabindex="0" name="start_download" data-guid="{{guid}}">
-			<span class="{{download.icon}}"></span>
-		</a>
+		<a href="{{download.link}}"><span class="{{download.icon}}"></span></a>
 	</td>
 	{{/config.download}}
 	{{#config.showlastmodified}}

@@ -1279,17 +1279,19 @@ f00bar;
 	}
 
 	private function fileDownload( array $options ) {
-		if( isset( $options['forceDL'] ) && $options['forceDL'] )
-			$content_type = "application/octet-stream";
-		else
-			$content_type = mime_content_type( $options['file'] );
-
 		if( ! isset( $options['name'] ) || trim( $options['name'] ) == "" )
 			$options['name'] = basename( $options['file'] );
 
-		header( 'Content-Description: File Transfer' );
+		if( isset( $options['forceDL'] ) && $options['forceDL'] ) {
+			$content_type = "application/octet-stream";
+			header( 'Content-Disposition: attachment; filename="' . $options['name'] . '"' );
+		} else {
+			$content_type = mime_content_type( $options['file'] );
+		}
+
+		// This header was quite some time present, but I don't know why...
+		//header( 'Content-Description: File Transfer' );
 		header( 'Content-Type: ' . $content_type );
-		header( 'Content-Disposition: attachment; filename="' . $options['name'] . '"' );
 		header( 'Expires: 0' );
 		header( 'Cache-Control: must-revalidate' );
 		header( 'Pragma: public' );
