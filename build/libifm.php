@@ -21,7 +21,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
-		"language" => "de",
+		"language" => "en",
 		"selfoverwrite" => 0,
 
 		// api controls
@@ -572,121 +572,7 @@ f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();
-		$i18n["de"] = <<<'f00bar'
-{
-    "ajax_request": "AJAX Request",
-    "archivename": "Name des Archivs",
-    "archive_create_success": "Das Archiv wurde erfolgreich erstellt.",
-    "archive_create_error": "Das Archiv konnte nicht erstellt werden.",
-    "archive_invalid_format": "Ungültiges Archivformat angegeben.",
-    "cancel": "Abbrechen",
-    "close": "Schließen",
-    "copy": "Kopieren",
-    "copylink": "Link kopieren",
-    "copy_error": "Folgende Dateien konnten nicht kopiert werden:",
-    "copy_success": "Datei(en) erfolgreich kopiert.",
-    "create_archive": "Archiv erstellen",
-    "data": "Daten",
-    "delete": "Löschen",
-    "directoryname": "Ordner Name",
-    "download": "Download",
-    "edit": "Bearbeiten",
-    "editor_options": "Editor Optionen",
-    "error": "Fehler:",
-    "extract": "Entpacken",
-    "extract_error": "Das Archiv konnte nicht entpackt werden.",
-    "extract_filename": "Folgende Datei entpacken -",
-    "extract_success": "Das Archiv wurde erfolgreich entpackt.",
-    "file_copy_to": "nach",
-    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",
-    "file_delete_error": "Folgende Dateien konnten nicht gelöscht werden:",
-    "file_delete_success": "Datei(en) erfolgreich gelöscht",
-    "file_display_error": "Die Datei kann nicht angezeigt oder geändert werden",
-    "file_new": "Neue Datei",
-    "file_load_error": "Der Inhalt der Datei konnte nicht geladen werden",
-    "file_open_error": "Die Datei konnte nicht geöffnet werden.",
-    "file_new": "Neue Datei",
-    "file_no_permission": "Sie haben keine Berechtigung diese Datei zu erstellen/bearbeiten.",
-    "file_not_found": "Die Datei wurde nicht gefunden, oder kann nicht geöffnet werden.",
-    "file_rename": "Datei umbenennen",
-    "file_rename_error": "Datei konnte nicht umbenannt werden: ",
-    "file_rename_success": "Datei erfolgreich umbenannt.",
-    "file_save_error": "Datei konnte nicht gespeichert werden.",
-    "file_save_success": "Datei erfolgreich gespeichert.",
-    "file_save_confirm": "Soll diese Datei wirklich gespeichert werden -",
-    "file_save_error": "Datei konnte nicht geändert oder angelegt werden: ",
-    "file_upload_error": "Datei konnte nicht hochgeladen werden.",
-    "file_upload_success": "Datei erfolgreich hochgeladen",
-    "filename": "Dateiname",
-    "filename_new": "Neuer Dateiname",
-    "filename_slashes": "Der Dateiname darf keine Schrägstriche enthalten.",
-    "filter": "Filtern",
-    "folder_create_error": "Verzeichnis konnte nicht angelegt werden.",
-    "folder_create_success": "Verzeichnis erfolgreich angelegt.",
-    "folder_new": "Neue Ordner",
-    "folder_not_found": "Das Verzeichnis wurde nicht gefunden.",
-    "folder_tree_load_error": "Fehler bei Laden des Verzeichnisbaums.",
-    "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
-    "general_error": "Genereller Fehler aufgetreten: Keine oder unvollständige Antwort vom Server",
-    "github": "Besuche das Projekt auf GitHub",
-    "group": "Gruppe",
-    "invalid_action": "Fehlerhafte Aktion übergeben.",
-    "invalid_archive_format": "Ungültiges Archiv-Format. Möglich sind zip, tar, tar.gz oder tar.bz2.",
-    "invalid_data": "Fehlerhafte Daten vom Server erhalten.",
-    "invalid_dir": "Ungültiges Verzeichnis übergegeben.",
-    "invalid_filename": "Ungültiger Dateiname übergegeben.",
-    "invalid_params": "Ungültige Parameter übergegeben.",
-    "invalid_url": "Ungültige URL übergegeben.",
-    "json_encode_error": "Konnte die Antwort nicht als JSON formatieren:",
-    "last_modified": "Zuletzt geändert",
-    "load_config_error": "Konfiguration konnte nicht geladen werden.",
-    "load_template_error": "Vorlagen konnten nicht geladen werden.",
-    "load_text_error": "Texte konnten nicht geladen werden.",
-    "login": "Anmeldung",
-    "login_failed": "Anmeldung fehlgeschlagen.",
-    "logout": "Abmelden",
-    "method": "Methode",
-    "move": "Verschieben",
-    "move_error": "Folgende Dateien konnten nicht verschoben werden:",
-    "move_success": "Datei(en) erfolgreich verschoben.",
-    "nopermissions": "Sie haben nicht die nötige Berechtigung dafür.",
-    "options": "Optionen",
-    "owner": "Besitzer",
-    "password": "Passwort",
-    "path_content": "Inhalt von",
-    "pattern_error_slashes": "Das Muster darf keine Slashes enthalten.",
-    "permission_change_error": "Berechtigungen konnten nicht geändert werden.",
-    "permission_change_success": "Berechtigungen erfolgreich geändert.",
-    "permission_parse_error": "Berechtigungen konnten nicht geparst werden.",
-    "permissions": "Berechtigungen",
-    "refresh": "Auffrischen",
-    "rename": "Umbenennen",
-    "rename_filename": "Folgende Datei umbenennen -",
-    "request": "Anfrage",
-    "response": "Antwort",
-    "save": "Speichen",
-    "save_wo_close": "Speichen ohne schließen",
-    "search": "Suchen",
-    "search_pattern": "Muster",
-    "select_destination": "Zielort auswählen",
-    "size": "Größe",
-    "soft_tabs": "Leichte Tabulatoren",
-    "tab_size": "Tabulatoren Größe",
-    "tasks": "Aufgaben",
-	"remaining_tasks": "Es gibt noch laufende Prozesse. Wollen Sie wirklich neu laden?",
-    "toggle_nav": "Navigation umschalten",
-    "upload": "Hochladen",
-    "upload_drop": "Dateien zum hochladen hier ablegen",
-    "upload_file": "Datei hochladen",
-    "upload_remote": "Hochladen von ausserhalb",
-    "upload_remote_url": "Entfernte URL zum hochladen",
-    "username": "Benutzername",
-    "word_wrap": "Zeilenumbruch"
-}
-
-f00bar;
-$i18n["de"] = json_decode( $i18n["de"], true );
-$i18n["en"] = <<<'f00bar'
+		$i18n["en"] = <<<'f00bar'
 {
     "ajax_request": "AJAX request",
     "archivename": "Name of the archive",
@@ -800,6 +686,234 @@ $i18n["en"] = <<<'f00bar'
 
 f00bar;
 $i18n["en"] = json_decode( $i18n["en"], true );
+$i18n["de"] = <<<'f00bar'
+{
+    "ajax_request": "AJAX Request",
+    "archivename": "Name des Archivs",
+    "archive_create_success": "Das Archiv wurde erfolgreich erstellt.",
+    "archive_create_error": "Das Archiv konnte nicht erstellt werden.",
+    "archive_invalid_format": "Ungültiges Archivformat angegeben.",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "copy": "Kopieren",
+    "copylink": "Link kopieren",
+    "copy_error": "Folgende Dateien konnten nicht kopiert werden:",
+    "copy_success": "Datei(en) erfolgreich kopiert.",
+    "create_archive": "Archiv erstellen",
+    "data": "Daten",
+    "delete": "Löschen",
+    "directoryname": "Ordner Name",
+    "download": "Download",
+    "edit": "Bearbeiten",
+    "editor_options": "Editor Optionen",
+    "error": "Fehler:",
+    "extract": "Entpacken",
+    "extract_error": "Das Archiv konnte nicht entpackt werden.",
+    "extract_filename": "Folgende Datei entpacken -",
+    "extract_success": "Das Archiv wurde erfolgreich entpackt.",
+    "file_copy_to": "nach",
+    "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",
+    "file_delete_error": "Folgende Dateien konnten nicht gelöscht werden:",
+    "file_delete_success": "Datei(en) erfolgreich gelöscht",
+    "file_display_error": "Die Datei kann nicht angezeigt oder geändert werden",
+    "file_new": "Neue Datei",
+    "file_load_error": "Der Inhalt der Datei konnte nicht geladen werden",
+    "file_open_error": "Die Datei konnte nicht geöffnet werden.",
+    "file_new": "Neue Datei",
+    "file_no_permission": "Sie haben keine Berechtigung diese Datei zu erstellen/bearbeiten.",
+    "file_not_found": "Die Datei wurde nicht gefunden, oder kann nicht geöffnet werden.",
+    "file_rename": "Datei umbenennen",
+    "file_rename_error": "Datei konnte nicht umbenannt werden: ",
+    "file_rename_success": "Datei erfolgreich umbenannt.",
+    "file_save_error": "Datei konnte nicht gespeichert werden.",
+    "file_save_success": "Datei erfolgreich gespeichert.",
+    "file_save_confirm": "Soll diese Datei wirklich gespeichert werden -",
+    "file_save_error": "Datei konnte nicht geändert oder angelegt werden: ",
+    "file_upload_error": "Datei konnte nicht hochgeladen werden.",
+    "file_upload_success": "Datei erfolgreich hochgeladen",
+    "filename": "Dateiname",
+    "filename_new": "Neuer Dateiname",
+    "filename_slashes": "Der Dateiname darf keine Schrägstriche enthalten.",
+    "filter": "Filtern",
+    "folder_create_error": "Verzeichnis konnte nicht angelegt werden.",
+    "folder_create_success": "Verzeichnis erfolgreich angelegt.",
+    "folder_new": "Neue Ordner",
+    "folder_not_found": "Das Verzeichnis wurde nicht gefunden.",
+    "folder_tree_load_error": "Fehler bei Laden des Verzeichnisbaums.",
+    "footer": "IFM - verbesserter file manager | ifm.php versteckt |",
+    "general_error": "Genereller Fehler aufgetreten: Keine oder unvollständige Antwort vom Server",
+    "github": "Besuche das Projekt auf GitHub",
+    "group": "Gruppe",
+    "invalid_action": "Fehlerhafte Aktion übergeben.",
+    "invalid_archive_format": "Ungültiges Archiv-Format. Möglich sind zip, tar, tar.gz oder tar.bz2.",
+    "invalid_data": "Fehlerhafte Daten vom Server erhalten.",
+    "invalid_dir": "Ungültiges Verzeichnis übergegeben.",
+    "invalid_filename": "Ungültiger Dateiname übergegeben.",
+    "invalid_params": "Ungültige Parameter übergegeben.",
+    "invalid_url": "Ungültige URL übergegeben.",
+    "json_encode_error": "Konnte die Antwort nicht als JSON formatieren:",
+    "last_modified": "Zuletzt geändert",
+    "load_config_error": "Konfiguration konnte nicht geladen werden.",
+    "load_template_error": "Vorlagen konnten nicht geladen werden.",
+    "load_text_error": "Texte konnten nicht geladen werden.",
+    "login": "Anmeldung",
+    "login_failed": "Anmeldung fehlgeschlagen.",
+    "logout": "Abmelden",
+    "method": "Methode",
+    "move": "Verschieben",
+    "move_error": "Folgende Dateien konnten nicht verschoben werden:",
+    "move_success": "Datei(en) erfolgreich verschoben.",
+    "nopermissions": "Sie haben nicht die nötige Berechtigung dafür.",
+    "options": "Optionen",
+    "owner": "Besitzer",
+    "password": "Passwort",
+    "path_content": "Inhalt von",
+    "pattern_error_slashes": "Das Muster darf keine Slashes enthalten.",
+    "permission_change_error": "Berechtigungen konnten nicht geändert werden.",
+    "permission_change_success": "Berechtigungen erfolgreich geändert.",
+    "permission_parse_error": "Berechtigungen konnten nicht geparst werden.",
+    "permissions": "Berechtigungen",
+    "refresh": "Auffrischen",
+    "rename": "Umbenennen",
+    "rename_filename": "Folgende Datei umbenennen -",
+    "request": "Anfrage",
+    "response": "Antwort",
+    "save": "Speichen",
+    "save_wo_close": "Speichen ohne schließen",
+    "search": "Suchen",
+    "search_pattern": "Muster",
+    "select_destination": "Zielort auswählen",
+    "size": "Größe",
+    "soft_tabs": "Leichte Tabulatoren",
+    "tab_size": "Tabulatoren Größe",
+    "tasks": "Aufgaben",
+	"remaining_tasks": "Es gibt noch laufende Prozesse. Wollen Sie wirklich neu laden?",
+    "toggle_nav": "Navigation umschalten",
+    "upload": "Hochladen",
+    "upload_drop": "Dateien zum hochladen hier ablegen",
+    "upload_file": "Datei hochladen",
+    "upload_remote": "Hochladen von ausserhalb",
+    "upload_remote_url": "Entfernte URL zum hochladen",
+    "username": "Benutzername",
+    "word_wrap": "Zeilenumbruch"
+}
+
+f00bar;
+$i18n["de"] = json_decode( $i18n["de"], true );
+$i18n["fr"] = <<<'f00bar'
+{
+    "ajax_request": "requête AJAX ",
+    "archivename": "Nom de l'archive",
+    "archive_create_success": "Archive créée avec succès.",
+    "archive_create_error": "Echec lors de la création de l'archive.",
+    "archive_invalid_format": "Le format de l'archive indiqué est invalide.",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "copy": "Copier",
+    "copylink": "Copier le lien",
+    "copy_error": "Les fichiers suivants n'ont pu être copiés :",
+    "copy_success": "Le(s) fichiers(s) a/ont été copié(s) avec succès.",
+    "create_archive": "Créer l'archive",
+    "data": "Données",
+    "delete": "Supprimer",
+    "directoryname": "Nom du dossier",
+    "download": "Téléchargement",
+    "edit": "Editer",
+    "editor_options": "Options de l'éditeur",
+    "error": "Erreur:",
+    "extract": "extraire",
+    "extract_error": "Echec lors de l'extraction de l'archive.",
+    "extract_filename": "Extraire le fichier - ",
+    "extract_success": "Archive extraite avec succès.",
+    "file_copy_to": "vers",
+    "file_delete_confirm": "Voulez-vous vraiment supprimer le fichier -",
+    "file_delete_error": "Echec lors de la suppression des fichiers.",
+    "file_delete_success": "Les fichiers ont été supprimés avec succès.",
+    "file_display_error": "Ce fichier ne peut pas être affiché ni supprimé.",
+    "file_new": "Nouveau fichier",
+    "file_load_error": "Le contenu n'a pas pu être chargé.",
+    "file_open_error": "Impossible d'ouvrir le fichier.",
+    "file_new": "Nouveau fichier",
+    "file_no_permission": "Permissions insuffisantes pour éditer ou créer le fichier.",
+    "file_not_found": "Le fichier n'a pas été trouvé ou n'a pas pu être ouvert.",
+    "file_rename": "Renommer fichier",
+    "file_rename_error": "Le fichier n'a pas pu être renommé : ",
+    "file_rename_success": "Le fichier a été renommé avec succès.",
+    "file_save_error": "Le fichier n'a pas pu être enregistré.",
+    "file_save_success": "Le fichier a été enregistré avec succès.",
+    "file_save_confirm": "Voulez-vous enregistré le fichier -",
+    "file_save_error": "Le fichier n'a pas pu être créé ou modifié : ",
+    "file_upload_error": "Le fichier n'a pas pu être envoyé.",
+    "file_upload_success": "Le fichier a été envoyé avec succès.",
+    "filename": "Nom de fichier",
+    "filename_new": "Nouveau nom de fichier",
+    "filename_slashes": "Le Nom de fichier ne doit pas contenir de slash (/barre oblique/).",
+    "filter": "Filtrer",
+    "folder_create_error": "Le dossier n'a pas pu être créé : ",
+    "folder_create_success": "Le dossier n'a pas pu être créé avec succès.",
+    "folder_new": "Nouveau dossier",
+    "folder_not_found": "Dossier non trouvé.",
+    "folder_tree_load_error": "Error lors du chargement d le'arborescence.",
+    "footer": "IFM - improved file manager | ifm.php hidden |",
+    "general_error": "Erreur générale : pas de réponse, ou réponse incorrecte.",
+    "github": "Voir le projet sur GitHub",
+    "group": "Groupe",
+    "invalid_action": "Action demandée invalide.",
+    "invalid_archive_format": "Format d'archive invalide : les formats autorisés sont zip, tar, tar.gz ou tar.bz2.",
+    "invalid_data": "Données invalides reçues du serveur.",
+    "invalid_dir": "Le dossier indiqué est invalide.",
+    "invalid_filename": "Le nom de fichier indiqué est invalide.",
+    "invalid_params": "Le paramètre indiqué est invalide.",
+    "invalid_url": "L'URL indiquée est invalide.",
+    "json_encode_error": "Impossible de formater la réponse en JSON :",
+    "last_modified": "Dernière modification",
+    "load_config_error": "Impossible de charger la configuration.",
+    "load_template_error": "Impossible de charger les modèles.",
+    "load_text_error": "Impossible de charger les chaînes de textes.",
+    "login": "Connexion",
+    "login_failed": "Echec de connexion.",
+    "logout": "Déconnexion",
+    "method": "Méthode",
+    "move": "Déplacer",
+    "move_error": "Les fichiers suivants n'ont pu être déplacés :",
+    "move_success": "Fichiers déplacés avec succès.",
+    "nopermissions": "Vous n'avez pas les permissions pour faire cela.",
+    "options": "Options",
+    "owner": "Propriétaire",
+    "password": "Mot de passe",
+    "path_content": "Contenu de",
+    "pattern_error_slashes": "Le motif ne doit pas contenir de slashes.",
+    "permission_change_error": "Les permissions n'ont pu être changées : ",
+    "permission_change_success": "Permissions changées avec succès.",
+    "permission_parse_error": "Les permissions n'ont pu être interprétées correctement.",
+    "permissions": "Permissions",
+    "refresh": "Rafraîchir",
+    "rename": "Renommer",
+    "rename_filename": "Renommer fichier -",
+    "request": "Requête",
+    "response": "Réponse",
+    "save": "Enregistrer",
+    "save_wo_close": "Enregistrer sans fermer",
+    "search": "Recherche",
+    "search_pattern": "Motif",
+    "select_destination": "Seélectionner la destination",
+    "size": "Taille",
+    "soft_tabs": "Tabulations par espaces",
+    "tab_size": "Taille de tabulation",
+    "tasks": "Tâches",
+    "remaining_tasks": "Il reste des tâches en cours. Voulez-vous vraiment recharger la page ?",
+    "toggle_nav": "Basculer la navigation",
+    "upload": "Envoyer",
+    "upload_drop": "Glisser-déplacer les fichier pour les envoyer",
+    "upload_file": "Envoyer fichier",
+    "upload_remote": "Envoi distant",
+    "upload_remote_url": "URL pour l'envoi distant",
+    "username": "nom d'utilisateur",
+    "word_wrap": "Revenir à la ligne"
+}
+
+f00bar;
+$i18n["fr"] = json_decode( $i18n["fr"], true );
 
 		$this->i18n = $i18n;
 		
@@ -1673,11 +1787,6 @@ function IFM( params ) {
 					e.preventDefault();
 					self.changeDirectory( ifmitem.parentElement.parentElement.dataset.filename );
 				}
-//				else
-//					if( self.config.isDocroot )
-//						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
-//					else
-//						document.forms["d_"+ifmitem.id].submit();
 			} else if( e.target.parentElement.name == 'start_download' ) {
 				e.stopPropagation();
 				e.preventDefault();
@@ -1769,7 +1878,6 @@ function IFM( params ) {
 					copylink: {
 						name: self.i18n.copylink,
 						onClick: function( data ) {
-							console.log( "CopyLink-Function: This was the original link: "+data.clicked.link );
 							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
 								self.copyToClipboard( data.clicked.link );
 							else
@@ -2639,7 +2747,7 @@ function IFM( params ) {
 			},
 			dataType: "json",
 			success: function( data ) {
-				console.log( data );
+				self.log( data );
 				if( data.status == "OK" ) {
 					self.showMessage( data.message, "s" );
 					self.refreshFileTable();
@@ -2685,13 +2793,10 @@ function IFM( params ) {
 
 		if( args.length == 0 )
 			return "";
-		console.log( args.length );
 
 		first = "";
 		while( first.length < 1 )
 			first = args.shift();
-
-		console.log("First: "+first);
 
 		first = first.replace( /\/+$/g, '' );
 		if( !args.length )
@@ -2699,7 +2804,6 @@ function IFM( params ) {
 
 		args.forEach( (v, i) => args[i] = v.replace( /^\/*|\/*$/g, '' ) ); // */
 		args.unshift( first );
-		console.log( args.join('/'));
 		return args.join( '/' );
 	};
 
@@ -3331,7 +3435,7 @@ function IFM( params ) {
 						else
 							self.copyMove( source, destination.name, "move" );
 					} catch( e ) {
-						console.log( e );
+						self.log( e );
 					} finally {
 						[].slice.call( document.getElementsByClassName( 'highlightedItem' ) ).forEach( function( e ) {
 							e.classList.remove( 'highlightedItem' );
