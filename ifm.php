@@ -21,7 +21,7 @@ class IFM {
 		"tmp_dir" => "",
 		"defaulttimezone" => "Europe/Berlin",
 		"forbiddenChars" => array(),
-		"language" => "en",
+		"language" => "de",
 		"selfoverwrite" => 0,
 
 		// api controls
@@ -279,14 +279,7 @@ f00bar;
 	</td>
 	{{#config.download}}
 	<td>
-		<form id="d_{{guid}}" action="{{api}}" method="post">
-			<input type="hidden" name="dir" value="{{download.currentDir}}">
-			<input type="hidden" name="filename" value="{{download.name}}">
-			<input type="hidden" name="api" value="{{download.action}}">
-		</form>
-		<a tabindex="0" name="start_download" data-guid="{{guid}}">
-			<span class="{{download.icon}}"></span>
-		</a>
+		<a href="{{download.link}}"><span class="{{download.icon}}"></span></a>
 	</td>
 	{{/config.download}}
 	{{#config.showlastmodified}}
@@ -579,121 +572,7 @@ f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();
-		$i18n["en"] = <<<'f00bar'
-{
-    "ajax_request": "AJAX request",
-    "archivename": "Name of the archive",
-    "archive_create_success": "Archive successfully created.",
-    "archive_create_error": "Could not create archive.",
-    "archive_invalid_format": "Invalid archive format given.",
-    "cancel": "Cancel",
-    "close": "Close",
-    "copy": "Copy",
-    "copylink": "Copy link",
-    "copy_error": "The following files could not be copied:",
-    "copy_success": "File(s) copied successfully.",
-    "create_archive": "Create archive",
-    "data": "Data",
-    "delete": "Delete",
-    "directoryname": "Directory Name",
-    "download": "Download",
-    "edit": "Edit",
-    "editor_options": "Editor Options",
-    "error": "Error:",
-    "extract": "extract",
-    "extract_error": "Could not extract archive.",
-    "extract_filename": "Extract file - ",
-    "extract_success": "Archive extracted successfully.",
-    "file_copy_to": "to",
-    "file_delete_confirm": "Do you really want to delete the following file -",
-    "file_delete_error": "File(s) could not be deleted.",
-    "file_delete_success": "File(s) successfully deleted.",
-    "file_display_error": "This file can not be displayed or edited.",
-    "file_new": "New File",
-    "file_load_error": "Content could not be loaded.",
-    "file_open_error": "Could not open the file.",
-    "file_new": "New file",
-    "file_no_permission": "No permission to edit/create file.",
-    "file_not_found": "File was not found or could not be opened.",
-    "file_rename": "Rename File",
-    "file_rename_error": "File could not be renamed: ",
-    "file_rename_success": "File successfully renamed.",
-    "file_save_error": "File could not be saved.",
-    "file_save_success": "File was saved successfully.",
-    "file_save_confirm": "Do you want to save the following file -",
-    "file_save_error": "File could not be edited or created: ",
-    "file_upload_error": "File could not be uploaded.",
-    "file_upload_success": "File successfully uploaded.",
-    "filename": "Filename",
-    "filename_new": "New Filename",
-    "filename_slashes": "The filename must not contain slashes.",
-    "filter": "Filter",
-    "folder_create_error": "Directory could not be created: ",
-    "folder_create_success": "Directory sucessfully created.",
-    "folder_new": "New Folder",
-    "folder_not_found": "The directory could not be found.",
-    "folder_tree_load_error": "Error while fetching the folder tree.",
-    "footer": "IFM - improved file manager | ifm.php hidden |",
-    "general_error": "General error occured: No or broken response.",
-    "github": "Visit the project on GitHub",
-    "group": "Group",
-    "invalid_action": "Invalid action given.",
-    "invalid_archive_format": "Invalid archive format given. Possible formats are zip, tar, tar.gz or tar.bz2.",
-    "invalid_data": "Invalid data from server.",
-    "invalid_dir": "Invalid directory given.",
-    "invalid_filename": "Invalid filename given.",
-    "invalid_params": "Invalid parameter given.",
-    "invalid_url": "Invalid URL given.",
-    "json_encode_error": "Could not format the response as JSON:",
-    "last_modified": "Last Modified",
-    "load_config_error": "Could not load configuration.",
-    "load_template_error": "Could not load templates.",
-    "load_text_error": "Could not load texts.",
-    "login": "Login",
-    "login_failed": "Login failed.",
-    "logout": "Log Off",
-    "method": "Method",
-    "move": "Move",
-    "move_error": "The following files could not be moved:",
-    "move_success": "File(s) successfully moved.",
-    "nopermissions": "You don't have the permission to do that.",
-    "options": "Options",
-    "owner": "Owner",
-    "password": "Password",
-    "path_content": "Content of",
-    "pattern_error_slashes": "Pattern must not contain slashes.",
-    "permission_change_error": "Permissions could not be changed: ",
-    "permission_change_success": "Permissions successfully changed.",
-    "permission_parse_error": "Permissions could not be parsed correctly.",
-    "permissions": "Permissions",
-    "refresh": "Refresh",
-    "rename": "Rename",
-    "rename_filename": "Rename file -",
-    "request": "Request",
-    "response": "Response",
-    "save": "Save",
-    "save_wo_close": "Save w/o Close",
-    "search": "Search",
-    "search_pattern": "Pattern",
-    "select_destination": "Select Destination",
-    "size": "Size",
-    "soft_tabs": "Soft Tabs",
-    "tab_size": "Tab Size",
-    "tasks": "Tasks",
-	"remaining_tasks": "There are remaining tasks. Do you really want to reload?",
-    "toggle_nav": "Toggle navigation",
-    "upload": "Upload",
-    "upload_drop": "Drop files to upload",
-    "upload_file": "Upload File",
-    "upload_remote": "Remote Upload",
-    "upload_remote_url": "Remote Upload URL",
-    "username": "username",
-    "word_wrap": "Word Wrap"
-}
-
-f00bar;
-$i18n["en"] = json_decode( $i18n["en"], true );
-$i18n["de"] = <<<'f00bar'
+		$i18n["de"] = <<<'f00bar'
 {
     "ajax_request": "AJAX Request",
     "archivename": "Name des Archivs",
@@ -807,120 +686,120 @@ $i18n["de"] = <<<'f00bar'
 
 f00bar;
 $i18n["de"] = json_decode( $i18n["de"], true );
-$i18n["fr"] = <<<'f00bar'
+$i18n["en"] = <<<'f00bar'
 {
-    "ajax_request": "requête AJAX ",
-    "archivename": "Nom de l'archive",
-    "archive_create_success": "Archive créée avec succès.",
-    "archive_create_error": "Echec lors de la création de l'archive.",
-    "archive_invalid_format": "Le format de l'archive indiqué est invalide.",
-    "cancel": "Annuler",
-    "close": "Fermer",
-    "copy": "Copier",
-    "copylink": "Copier le lien",
-    "copy_error": "Les fichiers suivants n'ont pu être copiés :",
-    "copy_success": "Le(s) fichiers(s) a/ont été copié(s) avec succès.",
-    "create_archive": "Créer l'archive",
-    "data": "Données",
-    "delete": "Supprimer",
-    "directoryname": "Nom du dossier",
-    "download": "Téléchargement",
-    "edit": "Editer",
-    "editor_options": "Options de l'éditeur",
-    "error": "Erreur:",
-    "extract": "extraire",
-    "extract_error": "Echec lors de l'extraction de l'archive.",
-    "extract_filename": "Extraire le fichier - ",
-    "extract_success": "Archive extraite avec succès.",
-    "file_copy_to": "vers",
-    "file_delete_confirm": "Voulez-vous vraiment supprimer le fichier -",
-    "file_delete_error": "Echec lors de la suppression des fichiers.",
-    "file_delete_success": "Les fichiers ont été supprimés avec succès.",
-    "file_display_error": "Ce fichier ne peut pas être affiché ni supprimé.",
-    "file_new": "Nouveau fichier",
-    "file_load_error": "Le contenu n'a pas pu être chargé.",
-    "file_open_error": "Impossible d'ouvrir le fichier.",
-    "file_new": "Nouveau fichier",
-    "file_no_permission": "Permissions insuffisantes pour éditer ou créer le fichier.",
-    "file_not_found": "Le fichier n'a pas été trouvé ou n'a pas pu être ouvert.",
-    "file_rename": "Renommer fichier",
-    "file_rename_error": "Le fichier n'a pas pu être renommé : ",
-    "file_rename_success": "Le fichier a été renommé avec succès.",
-    "file_save_error": "Le fichier n'a pas pu être enregistré.",
-    "file_save_success": "Le fichier a été enregistré avec succès.",
-    "file_save_confirm": "Voulez-vous enregistré le fichier -",
-    "file_save_error": "Le fichier n'a pas pu être créé ou modifié : ",
-    "file_upload_error": "Le fichier n'a pas pu être envoyé.",
-    "file_upload_success": "Le fichier a été envoyé avec succès.",
-    "filename": "Nom de fichier",
-    "filename_new": "Nouveau nom de fichier",
-    "filename_slashes": "Le Nom de fichier ne doit pas contenir de slash (/barre oblique/).",
-    "filter": "Filtrer",
-    "folder_create_error": "Le dossier n'a pas pu être créé : ",
-    "folder_create_success": "Le dossier n'a pas pu être créé avec succès.",
-    "folder_new": "Nouveau dossier",
-    "folder_not_found": "Dossier non trouvé.",
-    "folder_tree_load_error": "Error lors du chargement d le'arborescence.",
+    "ajax_request": "AJAX request",
+    "archivename": "Name of the archive",
+    "archive_create_success": "Archive successfully created.",
+    "archive_create_error": "Could not create archive.",
+    "archive_invalid_format": "Invalid archive format given.",
+    "cancel": "Cancel",
+    "close": "Close",
+    "copy": "Copy",
+    "copylink": "Copy link",
+    "copy_error": "The following files could not be copied:",
+    "copy_success": "File(s) copied successfully.",
+    "create_archive": "Create archive",
+    "data": "Data",
+    "delete": "Delete",
+    "directoryname": "Directory Name",
+    "download": "Download",
+    "edit": "Edit",
+    "editor_options": "Editor Options",
+    "error": "Error:",
+    "extract": "extract",
+    "extract_error": "Could not extract archive.",
+    "extract_filename": "Extract file - ",
+    "extract_success": "Archive extracted successfully.",
+    "file_copy_to": "to",
+    "file_delete_confirm": "Do you really want to delete the following file -",
+    "file_delete_error": "File(s) could not be deleted.",
+    "file_delete_success": "File(s) successfully deleted.",
+    "file_display_error": "This file can not be displayed or edited.",
+    "file_new": "New File",
+    "file_load_error": "Content could not be loaded.",
+    "file_open_error": "Could not open the file.",
+    "file_new": "New file",
+    "file_no_permission": "No permission to edit/create file.",
+    "file_not_found": "File was not found or could not be opened.",
+    "file_rename": "Rename File",
+    "file_rename_error": "File could not be renamed: ",
+    "file_rename_success": "File successfully renamed.",
+    "file_save_error": "File could not be saved.",
+    "file_save_success": "File was saved successfully.",
+    "file_save_confirm": "Do you want to save the following file -",
+    "file_save_error": "File could not be edited or created: ",
+    "file_upload_error": "File could not be uploaded.",
+    "file_upload_success": "File successfully uploaded.",
+    "filename": "Filename",
+    "filename_new": "New Filename",
+    "filename_slashes": "The filename must not contain slashes.",
+    "filter": "Filter",
+    "folder_create_error": "Directory could not be created: ",
+    "folder_create_success": "Directory sucessfully created.",
+    "folder_new": "New Folder",
+    "folder_not_found": "The directory could not be found.",
+    "folder_tree_load_error": "Error while fetching the folder tree.",
     "footer": "IFM - improved file manager | ifm.php hidden |",
-    "general_error": "Erreur générale : pas de réponse, ou réponse incorrecte.",
-    "github": "Voir le projet sur GitHub",
-    "group": "Groupe",
-    "invalid_action": "Action demandée invalide.",
-    "invalid_archive_format": "Format d'archive invalide : les formats autorisés sont zip, tar, tar.gz ou tar.bz2.",
-    "invalid_data": "Données invalides reçues du serveur.",
-    "invalid_dir": "Le dossier indiqué est invalide.",
-    "invalid_filename": "Le nom de fichier indiqué est invalide.",
-    "invalid_params": "Le paramètre indiqué est invalide.",
-    "invalid_url": "L'URL indiquée est invalide.",
-    "json_encode_error": "Impossible de formater la réponse en JSON :",
-    "last_modified": "Dernière modification",
-    "load_config_error": "Impossible de charger la configuration.",
-    "load_template_error": "Impossible de charger les modèles.",
-    "load_text_error": "Impossible de charger les chaînes de textes.",
-    "login": "Connexion",
-    "login_failed": "Echec de connexion.",
-    "logout": "Déconnexion",
-    "method": "Méthode",
-    "move": "Déplacer",
-    "move_error": "Les fichiers suivants n'ont pu être déplacés :",
-    "move_success": "Fichiers déplacés avec succès.",
-    "nopermissions": "Vous n'avez pas les permissions pour faire cela.",
+    "general_error": "General error occured: No or broken response.",
+    "github": "Visit the project on GitHub",
+    "group": "Group",
+    "invalid_action": "Invalid action given.",
+    "invalid_archive_format": "Invalid archive format given. Possible formats are zip, tar, tar.gz or tar.bz2.",
+    "invalid_data": "Invalid data from server.",
+    "invalid_dir": "Invalid directory given.",
+    "invalid_filename": "Invalid filename given.",
+    "invalid_params": "Invalid parameter given.",
+    "invalid_url": "Invalid URL given.",
+    "json_encode_error": "Could not format the response as JSON:",
+    "last_modified": "Last Modified",
+    "load_config_error": "Could not load configuration.",
+    "load_template_error": "Could not load templates.",
+    "load_text_error": "Could not load texts.",
+    "login": "Login",
+    "login_failed": "Login failed.",
+    "logout": "Log Off",
+    "method": "Method",
+    "move": "Move",
+    "move_error": "The following files could not be moved:",
+    "move_success": "File(s) successfully moved.",
+    "nopermissions": "You don't have the permission to do that.",
     "options": "Options",
-    "owner": "Propriétaire",
-    "password": "Mot de passe",
-    "path_content": "Contenu de",
-    "pattern_error_slashes": "Le motif ne doit pas contenir de slashes.",
-    "permission_change_error": "Les permissions n'ont pu être changées : ",
-    "permission_change_success": "Permissions changées avec succès.",
-    "permission_parse_error": "Les permissions n'ont pu être interprétées correctement.",
+    "owner": "Owner",
+    "password": "Password",
+    "path_content": "Content of",
+    "pattern_error_slashes": "Pattern must not contain slashes.",
+    "permission_change_error": "Permissions could not be changed: ",
+    "permission_change_success": "Permissions successfully changed.",
+    "permission_parse_error": "Permissions could not be parsed correctly.",
     "permissions": "Permissions",
-    "refresh": "Rafraîchir",
-    "rename": "Renommer",
-    "rename_filename": "Renommer fichier -",
-    "request": "Requête",
-    "response": "Réponse",
-    "save": "Enregistrer",
-    "save_wo_close": "Enregistrer sans fermer",
-    "search": "Recherche",
-    "search_pattern": "Motif",
-    "select_destination": "Seélectionner la destination",
-    "size": "Taille",
-    "soft_tabs": "Tabulations par espaces",
-    "tab_size": "Taille de tabulation",
-    "tasks": "Tâches",
-    "remaining_tasks": "Il reste des tâches en cours. Voulez-vous vraiment recharger la page ?",
-    "toggle_nav": "Basculer la navigation",
-    "upload": "Envoyer",
-    "upload_drop": "Glisser-déplacer les fichier pour les envoyer",
-    "upload_file": "Envoyer fichier",
-    "upload_remote": "Envoi distant",
-    "upload_remote_url": "URL pour l'envoi distant",
-    "username": "nom d'utilisateur",
-    "word_wrap": "Revenir à la ligne"
+    "refresh": "Refresh",
+    "rename": "Rename",
+    "rename_filename": "Rename file -",
+    "request": "Request",
+    "response": "Response",
+    "save": "Save",
+    "save_wo_close": "Save w/o Close",
+    "search": "Search",
+    "search_pattern": "Pattern",
+    "select_destination": "Select Destination",
+    "size": "Size",
+    "soft_tabs": "Soft Tabs",
+    "tab_size": "Tab Size",
+    "tasks": "Tasks",
+	"remaining_tasks": "There are remaining tasks. Do you really want to reload?",
+    "toggle_nav": "Toggle navigation",
+    "upload": "Upload",
+    "upload_drop": "Drop files to upload",
+    "upload_file": "Upload File",
+    "upload_remote": "Remote Upload",
+    "upload_remote_url": "Remote Upload URL",
+    "username": "username",
+    "word_wrap": "Word Wrap"
 }
 
 f00bar;
-$i18n["fr"] = json_decode( $i18n["fr"], true );
+$i18n["en"] = json_decode( $i18n["en"], true );
 
 		$this->i18n = $i18n;
 		
@@ -1610,7 +1489,7 @@ function IFM( params ) {
 		$(modal)
 			.on( 'hide.bs.modal', function( e ) {
 				if( document.forms.formFile && self.fileChanged && !self.isModalClosedByButton ) {
-					console.log( "Prevented closing modal because the file was changed and no button was clicked." );
+					self.log( "Prevented closing modal because the file was changed and no button was clicked." );
 					e.preventDefault();
 				} else
 					$(this).remove();
@@ -1673,10 +1552,7 @@ function IFM( params ) {
 				item.fixtop = 100;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
-			item.download.currentDir = self.currentDir;
 			item.lastmodified_hr = self.formatDate( item.lastmodified );
-			if( self.config.isDocroot )
-				item.link = self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 			if( ! self.config.chmod )
 				item.readonly = "readonly";
 			if( self.config.edit || self.config.rename || self.config.delete || self.config.extract || self.config.copymove ) {
@@ -1726,6 +1602,13 @@ function IFM( params ) {
 					});
 				}
 			}
+			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			if( self.config.isDocroot )
+				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
+			else if( self.config.download && self.config.zipnload )
+				item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			else
+				item.link = '#';
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				item.dragdrop = 'draggable="true"';
 				if( self.config.copymove )
@@ -1784,16 +1667,17 @@ function IFM( params ) {
 			if( e.target.tagName == "TD" && e.target.parentElement.classList.contains( 'clickable-row' ) && e.target.parentElement.dataset.filename !== ".." && e.ctrlKey )
 				e.target.parentElement.classList.toggle( 'selectedItem' );
 			else if( e.target.classList.contains( 'ifmitem' ) || e.target.parentElement.classList.contains( 'ifmitem' ) ) {
-				e.stopPropagation();
-				e.preventDefault();
 				ifmitem = ( e.target.classList.contains( 'ifmitem' ) ? e.target : e.target.parentElement );
-				if( ifmitem.dataset.type == "dir" )
+				if( ifmitem.dataset.type == "dir" ) {
+					e.stopPropagation();
+					e.preventDefault();
 					self.changeDirectory( ifmitem.parentElement.parentElement.dataset.filename );
-				else
-					if( self.config.isDocroot )
-						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
-					else
-						document.forms["d_"+ifmitem.id].submit();
+				}
+//				else
+//					if( self.config.isDocroot )
+//						window.location.href = self.hrefEncode( self.pathCombine( self.currentDir, ifmitem.parentElement.parentElement.dataset.filename ) );
+//					else
+//						document.forms["d_"+ifmitem.id].submit();
 			} else if( e.target.parentElement.name == 'start_download' ) {
 				e.stopPropagation();
 				e.preventDefault();
@@ -1884,9 +1768,15 @@ function IFM( params ) {
 					},
 					copylink: {
 						name: self.i18n.copylink,
-						onClick: function( data ) { self.copyToClipboard( self.getClipboardLink( data.clicked.link ) ); },
+						onClick: function( data ) {
+							console.log( "CopyLink-Function: This was the original link: "+data.clicked.link );
+							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
+								self.copyToClipboard( data.clicked.link );
+							else
+								self.copyToClipboard( self.pathCombine( window.location.origin, data.clicked.link ) );
+						},
 						iconClass: "icon icon-link-ext",
-						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." && !self.config.root_dir ); }
+						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copymove: {
 						name: function( data ) {
@@ -2787,18 +2677,30 @@ function IFM( params ) {
 	 * @param {string} b - component 2
 	 * @returns {string} - combined path
 	 */
-	this.pathCombine = function(a, b) {
-		if ( a == "" && b == "" )
+	this.pathCombine = function() {
+		if( !arguments.length )
 			return "";
-		if( b[0] == "/" )
-			b = b.substring(1);
-		if( a == "" )
-			return b;
-		if( a[a.length-1] == "/" )
-			a = a.substring(0, a.length-1);
-		if( b == "" )
-			return a;
-		return a+"/"+b;
+		var args = Array.prototype.slice.call(arguments);
+		args = args.filter( x => typeof x === 'string' );
+
+		if( args.length == 0 )
+			return "";
+		console.log( args.length );
+
+		first = "";
+		while( first.length < 1 )
+			first = args.shift();
+
+		console.log("First: "+first);
+
+		first = first.replace( /\/+$/g, '' );
+		if( !args.length )
+			return first;
+
+		args.forEach( (v, i) => args[i] = v.replace( /^\/*|\/*$/g, '' ) ); // */
+		args.unshift( first );
+		console.log( args.join('/'));
+		return args.join( '/' );
 	};
 
 	/**
@@ -3039,9 +2941,10 @@ function IFM( params ) {
 			.replace( /\^/g, '%5E' )
 			.replace( /\[/g, '%5B' )
 			.replace( /\]/g, '%5D' )
-			.replace( /`/g, '%60' )
 			.replace( /\\/g, '%5C' )
+			.replace( /`/g, '%60' )
 		;
+		// ` <- this comment prevents the vim syntax highlighting from breaking -.-
 	};
 
 	/**
@@ -4220,7 +4123,7 @@ f00bar;
 			return true;
 
 		if( isset( $_SERVER['HTTP_X_IFM_AUTH'] ) && ! empty( $_SERVER['HTTP_X_IFM_AUTH'] ) ) {
-			$cred = split( ":", base64_decode( $_SERVER['HTTP_X_IFM_AUTH'] ) );
+			$cred = explode( ":", base64_decode( str_replace( "Basic ", "", $_SERVER['HTTP_X_IFM_AUTH'] ) ) );
 			if( count( $cred ) == 2 && $this->checkCredentials( $cred[0], $cred[1] ) )
 				return true;
 		}
@@ -4520,17 +4423,19 @@ f00bar;
 	}
 
 	private function fileDownload( array $options ) {
-		if( isset( $options['forceDL'] ) && $options['forceDL'] )
-			$content_type = "application/octet-stream";
-		else
-			$content_type = mime_content_type( $options['file'] );
-
 		if( ! isset( $options['name'] ) || trim( $options['name'] ) == "" )
 			$options['name'] = basename( $options['file'] );
 
-		header( 'Content-Description: File Transfer' );
+		if( isset( $options['forceDL'] ) && $options['forceDL'] ) {
+			$content_type = "application/octet-stream";
+			header( 'Content-Disposition: attachment; filename="' . $options['name'] . '"' );
+		} else {
+			$content_type = mime_content_type( $options['file'] );
+		}
+
+		// This header was quite some time present, but I don't know why...
+		//header( 'Content-Description: File Transfer' );
 		header( 'Content-Type: ' . $content_type );
-		header( 'Content-Disposition: attachment; filename="' . $options['name'] . '"' );
 		header( 'Expires: 0' );
 		header( 'Cache-Control: must-revalidate' );
 		header( 'Pragma: public' );
