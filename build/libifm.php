@@ -1560,7 +1560,7 @@ function IFM( params ) {
 
 	params = params || {};
 	// set the backend for the application
-	self.api = params.api || window.location.pathname;
+	self.api = params.api || window.location.href;
 
 	this.editor = null;		// global ace editor
 	this.fileChanged = false;	// flag for check if file was changed already
