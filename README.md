@@ -94,7 +94,7 @@ The script is installed inside the image at `/var/www/html/index.php`. Its defau
 
 Here is an example of how to start up a container with this image:
 
-`docker run --rm -it -e IFM_AUTH=1 -p "9090:80" -v "/data:/var/www/html/data" ifm`
+`docker run --rm -i -e IFM_AUTH=1 -p "9090:80" -v "/data:/var/www/html/data" ifm`
 
 The script's configuration can be changed by adjusting the corresponding docker environment variables 
 listed below:
