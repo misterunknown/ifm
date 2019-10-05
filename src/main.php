@@ -176,7 +176,7 @@ f00bar;
 		if( in_array( $this->config['language'], array_keys( $this->i18n ) ) )
 			$this->l = $this->i18n[$this->config['language']];
 		else
-			$this->l = $this->i18n[0];
+			$this->l = reset($this->i18n);
 	}
 
 	/**
