@@ -462,16 +462,12 @@ function IFM( params ) {
 			}
 		});
 
-		$('#editoroptions').popover({
+		$('#btnEditoroptions').popover({
 			html: true,
 			title: self.i18n.options,
 			content: function() {
-				// see https://github.com/twbs/bootstrap/issues/12571
-				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
-				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
-
 				var aceSession = self.editor.getSession();
-				var content = self.getNodesFromString(
+				var content = self.getNodeFromString(
 					Mustache.render(
 						self.templates.file_editoroptions,
 						{
@@ -486,31 +482,32 @@ function IFM( params ) {
 						}
 					)
 				);
-				content.forEach( function( el ) {
-					if( el.id == "editor-wordwrap" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'wrap', e.srcElement.checked );
-						});
-					else if( el.id == "editor-softtabs" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
-						});
-					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
-						el.lastChild.addEventListener( 'keydown', function( e ) {
-							if( e.key == 'Enter' ) {
-								e.preventDefault();
-								self.editor.setOption( 'tabSize', e.srcElement.value );
-							}
-						});
-					else if( el.id == "editor-syntax" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.getSession().setMode( e.target.value );
-						});
-				});
+				console.log(content);
 				return content;
 			}
+		}).on('shown.bs.popover', function(e){
+			if(el = document.getElementById("editor-wordwrap"))
+				el.addEventListener( 'change', function( e ) {
+					console.log("wordwrap triggered");
+					self.editor.setOption( 'wrap', e.srcElement.checked );
+				});
+			if(el = document.getElementById("editor-softtabs"))
+				el.addEventListener( 'change', function( e ) {
+					console.log("softtabs triggered");
+					self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
+				});
+			if(el = document.getElementById("editor-tabsize")) //el.lastChild && el.lastChild.id == "editor-tabsize" )
+				el.addEventListener( 'keydown', function( e ) {
+					if( e.key == 'Enter' ) {
+						console.log("tabsize changed");
+						e.preventDefault();
+						self.editor.setOption( 'tabSize', e.srcElement.value );
+					}
+				});
 		});
 
+		//self.editor.getSession().setValue(content);
+		document.getElementById('content').innerText = content;
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
@@ -1355,7 +1352,7 @@ function IFM( params ) {
 				}
 			});
 			document.body.appendChild( newFooter );
-			document.body.style.paddingBottom = '6em';
+			//document.body.style.paddingBottom = '6em';
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
@@ -1374,7 +1371,7 @@ function IFM( params ) {
 		var wq = document.getElementById( 'waitqueue' );
 		if( wq.children.length == 0 ) {
 			document.getElementsByTagName( 'footer' )[0].remove();
-			document.body.style.paddingBottom = 0;
+			//document.body.style.paddingBottom = 0;
 		} else {
 			document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 		}

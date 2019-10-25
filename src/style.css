@@ -1,5 +1,5 @@
 body {
-	padding-top: 70px;
+	padding-bottom: 1rem !important;
 	overflow-y: scroll !important;
 }
 
@@ -34,6 +34,9 @@ img.imgpreview { max-width: 100%; }
 
 div#content { width: 100%; height: 350px; }
 
+nav { color: #ffffff !important; }
+nav a { color: #bdbdbd !important; }
+
 input[name=newpermissions] { padding: 6px 8px; }
 
 #filetable tr th.buttons { min-width: 95px; }
@@ -43,10 +46,13 @@ input[name=newpermissions] { padding: 6px 8px; }
 #filetable tbody tr.selectedItem * a { color: #FFF; }
 #filetable tbody tr td { vertical-align: inherit; }
 
-#navbar { max-width: 100%; }
-
-div.ifminfo { color: #adadad; font-size: 10pt; }
-div.ifminfo div.panel-body { padding: 5px !important; }
+div.ifminfo {
+	color: #adadad;
+	font-size: 10pt;
+}
+div.ifminfo div.card-body {
+	padding: 0.25rem 0.5rem;
+}
 
 @media (max-width: 768px) {
 	.icon { font-size: 12pt; }
@@ -128,4 +134,13 @@ table.dataTable thead th.sorting_asc:after {
 }
 table.dataTable thead th.sorting_desc:after {
 	content: "\f0dd";
+}
+
+#formExtractFile .input-group {
+	margin-top: 0.5rem;
+}
+
+#formExtractFile .input-group-addon {
+	margin-top: 0.5rem;
+	margin-right: 0.5rem;
 }

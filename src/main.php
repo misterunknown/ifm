@@ -197,27 +197,17 @@ f00bar;
 	}
 
 	public function getCSS() {
-		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
-		';
+		echo <<<'f00bar'
+<style type="text/css">
+	@@@files:src/includes/css/*.css@@@
+</style>
+f00bar;
 	}
 
 	public function getJS() {
 		echo <<<'f00bar'
 <script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/BootstrapMenu.min.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
+			@@@files:src/includes/js/*.js@@@
 			@@@acedir:src/includes/ace@@@
 			@@@file:src/ifm.js@@@
 </script>
@@ -243,7 +233,6 @@ f00bar;
 	/*
 	   main functions
 	 */
-
 	private function handleRequest() {
 		if( $_REQUEST["api"] == "getRealpath" ) {
 			if( isset( $_REQUEST["dir"] ) && $_REQUEST["dir"] != "" )
@@ -299,7 +288,7 @@ f00bar;
 				print $this->jsonResponse( array( "status" => "ERROR", "message" => "Invalid working directory" ) );
 			}
 		}
-		exit( 0 );
+		exit(0);
 	}
 
 	public function run( $mode="standalone" ) {
@@ -323,8 +312,6 @@ f00bar;
 	/*
 	   api functions
 	 */
-
-
 	private function getFiles( $dir ) {
 		$this->chDirIfNecessary( $dir );
 
