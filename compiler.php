@@ -70,6 +70,7 @@ preg_match_all( "/\@\@\@acedir:([^\@]+)\@\@\@/", $compiled, $matches, PREG_SET_O
 foreach($matches as $match) {
 	$dircontent = "";
 	foreach(glob($match[1]."/*") as $file) {
+		echo "Debug: Ace-file: $file\n";
 		if(is_file($file) && is_readable($file)) {
 			$vars['ace_includes'] .= "|" . substr(basename($file), 0, strrpos(basename($file), "."));
 			$dircontent .= file_get_contents($file)."\n\n";

@@ -144,3 +144,8 @@ table.dataTable thead th.sorting_desc:after {
 	margin-top: 0.5rem;
 	margin-right: 0.5rem;
 }
+
+#formExtractFile .input-group>.form-control:not(:first-child) {
+	border-top-left-radius: 0.25rem;
+	border-bottom-left-radius: 0.25rem;
+}

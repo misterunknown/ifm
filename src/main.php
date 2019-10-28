@@ -208,7 +208,7 @@ f00bar;
 		echo <<<'f00bar'
 <script>
 			@@@files:src/includes/js/*.js@@@
-			@@@acedir:src/includes/ace@@@
+			@@@acedir:src/includes/js/ace@@@
 			@@@file:src/ifm.js@@@
 </script>
 f00bar;
