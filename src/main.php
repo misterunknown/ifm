@@ -410,7 +410,6 @@ f00bar;
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
-		unset( $ret['auth'] );
 		unset( $ret['auth_source'] );
 		$this->jsonResponse( $ret );
 	}
@@ -1043,7 +1042,13 @@ f00bar;
 				break;
 			case "ldap":
 				$authenticated = false;
-				list( $ldap_server, $rootdn ) = explode( ";", $srcopt );
+				$ldapopts = explode( ";", $srcopt );
+				if( count( $ldapopts ) === 3 ) {
+					list( $ldap_server, $rootdn, $ufilter ) = explode( ";", $srcopt );
+				} else {
+					list( $ldap_server, $rootdn ) = explode( ";", $srcopt );
+					$ufilter = false;
+				}
 				$u = "uid=" . $user . "," . $rootdn;
 				if( ! $ds = ldap_connect( $ldap_server ) ) {
 					trigger_error( "Could not reach the ldap server.", E_USER_ERROR );
@@ -1053,7 +1058,16 @@ f00bar;
 				if( $ds ) {
 					$ldbind = @ldap_bind( $ds, $u, $pass );
 					if( $ldbind ) {
-						$authenticated = true;
+						if( $ufilter ) {
+							if( ldap_count_entries( $ds, ldap_search( $ds, $rootdn, $ufilter ) ) > 0 ){
+								$authenticated = true;
+							} else {
+								trigger_error( "User not allowed.", E_USER_ERROR );
+								$authenticated = false;
+							}
+						} else {
+							$authenticated = true;
+						}
 					} else {
 						trigger_error( ldap_error( $ds ), E_USER_ERROR );
 						$authenticated = false;
