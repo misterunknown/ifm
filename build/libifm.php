@@ -3430,7 +3430,6 @@ f00bar;
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
-		unset( $ret['auth'] );
 		unset( $ret['auth_source'] );
 		$this->jsonResponse( $ret );
 	}
