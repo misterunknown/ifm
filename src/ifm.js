@@ -329,8 +329,14 @@ function IFM( params ) {
 						onClick: function( data ) {
 							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
 								self.copyToClipboard( data.clicked.link );
-							else
-								self.copyToClipboard( self.pathCombine( window.location.origin, data.clicked.link ) );
+							else {
+								var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+								pathname.pop();
+								var link = self.pathCombine( window.location.origin, data.clicked.link )
+								if( pathname.length > 0 )
+									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
+								self.copyToClipboard( link );
+							}
 						},
 						iconClass: "icon icon-link-ext",
 						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
