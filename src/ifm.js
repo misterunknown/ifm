@@ -528,6 +528,34 @@ function IFM( params ) {
 			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
 				self.editor.getSession().setMode( mode );
 		}
+		self.editor.commands.addCommand({
+			name: "toggleFullscreen",
+			bindKey: "Ctrl-Shift-F",
+			exec: function(e) {
+				var el = e.container;
+				console.log("toggleFullscreen was called");
+				console.log("el.parentElement.tagName is "+el.parentElement.tagName);
+				if (el.parentElement.tagName == "BODY") {
+					el.remove();
+					var fieldset = document.getElementsByClassName('modal-body')[0].firstElementChild;
+					fieldset.insertBefore(el, fieldset.getElementsByTagName('button')[0].previousElementSibling);
+					el.style = Object.assign({}, ifm.tmpEditorStyles);
+					ifm.tmpEditorStyles = undefined;
+				} else {
+					ifm.tmpEditorStyles = Object.assign({}, el.style);
+					el.remove();
+					document.body.appendChild(el);
+					el.style.position = "absolute";
+					el.style.top = 0;
+					el.style.left = 0;
+					el.style.zIndex = 10000;
+					el.style.width = "100%";
+					el.style.height = "100%";
+				}
+				e.resize();
+				e.focus();
+			}
+		});
 	};
 
 	/**
