@@ -1,5 +1,5 @@
 #!/bin/sh
-set -xe
+set -e
 
 if [ ! -z $IFM_DOCKER_UID ]; then
 	if [ -z $IFM_DOCKER_GID ]; then
@@ -21,7 +21,6 @@ else
 	deluser www-data
 	addgroup -g 33 -S www-data
 	adduser -SHD -u 33 -G www-data www-data
-	getent passwd
 	sudo -E -u www-data php -S 0:80 -t /usr/local/share/webapps/ifm
 fi
 
