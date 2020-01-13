@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -xe
 
 if [ ! -z $IFM_DOCKER_UID ]; then
 	if [ -z $IFM_DOCKER_GID ]; then
@@ -15,8 +15,13 @@ if [ ! -z $IFM_DOCKER_UID ]; then
 		REAL_GROUP=$(getent group $IFM_DOCKER_GID | sed "s/:.*//")
 	fi
 	adduser -u $IFM_DOCKER_UID -HDG $REAL_GROUP ifm
+	sudo -E -u ifm -c "php -S 0:80 -t /usr/local/share/webapps/ifm"
 else
-	adduser -HD ifm
+	deluser xfs
+	deluser www-data
+	addgroup -g 33 -S www-data
+	adduser -SHD -u 33 -G www-data www-data
+	getent passwd
+	sudo -E -u www-data php -S 0:80 -t /usr/local/share/webapps/ifm
 fi
 
-su ifm -c "php -S 0:80 -t /usr/local/share/webapps/ifm"
