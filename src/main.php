@@ -21,7 +21,7 @@ class IFM {
 		"root_dir" => "",
 		"root_public_url" => "",
 		"tmp_dir" => "",
-		"defaulttimezone" => "Europe/Berlin",
+		"timezone" => "",
 		"forbiddenChars" => array(),
 		"language" => "@@@vars:defaultlanguage@@@",
 		"selfoverwrite" => 0,
@@ -71,7 +71,7 @@ class IFM {
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
 		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
-		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
+		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
@@ -179,6 +179,9 @@ f00bar;
 			$this->l = $this->i18n[$this->config['language']];
 		else
 			$this->l = reset($this->i18n);
+
+		if ($this->config['timezone'])
+			date_default_timezone_set($this->config['timezone']);
 	}
 
 	/**
