@@ -18,8 +18,9 @@ class IFM {
 		"auth" => 0,
 		"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 		"root_dir" => "",
+		"root_public_url" => "",
 		"tmp_dir" => "",
-		"defaulttimezone" => "Europe/Berlin",
+		"timezone" => "",
 		"forbiddenChars" => array(),
 		"language" => "en",
 		"selfoverwrite" => 0,
@@ -67,8 +68,9 @@ class IFM {
 		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? intval( getenv('IFM_AUTH') ) : $this->config['auth'] ;
 		$this->config['auth_source'] =  getenv('IFM_AUTH_SOURCE') !== false ? getenv('IFM_AUTH_SOURCE') : $this->config['auth_source'] ;
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
+		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
-		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
+		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
@@ -693,6 +695,9 @@ $i18n["en"] = json_decode( $i18n["en"], true );
 			$this->l = $this->i18n[$this->config['language']];
 		else
 			$this->l = reset($this->i18n);
+
+		if ($this->config['timezone'])
+			date_default_timezone_set($this->config['timezone']);
 	}
 
 	/**
@@ -702,7 +707,7 @@ $i18n["en"] = json_decode( $i18n["en"], true );
 		$this->getHTMLHeader();
 		print '<div id="ifm"></div>';
 		$this->getJS();
-		print '<script>var ifm = new IFM(); ifm.init( "ifm" );</script>';
+		print '<script>var ifm = new IFM(); ifm.init("ifm");</script>';
 		$this->getHTMLFooter();
 	}
 
@@ -1326,13 +1331,13 @@ l=0;for(h=f.length;l<h;l++)if(c=f[l],b.isArray(c))q(d,c);else{g=e="";switch(c){c
  *
  * @param object params - object with some configuration values, currently you only can set the api url
  */
-function IFM( params ) {
+function IFM(params) {
 	// reference to ourself, because "this" does not work within callbacks
 	var self = this;
 
 	params = params || {};
 	// set the backend for the application
-	self.api = params.api || window.location.href;
+	self.api = params.api || window.location.href.replace(/#.*/, "");
 
 	this.editor = null;		// global ace editor
 	this.fileChanged = false;	// flag for check if file was changed already
@@ -1491,9 +1496,15 @@ function IFM( params ) {
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
 			if( self.config.isDocroot )
 				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
-			else if( self.config.download && self.config.zipnload )
-				item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
-			else
+			else if (self.config.download && self.config.zipnload) {
+				if (self.config.root_public_url) {
+					if (self.config.root_public_url.charAt(0) == "/")
+						item.link = self.pathCombine(window.location.origin, self.config.root_public_url, self.currentDir, item.name);
+					else
+						item.link = self.pathCombine(self.config.root_public_url, self.currentDir, item.name);
+				} else
+					item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			} else
 				item.link = '#';
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				item.dragdrop = 'draggable="true"';
@@ -2595,7 +2606,7 @@ function IFM( params ) {
 		if( !arguments.length )
 			return "";
 		var args = Array.prototype.slice.call(arguments);
-		args = args.filter( x => typeof x === 'string' );
+		args = args.filter( x => typeof x === 'string' && x != '' );
 
 		if( args.length == 0 )
 			return "";
@@ -3464,8 +3475,10 @@ f00bar;
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
-		unset( $ret['auth_source'] );
-		$this->jsonResponse( $ret );
+		foreach (array("auth_source", "root_dir") as $field) {
+			unset($ret[$field]);
+		}
+		$this->jsonResponse($ret);
 	}
 
 	private function getFolders( $d ) {
