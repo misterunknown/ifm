@@ -1083,6 +1083,11 @@ table.dataTable thead th.sorting_asc:after {
 table.dataTable thead th.sorting_desc:after {
 	content: "\f0dd";
 }
+
+#copyMoveTree {
+	max-height: 80vh;
+	overflow: auto;
+}
  <?php print '</style>
 		';
 	}
