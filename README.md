@@ -11,8 +11,10 @@
  - [screenshots](#screenshots)
  - [issues](#issues)
 
-## about
-The IFM is a web-based filemanager, which comes as a single file solution using HTML5, CSS3, JavaScript and PHP. You can test a [demo here](https://ifmdemo.gitea.de/). The credentials are the default credentials: `admin` as username and password.
+## About
+The IFM is a web-based filemanager, which comes as a single file solution using
+HTML5, CSS3, JavaScript and PHP. You can test a [demo
+here](https://ifmdemo.gitea.de/).
 
 <a href="https://youtu.be/owJepSas19Y"><img src="https://img.youtube.com/vi/owJepSas19Y/hqdefault.jpg"></a>
 
@@ -32,7 +34,7 @@ The IFM uses the following resources:
 * change permissions
 * image preview
 
-## requirements
+## Requirements
 * Client
   * HTML5 and CSS3 compatible browser
   * activated javascript
@@ -49,15 +51,21 @@ The IFM uses the following resources:
     * zip
     * zlib
 
-## installation
+## Installation
 Just copy the ifm.php to your webspace - thats all :)
 
-## security information
-The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
+## Security information
+The IFM is usually locked to it's own directory, so you are not able to go
+above. You can change that by setting the `root_dir` in the scripts
+[configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
-By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration. [See also](https://github.com/misterunknown/ifm/wiki/Configuration).
+By default, it is not allowed to show or edit the `.htaccess` file. This is
+because you can configure the IFM via environment variables. Thus if anyone has
+the ability to edit the `.htaccess` file, he could overwrite the active
+configuration. [See
+also](https://github.com/misterunknown/ifm/wiki/Configuration).
 
-## key bindings
+## Key bindings
 * <kbd>e</kbd> - edit / extract current file
 * <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> - vim-style navigation (alternative to arrow keys)
 * <kbd>g</kbd> - focus the path input field (i.e. "goto")
@@ -74,38 +82,51 @@ By default, it is not allowed to show or edit the `.htaccess` file. This is beca
 * <kbd>Space</kbd> - select a highlighted item
 * <kbd>Del</kbd> - delete selected files
 * <kbd>Enter</kbd> - open a file or change to the directory
+* <kbd>Ctrl</kbd>-<kbd>Shift</kbd>-<kbd>f</kbd> - toggle fullscreen ace editor
 
-## configuration
+## Configuration
 See [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 ### authentication
 See [authentication](https://github.com/misterunknown/ifm/wiki/Authentication).
 
-## docker
+## Docker
+The docker image is based on the official php docker images (alpine version)
+and exposes port 80.
 
-The docker image is based on alpine 3.5 for a small image footprint, with necessary apache, php and supporting packages installed and exposes port 80
-
-### build image
-Run the following command from the top source dir:
+### Quickstart
+Build the image with this command in the top source dir:
 
 `docker build -t ifm .`
 
-### run image
-The script is installed inside the image at `/var/www/html/index.php`. Its default configuration is unchanged, thus it will display the contents of the document root (`/var/www/html`)
+Afterwards you can start the docker container as follows:
 
-Here is an example of how to start up a container with this image:
+`docker run --rm -d --name ifm -p 8080:80 -v /path/to/data:/var/www ifm:latest`
 
-`docker run --rm -i -e IFM_AUTH=1 -p "9090:80" -v "/data:/var/www/html/data" ifm`
+### Specify user/group
+By default IFM runs as user www-data (uid/gid 33). If you need to change that,
+you can set the UID and GID with the following environment variables:
 
-The script's configuration can be changed by adjusting the corresponding docker environment variables 
-listed below:
+`docker run ... -e IFM_DOCKER_UID=1000 -e IFM_DOCKER_GID=100 ifm:latest`
+
+### Other configuration
+The script is located at `/usr/local/share/webapps/ifm/index.php`. By default
+the `root_dir` is set to /var/www, so you can mount any directory at this
+location. If you want to bind the corresponding host directory, you can do the
+following:
+
+`docker run --rm -i -p "8080:80" -v "/var/www:/var/www" ifm`
+
+The scripts configuration can be changed by adjusting the corresponding docker
+environment variables listed below:
 
 | PHP config value   | Docker env var             |
 | ------------------ | -------------------------- |
 | `auth`             | `IFM_AUTH`                 |
 | `auth_source`      | `IFM_AUTH_SOURCE`          |
 | `root_dir`         | `IFM_ROOT_DIR`             |
+| `root_public_url`  | `IFM_ROOT_PUBLIC_URL`      |
 | `tmp_dir`          | `IFM_TMP_DIR`              |
-| `defaulttimezone`  | `IFM_DEFAULTTIMEZONE`      |
+| `timezone`         | `IFM_TIMEZONE`             |
 | `forbiddenchars`   | `IFM_FORBIDDENCHARS`       |
 | `language`         | `IFM_LANGUAGE`             |
 | `ajaxrequest`      | `IFM_API_AJAXREQUEST`      |
@@ -138,4 +159,5 @@ listed below:
 <a href="https://misterunknown.de/static/ifm_screenshot_mobile_editfile.png"><img src="https://misterunknown.de/static/ifm_screenshot_mobile_editfile.png" height="300px"></a>
 
 ## issues
-Currently there are no known issues. If you find any flaws please let me know.
+If you happen to find an error or miss a feature, you can create an issue on
+Github.

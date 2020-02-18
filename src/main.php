@@ -19,8 +19,9 @@ class IFM {
 		"auth" => 0,
 		"auth_source" => 'inline;admin:$2y$10$0Bnm5L4wKFHRxJgNq.oZv.v7yXhkJZQvinJYR2p6X1zPvzyDRUVRC',
 		"root_dir" => "",
+		"root_public_url" => "",
 		"tmp_dir" => "",
-		"defaulttimezone" => "Europe/Berlin",
+		"timezone" => "",
 		"forbiddenChars" => array(),
 		"language" => "@@@vars:defaultlanguage@@@",
 		"selfoverwrite" => 0,
@@ -68,8 +69,9 @@ class IFM {
 		$this->config['auth'] =  getenv('IFM_AUTH') !== false ? intval( getenv('IFM_AUTH') ) : $this->config['auth'] ;
 		$this->config['auth_source'] =  getenv('IFM_AUTH_SOURCE') !== false ? getenv('IFM_AUTH_SOURCE') : $this->config['auth_source'] ;
 		$this->config['root_dir'] =  getenv('IFM_ROOT_DIR') !== false ? getenv('IFM_ROOT_DIR') : $this->config['root_dir'] ;
+		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
-		$this->config['defaulttimezone'] =  getenv('IFM_DEFAULTTIMEZONE') !== false ? getenv('IFM_DEFAULTTIMEZONE') : $this->config['defaulttimezone'] ;
+		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
@@ -177,6 +179,9 @@ f00bar;
 			$this->l = $this->i18n[$this->config['language']];
 		else
 			$this->l = reset($this->i18n);
+
+		if ($this->config['timezone'])
+			date_default_timezone_set($this->config['timezone']);
 	}
 
 	/**
@@ -186,7 +191,7 @@ f00bar;
 		$this->getHTMLHeader();
 		print '<div id="ifm"></div>';
 		$this->getJS();
-		print '<script>var ifm = new IFM(); ifm.init( "ifm" );</script>';
+		print '<script>var ifm = new IFM(); ifm.init("ifm");</script>';
 		$this->getHTMLFooter();
 	}
 
@@ -410,8 +415,10 @@ f00bar;
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
 		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
-		unset( $ret['auth_source'] );
-		$this->jsonResponse( $ret );
+		foreach (array("auth_source", "root_dir") as $field) {
+			unset($ret[$field]);
+		}
+		$this->jsonResponse($ret);
 	}
 
 	private function getFolders( $d ) {

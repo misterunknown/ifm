@@ -3,13 +3,13 @@
  *
  * @param object params - object with some configuration values, currently you only can set the api url
  */
-function IFM( params ) {
+function IFM(params) {
 	// reference to ourself, because "this" does not work within callbacks
 	var self = this;
 
 	params = params || {};
 	// set the backend for the application
-	self.api = params.api || window.location.href;
+	self.api = params.api || window.location.href.replace(/#.*/, "");
 
 	this.editor = null;		// global ace editor
 	this.fileChanged = false;	// flag for check if file was changed already
@@ -168,9 +168,15 @@ function IFM( params ) {
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
 			if( self.config.isDocroot )
 				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
-			else if( self.config.download && self.config.zipnload )
-				item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
-			else
+			else if (self.config.download && self.config.zipnload) {
+				if (self.config.root_public_url) {
+					if (self.config.root_public_url.charAt(0) == "/")
+						item.link = self.pathCombine(window.location.origin, self.config.root_public_url, self.currentDir, item.name);
+					else
+						item.link = self.pathCombine(self.config.root_public_url, self.currentDir, item.name);
+				} else
+					item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
+			} else
 				item.link = '#';
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				item.dragdrop = 'draggable="true"';
@@ -329,8 +335,14 @@ function IFM( params ) {
 						onClick: function( data ) {
 							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
 								self.copyToClipboard( data.clicked.link );
-							else
-								self.copyToClipboard( self.pathCombine( window.location.origin, data.clicked.link ) );
+							else {
+								var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+								pathname.pop();
+								var link = self.pathCombine( window.location.origin, data.clicked.link )
+								if( pathname.length > 0 )
+									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
+								self.copyToClipboard( link );
+							}
 						},
 						iconClass: "icon icon-link-ext",
 						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
@@ -522,6 +534,34 @@ function IFM( params ) {
 			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
 				self.editor.getSession().setMode( mode );
 		}
+		self.editor.commands.addCommand({
+			name: "toggleFullscreen",
+			bindKey: "Ctrl-Shift-F",
+			exec: function(e) {
+				var el = e.container;
+				console.log("toggleFullscreen was called");
+				console.log("el.parentElement.tagName is "+el.parentElement.tagName);
+				if (el.parentElement.tagName == "BODY") {
+					el.remove();
+					var fieldset = document.getElementsByClassName('modal-body')[0].firstElementChild;
+					fieldset.insertBefore(el, fieldset.getElementsByTagName('button')[0].previousElementSibling);
+					el.style = Object.assign({}, ifm.tmpEditorStyles);
+					ifm.tmpEditorStyles = undefined;
+				} else {
+					ifm.tmpEditorStyles = Object.assign({}, el.style);
+					el.remove();
+					document.body.appendChild(el);
+					el.style.position = "absolute";
+					el.style.top = 0;
+					el.style.left = 0;
+					el.style.zIndex = 10000;
+					el.style.width = "100%";
+					el.style.height = "100%";
+				}
+				e.resize();
+				e.focus();
+			}
+		});
 	};
 
 	/**
@@ -1238,7 +1278,7 @@ function IFM( params ) {
 		if( !arguments.length )
 			return "";
 		var args = Array.prototype.slice.call(arguments);
-		args = args.filter( x => typeof x === 'string' );
+		args = args.filter( x => typeof x === 'string' && x != '' );
 
 		if( args.length == 0 )
 			return "";
