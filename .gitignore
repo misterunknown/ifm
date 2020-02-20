@@ -2,3 +2,4 @@
 *.zip
 misc
 src/includes/ace/*
+sftp-config.json

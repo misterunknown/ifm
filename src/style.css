@@ -46,7 +46,7 @@ input[name=newpermissions] { padding: 6px 8px; }
 #navbar { max-width: 100%; }
 
 div.ifminfo { color: #adadad; font-size: 10pt; }
-div.ifminfo div.panel-body { padding: 5px !important; }
+div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align:  center; }
 
 @media (max-width: 768px) {
 	.icon { font-size: 12pt; }

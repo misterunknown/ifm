@@ -24,7 +24,7 @@ define( "IFM_LIB",           "build/libifm.php" );
 $options = getopt( null, array( "language::" ) );
 
 // process languages
-$vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en" );
+$vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en", "ru" );
 $vars['defaultlanguage'] = $vars['languages'][0];
 $vars['languageincludes'] = "";
 foreach( $vars['languages'] as $l ) {
@@ -85,6 +85,9 @@ foreach( $includes as $var )
 /**
  * Build versions
  */
+// replace IFM_VERSION with current verion in templates before build
+$IFM_VERSION = "v2.5.1";
+$compiled = str_replace( 'IFM_VERSION', $IFM_VERSION, $compiled );
 // build standalone ifm
 file_put_contents( IFM_STANDALONE, $compiled );
 file_put_contents( IFM_STANDALONE, '
