@@ -30,7 +30,6 @@
     "file_new": "Nouveau fichier",
     "file_load_error": "Le contenu n'a pas pu être chargé.",
     "file_open_error": "Impossible d'ouvrir le fichier.",
-    "file_new": "Nouveau fichier",
     "file_no_permission": "Permissions insuffisantes pour éditer ou créer le fichier.",
     "file_not_found": "Le fichier n'a pas été trouvé ou n'a pas pu être ouvert.",
     "file_rename": "Renommer fichier",
