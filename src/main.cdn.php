@@ -203,9 +203,9 @@ f00bar;
 
 	public function getCSS() {
 		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+			<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.20/datatables.min.css"/>
 			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
@@ -213,22 +213,23 @@ f00bar;
 	}
 
 	public function getJS() {
+		print '
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+			<script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.10.20/datatables.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.8/ace.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.2/mustache.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classnames/2.2.6/index.min.js"></script>	
+		';
 		echo <<<'f00bar'
-<script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/jquery.ui.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/lodash.min.js@@@
-			@@@file:src/includes/classnames.js@@@
-			@@@file:src/includes/bootstrap-contextmenu.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
-			@@@acedir:src/includes/ace@@@
-			@@@file:src/ifm.js@@@
-</script>
+			<script>
+						@@@file:src/includes/bootstrap-treeview.min.js@@@
+						@@@file:src/includes/bootstrap-contextmenu.js@@@
+						@@@file:src/ifm.js@@@
+			</script>
 f00bar;
 	}
 
