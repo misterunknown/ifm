@@ -41,7 +41,6 @@ class IFM {
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
-		"search" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -53,9 +52,7 @@ class IFM {
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 		"contextmenu" => 1,
-		"disable_mime_detection" => 0,
-		"showrefresh" => 1,
-		"forceproxy" => 0
+		"disable_mime_detection" => 0
 	);
 
 	private $config = array();
@@ -101,9 +98,6 @@ class IFM {
 		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
-		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
-		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
-		$this->config['forceproxy'] =  getenv('IFM_GUI_FORCEPROXY') !== false ? intval( getenv('IFM_GUI_FORCEPROXY') ) : $this->config['forceproxy'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -209,9 +203,9 @@ f00bar;
 
 	public function getCSS() {
 		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
+			<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+			<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.20/datatables.min.css"/>
 			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
 			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
@@ -219,22 +213,23 @@ f00bar;
 	}
 
 	public function getJS() {
+		print '
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+			<script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.10.20/datatables.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.8/ace.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.2/mustache.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/classnames/2.2.6/index.min.js"></script>	
+		';
 		echo <<<'f00bar'
-<script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/jquery.ui.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/lodash.min.js@@@
-			@@@file:src/includes/classnames.js@@@
-			@@@file:src/includes/bootstrap-contextmenu.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
-			@@@acedir:src/includes/ace@@@
-			@@@file:src/ifm.js@@@
-</script>
+			<script>
+						@@@file:src/includes/bootstrap-treeview.min.js@@@
+						@@@file:src/includes/bootstrap-contextmenu.js@@@
+						@@@file:src/ifm.js@@@
+			</script>
 f00bar;
 	}
 
@@ -423,8 +418,7 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
-
+		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
 		foreach (array("auth_source", "root_dir") as $field) {
 			unset($ret[$field]);
 		}
@@ -461,11 +455,6 @@ f00bar;
 	}
 
 	private function searchItems( $d ) {
-		if( $this->config['search'] != 1 ) {
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
-			return;
-		}
-
 		if( strpos( $d['pattern'], '/' ) !== false ) {
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );
@@ -692,8 +681,6 @@ f00bar;
 	private function downloadFile( array $d, $forceDL=true ) {
 		if( $this->config['download'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
-		elseif( ! $this->isFilenameValid( $d['filename'] ) )
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			$this->jsonResponse( array( "status" => "ERROR", "message"=> $this->l['nopermissions'] ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
@@ -833,22 +820,20 @@ f00bar;
 		else {
 			if( ! file_exists( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
-			elseif (!$this->isPathValid($d['filename']))
-				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
-			elseif ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
+			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
+					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true ) );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
@@ -1261,16 +1246,17 @@ f00bar;
 	}
 
 	// combines two parts to a valid path
-	private function pathCombine(...$parts) {
-		$ret = "";
-		foreach($parts as $part)
-			if (trim($part) != "")
-				$ret .= (empty($ret)?rtrim($part,"/"):trim($part, '/'))."/";
-		return rtrim($ret, "/");
+	private function pathCombine( $a, $b ) {
+		if( trim( $a ) == "" && trim( $b ) == "" )
+			return "";
+		elseif( trim( $a ) == "" )
+			return ltrim( $b, '/' );
+		else
+			return rtrim( $a, '/' ) . '/' . trim( $b, '/' );
 	}
 
 	// check if filename is allowed
-	public function isFilenameValid( $f ) {
+	private function isFilenameValid( $f ) {
 		if( ! $this->isFilenameAllowed( $f ) )
 			return false;
 		if( strtoupper( substr( PHP_OS, 0, 3 ) ) == "WIN" ) {

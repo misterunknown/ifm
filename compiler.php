@@ -8,17 +8,25 @@
 
 chdir( realpath( dirname( __FILE__ ) ) );
 
+// output files and common attrs
+define( "IFM_CDN",           true );
+define( "IFM_VERSION",       "v2.5.2" );
+define( "IFM_STANDALONE",    "dist/ifm.php" );
+define( "IFM_STANDALONE_GZ", "dist/ifm.min.php" );
+define( "IFM_LIB",           "dist/libifm.php" );
+
+if( IFM_CDN ){
+	$main_src = "src/main.cdn.php";
+} else {
+	$main_src = "src/main.php";
+}
+
 // php source files
 $IFM_SRC_PHP = array(
-	0 => "src/main.php",
+	0 => $main_src,
 	1 => "src/ifmarchive.php",
 	2 => "src/htpasswd.php"
 );
-
-// output files
-define( "IFM_STANDALONE",    "ifm.php" );
-define( "IFM_STANDALONE_GZ", "build/ifm.min.php" );
-define( "IFM_LIB",           "build/libifm.php" );
 
 // get options
 $options = getopt( null, array( "language::" ) );
@@ -82,12 +90,12 @@ preg_match_all( "/\@\@\@vars:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_OR
 foreach( $includes as $var )
 	$compiled = str_replace( $var[0], $vars[$var[1]], $compiled );
 
-/**
- * Build versions
- */
-// replace IFM_VERSION with current verion in templates before build
-$IFM_VERSION = "v2.5.1";
-$compiled = str_replace( 'IFM_VERSION', $IFM_VERSION, $compiled );
+$compiled = str_replace( 'IFM_VERSION', IFM_VERSION, $compiled );
+
+if (!is_dir('dist/')){
+    mkdir('dist');
+}
+
 // build standalone ifm
 file_put_contents( IFM_STANDALONE, $compiled );
 file_put_contents( IFM_STANDALONE, '
@@ -98,13 +106,11 @@ $ifm = new IFM();
 $ifm->run();
 ', FILE_APPEND );
 
-/* // build compressed ifm
+// build compressed ifm
 file_put_contents(
 	IFM_STANDALONE_GZ,
 	'<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>'
-	. gzencode( file_get_contents( "ifm.php", false, null, 5 ) )
+	. gzencode( file_get_contents( "./dist/ifm.php", false, null, 5 ) )
 );
- */
-
 // build lib
 file_put_contents( IFM_LIB, $compiled );
