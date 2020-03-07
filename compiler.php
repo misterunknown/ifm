@@ -10,20 +10,20 @@ chdir( realpath( dirname( __FILE__ ) ) );
 
 // output files and common attrs
 define( "IFM_CDN",           true );
-define( "IFM_VERSION",       "v2.5.2" );
+define( "IFM_VERSION",       "v2.6.0" );
 define( "IFM_STANDALONE",    "dist/ifm.php" );
 define( "IFM_STANDALONE_GZ", "dist/ifm.min.php" );
 define( "IFM_LIB",           "dist/libifm.php" );
 
 if( IFM_CDN ){
-	$main_src = "src/main.cdn.php";
+	$IFM_ASSETS = "src/assets.cdn.part";
 } else {
-	$main_src = "src/main.php";
+	$IFM_ASSETS = "src/assets.part";
 }
 
 // php source files
 $IFM_SRC_PHP = array(
-	0 => $main_src,
+	0 => "src/main.php",
 	1 => "src/ifmarchive.php",
 	2 => "src/htpasswd.php"
 );
@@ -56,7 +56,7 @@ foreach( $IFM_SRC_PHP as $phpfile ) {
 	$compiled = array_merge( $compiled, $lines );
 }
 $compiled = join( $compiled );
-
+$compiled = str_replace( "IFM_ASSETS", file_get_contents( $IFM_ASSETS ), $compiled );
 /**
  * Process file includes
  */

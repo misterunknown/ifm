@@ -207,36 +207,7 @@ f00bar;
 		$this->getJS();
 	}
 
-	public function getCSS() {
-		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
-		';
-	}
-
-	public function getJS() {
-		echo <<<'f00bar'
-<script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/jquery.ui.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/lodash.min.js@@@
-			@@@file:src/includes/classnames.js@@@
-			@@@file:src/includes/bootstrap-contextmenu.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
-			@@@acedir:src/includes/ace@@@
-			@@@file:src/ifm.js@@@
-</script>
-f00bar;
-	}
+IFM_ASSETS
 
 	public function getHTMLHeader() {
 		print '<!DOCTYPE HTML>
@@ -1021,8 +992,8 @@ f00bar;
 
 		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
-			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
-				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
+			if( isset( $_POST["inputLogin"] ) && isset( $_POST["inputPassword"] ) ) {
+				if( $this->checkCredentials( $_POST["inputLogin"], $_POST["inputPassword"] ) ) {
 					$_SESSION['ifmauth'] = true;
 				}
 				else {
@@ -1110,7 +1081,7 @@ f00bar;
 	private function loginForm($loginFailed=false) {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-danger">'.$this->l['login_failed'].'</div>';
+			$err = '<div class="alert alert-primary" role="alert">'.$this->l['login_failed'].'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
 		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
