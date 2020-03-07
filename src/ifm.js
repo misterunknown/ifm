@@ -33,7 +33,7 @@ function IFM(params) {
 	this.showModal = function( content, options ) {
 		options = options || {};
 		var modal = document.createElement( 'div' );
-		modal.classList.add( 'modal', 'fade' );
+		modal.classList.add( 'modal' );
 		modal.id = 'ifmmodal';
 		modal.attributes.role = 'dialog';
 		var modalDialog = document.createElement( 'div' );
@@ -45,6 +45,7 @@ function IFM(params) {
 		modalContent.innerHTML = content;
 		modalDialog.appendChild( modalContent );
 		modal.appendChild( modalDialog );
+		console.log(modal);
 		document.body.appendChild( modal );
 
 		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
