@@ -1,30 +1,30 @@
 body {
-	padding-top: 70px;
-	overflow-y: scroll !important;
+    padding-top: 70px;
+    overflow-y: scroll !important;
 }
 
 /*
  * This prevents the content from moving when opening a modal
  */
 .modal-open {
-	padding-right: 0 !important;
+    padding-right: 0 !important;
 }
 
 .icon {
-	font-size: 14pt;
+    font-size: 14pt;
 }
 
 #filetable td:nth-child(5), #filetable th:nth-child(5) {
-	text-align: center;
+    text-align: center;
 }
 #filetable td:nth-child(6), #filetable th:nth-child(6) {
-	text-align: center;
+    text-align: center;
 }
 #filetable tr td:last-child {
-	text-align: right;
+    text-align: right;
 }
 #filetable td:last-child a:hover {
-	text-decoration: none;
+    text-decoration: none;
 }
 
 a { cursor: pointer !important; }
@@ -49,46 +49,46 @@ div.ifminfo { color: #adadad; font-size: 10pt; }
 div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align:  center; }
 
 @media (max-width: 768px) {
-	.icon { font-size: 12pt; }
-	#filetable tr th.buttons { min-width: 85px !important; }
+    .icon { font-size: 12pt; }
+    #filetable tr th.buttons { min-width: 85px !important; }
 }
 
 footer {
-	position: fixed;
-	padding-top: 1em;
-	border-top: 1px;
-	background-color: #EEE;
-	bottom: 0;
-	width: 100%;
-	max-height: 6em;
-	overflow:hidden;
+    position: fixed;
+    padding-top: 1em;
+    border-top: 1px;
+    background-color: #EEE;
+    bottom: 0;
+    width: 100%;
+    max-height: 6em;
+    overflow:hidden;
 }
 
 #waitqueue .progress {
-	position:relative;
-	margin-bottom: 0;
+    position:relative;
+    margin-bottom: 0;
 }
 #waitqueue .progbarlabel {
-	position:absolute;
-	top: 0;
-	left: 10px;
-	font-weight: bold;
+    position:absolute;
+    top: 0;
+    left: 10px;
+    font-weight: bold;
 }
 
 #filedropoverlay {
-	display: none;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	text-align: center;
-	color: #FFF;
-	background-color: lightblue;
-	filter: alpha(opacity=70);
-	-moz-opacity: 0.7;
-	opacity: 0.7;
-	z-index: 1000;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: #FFF;
+    background-color: lightblue;
+    filter: alpha(opacity=70);
+    -moz-opacity: 0.7;
+    opacity: 0.7;
+    z-index: 1000;
 }
 
 #filedropoverlay h1 {
@@ -96,41 +96,41 @@ footer {
     color: #000;
     position:relative;
     top:50%;
-	font-size: 6em;
-	pointer-events: none;
+    font-size: 6em;
+    pointer-events: none;
 }
 
 .td-permissions { width: 1px; }
 
 /* datatables */
 table.dataTable thead th {
-	position: relative;
-	background-image: none !important;
+    position: relative;
+    background-image: none !important;
 }
 
 table.dataTable thead th.sorting:after,
 table.dataTable thead th.sorting_asc:after,
 table.dataTable thead th.sorting_desc:after {
-	position: absolute;
-	top: 12px;
-	right: 8px;
-	display: block;
-	font-family: fontello;
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    display: block;
+    font-family: fontello;
 }
 
 table.dataTable thead th.sorting:after {
-	content: "\F0DC";
-	font-size: 0.8em;
-	padding-top: 0.12em;
+    content: "\F0DC";
+    font-size: 0.8em;
+    padding-top: 0.12em;
 }
 table.dataTable thead th.sorting_asc:after {
-	content: "\f0de";
+    content: "\f0de";
 }
 table.dataTable thead th.sorting_desc:after {
-	content: "\f0dd";
+    content: "\f0dd";
 }
 
 #copyMoveTree {
-	max-height: 80vh;
-	overflow: auto;
+    max-height: 80vh;
+    overflow: auto;
 }

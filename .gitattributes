@@ -1,9 +1,9 @@
-ifm.php			-diff
-ifm.min.php		-diff
-build/*			-diff
+dist/ifm.php        -diff
+dist/ifm.min.php    -diff
+dist/*              -diff
 src/includes/ace.js	-diff
 
-src			export-ignore
-compiler.php		export-ignore
+src             export-ignore
+compiler.php    export-ignore
 .gitignore		export-ignore
-.gitattributes		export-ignore
+.gitattributes  export-ignore
