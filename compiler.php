@@ -10,7 +10,7 @@ chdir( realpath( dirname( __FILE__ ) ) );
 
 // output files and common attrs
 define( "IFM_CDN",           true );
-define( "IFM_VERSION",       "v2.6.0" );
+define( "IFM_VERSION",       "<a href='https://github.com/cryol/ifm/tree/2.6.0' target=_blank>v2.6.0</a>" );
 define( "IFM_STANDALONE",    "dist/ifm.php" );
 define( "IFM_STANDALONE_GZ", "dist/ifm.min.php" );
 define( "IFM_LIB",           "dist/libifm.php" );
