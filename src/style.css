@@ -125,3 +125,22 @@ table.dataTable thead th.sorting_desc:after {
     max-height: 80vh;
     overflow: auto;
 }
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 600px;
+        margin: 1.75rem auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-lg, .modal-xl {
+        max-width: 800px;
+    }
+}
+
+label {
+    display: inline-block;
+    margin-bottom: .5rem;
+    font-weight: 700;
+}
