@@ -33,7 +33,7 @@ function IFM(params) {
 	this.showModal = function( content, options ) {
 		options = options || {};
 		var modal = document.createElement( 'div' );
-		modal.classList.add( 'modal' );
+		modal.classList.add( 'modal', 'fade' );
 		modal.id = 'ifmmodal';
 		modal.attributes.role = 'dialog';
 		var modalDialog = document.createElement( 'div' );
@@ -45,7 +45,6 @@ function IFM(params) {
 		modalContent.innerHTML = content;
 		modalDialog.appendChild( modalContent );
 		modal.appendChild( modalDialog );
-		console.log(modal);
 		document.body.appendChild( modal );
 
 		// For this we have to use jquery, because bootstrap modals depend on them. Also the bs.modal
@@ -481,8 +480,8 @@ function IFM(params) {
 			title: self.i18n.options,
 			content: function() {
 				// see https://github.com/twbs/bootstrap/issues/12571
-				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
-				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
 				var aceSession = self.editor.getSession();
 				var content = self.getNodesFromString(
@@ -521,7 +520,8 @@ function IFM(params) {
 							self.editor.getSession().setMode( e.target.value );
 						});
 				});
-				return content;
+
+				return $(content);
 			}
 		});
 
