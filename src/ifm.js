@@ -1330,7 +1330,7 @@ function IFM(params) {
 	this.formatDate = function( timestamp ) {
 		var d = new Date( timestamp * 1000 );
 
-		return d.toLocaleString();
+		return d.toLocaleString(self.config.dateLocale);
 	};
 
 	this.getClipboardLink = function( relpath ) {

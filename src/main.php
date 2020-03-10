@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"timezone" => "",
 		"forbiddenChars" => array(),
+		"dateLocale" => "en-US",
 		"language" => "@@@vars:defaultlanguage@@@",
 		"selfoverwrite" => 0,
 
@@ -72,6 +73,7 @@ class IFM {
 		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
+		$this->config['dateLocale'] =  getenv('IFM_DATELOCALE') !== false ? getenv('IFM_DATELOCALE') : $this->config['dateLocale'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
