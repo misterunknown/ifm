@@ -129,7 +129,7 @@ function IFM(params) {
 				}
 				item.rowclasses = "isDir";
 			} else {
-				if( self.config.download && self.config.zipnload ) {
+				if( self.config.download ) {
 					item.download.action = "download";
 					item.download.icon = "icon icon-download";
 				}
