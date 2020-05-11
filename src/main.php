@@ -820,7 +820,7 @@ f00bar;
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
 					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
 					if( $d['filename'] == "." ) {
@@ -1242,13 +1242,12 @@ f00bar;
 	}
 
 	// combines two parts to a valid path
-	private function pathCombine( $a, $b ) {
-		if( trim( $a ) == "" && trim( $b ) == "" )
-			return "";
-		elseif( trim( $a ) == "" )
-			return ltrim( $b, '/' );
-		else
-			return rtrim( $a, '/' ) . '/' . trim( $b, '/' );
+	private function pathCombine(...$parts) {
+		$ret = "";
+		foreach($parts as $part)
+			if (trim($part) != "")
+				$ret .= (empty($ret)?rtrim($part,"/"):trim($part, '/'))."/";
+		return rtrim($ret, "/");
 	}
 
 	// check if filename is allowed
