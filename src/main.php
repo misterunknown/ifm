@@ -686,6 +686,8 @@ f00bar;
 	private function downloadFile( array $d, $forceDL=true ) {
 		if( $this->config['download'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+		elseif( ! $this->isFilenameValid( $d['filename'] ) )
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			$this->jsonResponse( array( "status" => "ERROR", "message"=> $this->l['nopermissions'] ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
@@ -825,7 +827,9 @@ f00bar;
 		else {
 			if( ! file_exists( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
-			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
+			elseif (!$this->isPathValid($d['filename']))
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
+			elseif (!$this->isFilenameValid($d['filename']))
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
