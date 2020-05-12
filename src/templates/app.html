@@ -23,8 +23,12 @@
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
+						{{#config.showrefresh}}
 						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
+						{{/config.showrefresh}}
+						{{#config.search}}
 						<li><a id="search"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="visible-xs">{{i18n.search}}</span></a></li>
+						{{/config.search}}
 						{{#config.upload}}
 						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}

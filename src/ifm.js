@@ -1594,9 +1594,10 @@ function IFM(params) {
 				return;
 				break;
 			case 'r':
-				e.preventDefault();
-				self.refreshFileTable();
-				return;
+				if (self.config.showrefresh) {
+					e.preventDefault();
+					self.refreshFileTable();
+				}
 				break;
 			case 'u':
 				if( self.config.upload ) {
@@ -1823,8 +1824,12 @@ function IFM(params) {
 				});
 
 		// bind static buttons
-		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
-		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if (el_r = document.getElementById('refresh'))
+			el_r.onclick = function() { self.refreshFileTable(); };
+		if (el_s = document.getElementById('search'))
+			el_s.onclick = function() { self.showSearchDialog(); };
+		//document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		//document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
 		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
 		if( self.config.createdir )

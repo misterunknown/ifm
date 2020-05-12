@@ -41,6 +41,7 @@ class IFM {
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
+		"search" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -52,7 +53,8 @@ class IFM {
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 		"contextmenu" => 1,
-		"disable_mime_detection" => 0
+		"disable_mime_detection" => 0,
+		"showrefresh" => 1
 	);
 
 	private $config = array();
@@ -98,6 +100,8 @@ class IFM {
 		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
+		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
+		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -451,6 +455,11 @@ f00bar;
 	}
 
 	private function searchItems( $d ) {
+		if( $this->config['search'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+			return;
+		}
+
 		if( strpos( $d['pattern'], '/' ) !== false ) {
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );

@@ -40,6 +40,7 @@ class IFM {
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
+		"search" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -51,7 +52,8 @@ class IFM {
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 		"contextmenu" => 1,
-		"disable_mime_detection" => 0
+		"disable_mime_detection" => 0,
+		"showrefresh" => 1
 	);
 
 	private $config = array();
@@ -97,6 +99,8 @@ class IFM {
 		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
+		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
+		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -140,8 +144,12 @@ f00bar;
 						</div>
 					</form>
 					<ul class="nav navbar-nav navbar-right">
+						{{#config.showrefresh}}
 						<li><a id="refresh"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="visible-xs">{{i18n.refresh}}</span></a></li>
+						{{/config.showrefresh}}
+						{{#config.search}}
 						<li><a id="search"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="visible-xs">{{i18n.search}}</span></a></li>
+						{{/config.search}}
 						{{#config.upload}}
 						<li><a id="upload"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="visible-xs">{{i18n.upload}}</span></a></li>
 						{{/config.upload}}
@@ -1756,6 +1764,7 @@ function IFM(params) {
 	 * @param object options - options for changing the directory
 	 */
 	this.changeDirectory = function( newdir, options ) {
+		console.log("Change dir to: |"+newdir+"|");
 		options = options || {};
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
@@ -2463,7 +2472,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.foldera ), { absolute: true } );
+					self.changeDirectory(self.pathCombine(self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder), {absolute: true});
 					self.hideModal();
 				}
 			});
@@ -2916,8 +2925,10 @@ function IFM(params) {
 		// global key events
 		switch( e.key ) {
 			case '/':
-				e.preventDefault();
-				self.showSearchDialog();
+				if (self.config.search) {
+					e.preventDefault();
+					self.showSearchDialog();
+				}
 				break;
 			case 'g':
 				e.preventDefault();
@@ -2925,9 +2936,10 @@ function IFM(params) {
 				return;
 				break;
 			case 'r':
-				e.preventDefault();
-				self.refreshFileTable();
-				return;
+				if (self.config.showrefresh) {
+					e.preventDefault();
+					self.refreshFileTable();
+				}
 				break;
 			case 'u':
 				if( self.config.upload ) {
@@ -3154,8 +3166,12 @@ function IFM(params) {
 				});
 
 		// bind static buttons
-		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
-		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if (el_r = document.getElementById('refresh'))
+			el_r.onclick = function() { self.refreshFileTable(); };
+		if (el_s = document.getElementById('search'))
+			el_s.onclick = function() { self.showSearchDialog(); };
+		//document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		//document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
 		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
 		if( self.config.createdir )
@@ -3516,6 +3532,11 @@ f00bar;
 	}
 
 	private function searchItems( $d ) {
+		if( $this->config['search'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+			return;
+		}
+
 		if( strpos( $d['pattern'], '/' ) !== false ) {
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );
@@ -3884,7 +3905,6 @@ f00bar;
 			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
-				trigger_error("foo bar");
 				unset( $zip );
 				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
