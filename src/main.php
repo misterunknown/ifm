@@ -838,7 +838,7 @@ f00bar;
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {

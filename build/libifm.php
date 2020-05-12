@@ -1764,7 +1764,6 @@ function IFM(params) {
 	 * @param object options - options for changing the directory
 	 */
 	this.changeDirectory = function( newdir, options ) {
-		console.log("Change dir to: |"+newdir+"|");
 		options = options || {};
 		config = { absolute: false, pushState: true };
 		jQuery.extend( config, options );
@@ -3915,7 +3914,7 @@ f00bar;
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
