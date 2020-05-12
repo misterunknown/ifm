@@ -1130,7 +1130,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.foldera ), { absolute: true } );
+					self.changeDirectory(self.pathCombine(self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder), {absolute: true});
 					self.hideModal();
 				}
 			});
@@ -1583,8 +1583,10 @@ function IFM(params) {
 		// global key events
 		switch( e.key ) {
 			case '/':
-				e.preventDefault();
-				self.showSearchDialog();
+				if (self.config.search) {
+					e.preventDefault();
+					self.showSearchDialog();
+				}
 				break;
 			case 'g':
 				e.preventDefault();
