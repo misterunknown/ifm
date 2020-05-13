@@ -829,13 +829,13 @@ f00bar;
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
 			elseif (!$this->isPathValid($d['filename']))
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
-			elseif (!$this->isFilenameValid($d['filename']))
+			elseif ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
 				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
+					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
@@ -1264,7 +1264,7 @@ f00bar;
 	}
 
 	// check if filename is allowed
-	private function isFilenameValid( $f ) {
+	public function isFilenameValid( $f ) {
 		if( ! $this->isFilenameAllowed( $f ) )
 			return false;
 		if( strtoupper( substr( PHP_OS, 0, 3 ) ) == "WIN" ) {
