@@ -166,7 +166,7 @@ function IFM(params) {
 				}
 			}
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
-			if( self.config.isDocroot )
+			if( self.config.isDocroot && !self.config.forceproxy )
 				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
 			else if (self.config.download && self.config.zipnload) {
 				if (self.config.root_public_url) {

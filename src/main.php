@@ -54,7 +54,8 @@ class IFM {
 		"showpath" => 0,
 		"contextmenu" => 1,
 		"disable_mime_detection" => 0,
-		"showrefresh" => 1
+		"showrefresh" => 1,
+		"forceproxy" => 0
 	);
 
 	private $config = array();
@@ -102,6 +103,7 @@ class IFM {
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
 		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
 		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
+		$this->config['forceproxy'] =  getenv('IFM_GUI_FORCEPROXY') !== false ? intval( getenv('IFM_GUI_FORCEPROXY') ) : $this->config['forceproxy'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -418,7 +420,8 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
+		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot);
+
 		foreach (array("auth_source", "root_dir") as $field) {
 			unset($ret[$field]);
 		}
