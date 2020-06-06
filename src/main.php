@@ -54,7 +54,7 @@ class IFM {
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 		"contextmenu" => 1,
-		"disable_mime_detection" => 0
+		"disable_mime_detection" => 0,
 		"showrefresh" => 1,
 		"forceproxy" => 0
 	);
