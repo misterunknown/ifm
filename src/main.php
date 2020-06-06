@@ -42,6 +42,7 @@ class IFM {
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
+		"search" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -54,6 +55,8 @@ class IFM {
 		"showpath" => 0,
 		"contextmenu" => 1,
 		"disable_mime_detection" => 0
+		"showrefresh" => 1,
+		"forceproxy" => 0
 	);
 
 	private $config = array();
