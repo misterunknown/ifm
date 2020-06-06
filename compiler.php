@@ -8,6 +8,20 @@
 
 chdir( realpath( dirname( __FILE__ ) ) );
 
+// output files and common attrs
+define( "IFM_CDN",           true );
+define( "IFM_VERSION",       "<a href='https://github.com/cryol/ifm/tree/2.6.1' target=_blank>v2.6.1</a>" );
+define( "IFM_RELEASE_DIR",   "dist/");
+define( "IFM_STANDALONE",    "ifm.php" );
+define( "IFM_STANDALONE_GZ", "ifm.min.php" );
+define( "IFM_LIB",           "libifm.php" );
+
+if( IFM_CDN ){
+	$IFM_ASSETS = "src/assets.cdn.part";
+} else {
+	$IFM_ASSETS = "src/assets.part";
+}
+
 // php source files
 $IFM_SRC_PHP = array(
 	0 => "src/main.php",
@@ -15,16 +29,11 @@ $IFM_SRC_PHP = array(
 	2 => "src/htpasswd.php"
 );
 
-// output files
-define( "IFM_STANDALONE",    "ifm.php" );
-define( "IFM_STANDALONE_GZ", "build/ifm.min.php" );
-define( "IFM_LIB",           "build/libifm.php" );
-
 // get options
 $options = getopt( null, array( "language::" ) );
 
 // process languages
-$vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en" );
+$vars['languages'] = isset( $options['language'] ) ? explode( ',', $options['language'] ) : array( "en", "ru" );
 $vars['defaultlanguage'] = $vars['languages'][0];
 $vars['languageincludes'] = "";
 foreach( $vars['languages'] as $l ) {
@@ -49,6 +58,7 @@ foreach( $IFM_SRC_PHP as $phpfile ) {
 }
 $compiled = join( $compiled );
 
+$compiled = str_replace( "IFM_ASSETS", file_get_contents( $IFM_ASSETS ), $compiled );
 /**
  * Process file includes
  */
@@ -82,12 +92,15 @@ preg_match_all( "/\@\@\@vars:([^\@]+)\@\@\@/", $compiled, $includes, PREG_SET_OR
 foreach( $includes as $var )
 	$compiled = str_replace( $var[0], $vars[$var[1]], $compiled );
 
-/**
- * Build versions
- */
+$compiled = str_replace( 'IFM_VERSION', IFM_VERSION, $compiled );
+
+if (!is_dir(IFM_RELEASE_DIR)){
+    mkdir(IFM_RELEASE_DIR);
+}
+
 // build standalone ifm
-file_put_contents( IFM_STANDALONE, $compiled );
-file_put_contents( IFM_STANDALONE, '
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE, $compiled );
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE, '
 /**
  * start IFM
  */
@@ -95,13 +108,11 @@ $ifm = new IFM();
 $ifm->run();
 ', FILE_APPEND );
 
-/* // build compressed ifm
+// build compressed ifm
 file_put_contents(
-	IFM_STANDALONE_GZ,
+	IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE_GZ,
 	'<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>'
-	. gzencode( file_get_contents( "ifm.php", false, null, 5 ) )
+	. gzencode( file_get_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') .IFM_STANDALONE, false, null, 5 ) )
 );
- */
-
 // build lib
-file_put_contents( IFM_LIB, $compiled );
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_LIB, $compiled );

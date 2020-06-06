@@ -1,54 +1,120 @@
 <style type="text/css">
+html,
 body {
-	padding-top: 40px;
-	padding-bottom: 40px;
-	background-color: #eee;
+  height: 100%;
+}
+
+body {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #f5f5f5;
 }
 
 .form-signin {
-	max-width: 330px;
-	padding: 15px;
-	margin: 0 auto;
+  width: 100%;
+  max-width: 420px;
+  padding: 15px;
+  margin: auto;
 }
-.form-signin .form-signin-heading,
-.form-signin .checkbox {
-	margin-bottom: 10px;
+
+.form-label-group {
+  position: relative;
+  margin-bottom: 1rem;
 }
-.form-signin .checkbox {
-	font-weight: normal;
+
+.form-label-group > input,
+.form-label-group > label {
+  height: 3.125rem;
+  padding: .75rem;
 }
-.form-signin .form-control {
-	position: relative;
-	height: auto;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-	padding: 10px;
-	font-size: 16px;
+
+.form-label-group > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  margin-bottom: 0; /* Override default `<label>` margin */
+  line-height: 1.5;
+  color: #495057;
+  pointer-events: none;
+  cursor: text; /* Match the input under the label */
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  transition: all .1s ease-in-out;
 }
-.form-signin .form-control:focus {
-	z-index: 2;
+
+.form-label-group input::-webkit-input-placeholder {
+  color: transparent;
 }
-.form-signin input[type="email"] {
-	margin-bottom: -1px;
-	border-bottom-right-radius: 0;
-	border-bottom-left-radius: 0;
+
+.form-label-group input:-ms-input-placeholder {
+  color: transparent;
 }
-.form-signin input[type="password"] {
-	margin-bottom: 10px;
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
+
+.form-label-group input::-ms-input-placeholder {
+  color: transparent;
+}
+
+.form-label-group input::-moz-placeholder {
+  color: transparent;
+}
+
+.form-label-group input::placeholder {
+  color: transparent;
+}
+
+.form-label-group input:not(:placeholder-shown) {
+  padding-top: 1.25rem;
+  padding-bottom: .25rem;
+}
+
+.form-label-group input:not(:placeholder-shown) ~ label {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  font-size: 12px;
+  color: #777;
+}
+
+/* Fallback for Edge
+-------------------------------------------------- */
+@supports (-ms-ime-align: auto) {
+  .form-label-group > label {
+    display: none;
+  }
+  .form-label-group input::-ms-input-placeholder {
+    color: #777;
+  }
+}
+
+/* Fallback for IE
+-------------------------------------------------- */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .form-label-group > label {
+    display: none;
+  }
+  .form-label-group input:-ms-input-placeholder {
+    color: #777;
+  }
 }
 </style>
 
-<div class="container">
-	<form action="" method="post" class="form-signin">
-		<h2 class="form-signin-heading text-center">IFM {{i18n.login}}</h2>
-		{{error}}
-		<label for="inputEmail" class="sr-only">{{i18n.username}}</label>
-		<input type="text" id="user" name="user" class="form-control" placeholder="{{i18n.username}}" required autofocus>
-		<label for="inputPassword" class="sr-only">{{i18n.password}}</label>
-		<input type="password" id="pass" name="pass" class="form-control" placeholder="{{i18n.password}}" required>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
-	</form>
-</div> <!-- /container -->
+<form class="form-signin" method="POST" action>
+  <div class="text-center mb-4">
+  	<h1 class="h3 mb-3 font-weight-normal">IFM {{i18n.login}}</h1>
+  </div>
+  <div class="form-label-group">
+    <input type="text" name="inputLogin" id="inputLogin" class="form-control" placeholder="{{i18n.username}}" required="" autofocus="">
+    <label for="inputLogin">{{i18n.username}}</label>
+  </div>
+  <div class="form-label-group">
+    <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="{{i18n.password}}" required="">
+    <label for="inputPassword">{{i18n.password}}</label>
+  </div>
+  <button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
+  
+</form>

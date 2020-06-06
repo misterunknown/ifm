@@ -134,7 +134,7 @@ function IFM(params) {
 					item.download.icon = "icon icon-download";
 				}
 				if( item.icon.indexOf( 'file-image' ) !== -1  ) {
-					item.tooltip = 'data-toggle="tooltip"';
+					item.popover = 'data-toggle="popover"';
 				}
 				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
@@ -270,19 +270,20 @@ function IFM(params) {
 			}
 		});
 		// has to be jquery, since this is a bootstrap feature
-		$( 'a[data-toggle="tooltip"]' ).tooltip({
-			title: function() {
+		$( 'a[data-toggle="popover"]' ).popover({
+			content: function() {
 				var item = self.fileCache.find( x => x.guid == $(this).attr('id') );
-				var tooltip = document.createElement( 'img' );
+				var popover = document.createElement( 'img' );
 				if( self.config.isDocroot )
-					tooltip.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
 				else
-					tooltip.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
-				tooltip.classList.add( 'imgpreview' );
-				return tooltip;
+					popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
+				popover.classList.add( 'imgpreview' );
+				return popover;
 			},
 			animated: 'fade',
-			placement: 'right',
+			placement: 'bottom',
+			trigger: 'hover',
 			html: true
 		});
 
@@ -479,8 +480,8 @@ function IFM(params) {
 			title: self.i18n.options,
 			content: function() {
 				// see https://github.com/twbs/bootstrap/issues/12571
-				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
-				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
 				var aceSession = self.editor.getSession();
 				var content = self.getNodesFromString(
@@ -519,7 +520,8 @@ function IFM(params) {
 							self.editor.getSession().setMode( e.target.value );
 						});
 				});
-				return content;
+				return $(content);
+
 			}
 		});
 
@@ -1130,7 +1132,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory(self.pathCombine(self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder), {absolute: true});
+					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder ), { absolute: true });
 					self.hideModal();
 				}
 			});
@@ -1328,7 +1330,7 @@ function IFM(params) {
 	this.formatDate = function( timestamp ) {
 		var d = new Date( timestamp * 1000 );
 
-		return d.toLocaleString();
+		return d.toLocaleString(self.config.dateLocale);
 	};
 
 	this.getClipboardLink = function( relpath ) {
