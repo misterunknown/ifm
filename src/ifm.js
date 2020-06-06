@@ -520,8 +520,8 @@ function IFM(params) {
 							self.editor.getSession().setMode( e.target.value );
 						});
 				});
-
 				return $(content);
+
 			}
 		});
 
@@ -1132,7 +1132,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory(self.pathCombine(self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder), {absolute: true});
+					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder ), { absolute: true });
 					self.hideModal();
 				}
 			});
