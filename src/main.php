@@ -420,7 +420,7 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot);
+		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
 
 		foreach (array("auth_source", "root_dir") as $field) {
 			unset($ret[$field]);
