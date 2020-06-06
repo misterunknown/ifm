@@ -100,6 +100,9 @@ class IFM {
 		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
+		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
+		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
+		$this->config['forceproxy'] =  getenv('IFM_GUI_FORCEPROXY') !== false ? intval( getenv('IFM_GUI_FORCEPROXY') ) : $this->config['forceproxy'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -427,6 +430,11 @@ IFM_ASSETS
 	}
 
 	private function searchItems( $d ) {
+		if( $this->config['search'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+			return;
+		}
+
 		if( strpos( $d['pattern'], '/' ) !== false ) {
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );
@@ -653,6 +661,8 @@ IFM_ASSETS
 	private function downloadFile( array $d, $forceDL=true ) {
 		if( $this->config['download'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+		elseif( ! $this->isFilenameValid( $d['filename'] ) )
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			$this->jsonResponse( array( "status" => "ERROR", "message"=> $this->l['nopermissions'] ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
@@ -792,20 +802,22 @@ IFM_ASSETS
 		else {
 			if( ! file_exists( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
-			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
+			elseif (!$this->isPathValid($d['filename']))
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
+			elseif ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
+					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
@@ -1228,7 +1240,7 @@ IFM_ASSETS
 	}
 
 	// check if filename is allowed
-	private function isFilenameValid( $f ) {
+	public function isFilenameValid( $f ) {
 		if( ! $this->isFilenameAllowed( $f ) )
 			return false;
 		if( strtoupper( substr( PHP_OS, 0, 3 ) ) == "WIN" ) {

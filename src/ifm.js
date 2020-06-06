@@ -166,7 +166,7 @@ function IFM(params) {
 				}
 			}
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
-			if( self.config.isDocroot )
+			if( self.config.isDocroot && !self.config.forceproxy )
 				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
 			else if (self.config.download && self.config.zipnload) {
 				if (self.config.root_public_url) {
@@ -520,8 +520,8 @@ function IFM(params) {
 							self.editor.getSession().setMode( e.target.value );
 						});
 				});
-
 				return $(content);
+
 			}
 		});
 
@@ -1132,7 +1132,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.foldera ), { absolute: true } );
+					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder ), { absolute: true });
 					self.hideModal();
 				}
 			});
@@ -1585,8 +1585,10 @@ function IFM(params) {
 		// global key events
 		switch( e.key ) {
 			case '/':
-				e.preventDefault();
-				self.showSearchDialog();
+				if (self.config.search) {
+					e.preventDefault();
+					self.showSearchDialog();
+				}
 				break;
 			case 'g':
 				e.preventDefault();
@@ -1594,9 +1596,10 @@ function IFM(params) {
 				return;
 				break;
 			case 'r':
-				e.preventDefault();
-				self.refreshFileTable();
-				return;
+				if (self.config.showrefresh) {
+					e.preventDefault();
+					self.refreshFileTable();
+				}
 				break;
 			case 'u':
 				if( self.config.upload ) {
@@ -1823,8 +1826,12 @@ function IFM(params) {
 				});
 
 		// bind static buttons
-		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
-		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if (el_r = document.getElementById('refresh'))
+			el_r.onclick = function() { self.refreshFileTable(); };
+		if (el_s = document.getElementById('search'))
+			el_s.onclick = function() { self.showSearchDialog(); };
+		//document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		//document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
 		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
 		if( self.config.createdir )

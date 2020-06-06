@@ -19,12 +19,16 @@
             </form>
         </div>
         <ul class="navbar-nav">
+            {{#config.showrefresh}}
             <li class="nav-item active">
                 <a id="refresh" class="nav-link"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw" href="#"></span> <span class="d-block d-sm-none">{{i18n.refresh}}</span></a>
             </li>
+            {{/config.showrefresh}}
+            {{#config.search}}
             <li class="nav-item">
                 <a id="search" class="nav-link"><span title="{{i18n.search}}" class="icon icon-search" href="#"></span> <span class="d-block d-sm-none">{{i18n.search}}</span></a>
             </li>
+            {{/config.search}}
             {{#config.upload}}
             <li class="nav-item">
                 <a id="upload" class="nav-link"><span title="{{i18n.upload}}" class="icon icon-upload" href="#"></span> <span class="d-block d-sm-none">{{i18n.upload}}</span></a>
