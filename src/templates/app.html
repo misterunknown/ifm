@@ -21,27 +21,27 @@
         <ul class="navbar-nav">
             {{#config.showrefresh}}
             <li class="nav-item">
-                <a id="refresh" class="nav-link"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw" href="#"></span> <span class="d-block d-sm-none">{{i18n.refresh}}</span></a>
+                <a id="refresh" class="nav-link"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw" href="#"></span> <span class="d-inline d-sm-none">{{i18n.refresh}}</span></a>
             </li>
             {{/config.showrefresh}}
             {{#config.search}}
             <li class="nav-item">
-                <a id="search" class="nav-link"><span title="{{i18n.search}}" class="icon icon-search" href="#"></span> <span class="d-block d-sm-none">{{i18n.search}}</span></a>
+                <a id="search" class="nav-link"><span title="{{i18n.search}}" class="icon icon-search" href="#"></span> <span class="d-inline d-sm-none">{{i18n.search}}</span></a>
             </li>
             {{/config.search}}
             {{#config.upload}}
             <li class="nav-item">
-                <a id="upload" class="nav-link"><span title="{{i18n.upload}}" class="icon icon-upload" href="#"></span> <span class="d-block d-sm-none">{{i18n.upload}}</span></a>
+                <a id="upload" class="nav-link"><span title="{{i18n.upload}}" class="icon icon-upload" href="#"></span> <span class="d-inline d-sm-none">{{i18n.upload}}</span></a>
             </li>
             {{/config.upload}}
             {{#config.createfile}}
             <li class="nav-item">
-                <a id="createFile" class="nav-link"><span title="{{i18n.file_new}}" class="icon icon-doc-inv" href="#"></span> <span class="d-block d-sm-none">{{i18n.file_new}}</span></a>
+                <a id="createFile" class="nav-link"><span title="{{i18n.file_new}}" class="icon icon-doc-inv" href="#"></span> <span class="d-inline d-sm-none">{{i18n.file_new}}</span></a>
             </li>
             {{/config.createfile}}
             {{#config.createdir}}
             <li class="nav-item">
-                <a id="createDir" class="nav-link"><span title="{{i18n.folder_new}}" class="icon icon-folder" href="#"></span> <span class="d-block d-sm-none">{{i18n.folder_new}}</span></a>
+                <a id="createDir" class="nav-link"><span title="{{i18n.folder_new}}" class="icon icon-folder" href="#"></span> <span class="d-inline d-sm-none">{{i18n.folder_new}}</span></a>
             </li>
             {{/config.createdir}}
             <li class="nav-item dropdown">
@@ -82,13 +82,13 @@
                     <th class="th-size">{{i18n.size}}</th>
                     {{/config.showfilesize}}
                     {{#config.showpermissions}}
-                    <th class="th-permissions d-none d-sm-block">{{i18n.permissions}}</th>
+                    <th class="th-permissions d-none d-md-table-cell">{{i18n.permissions}}</th>
                     {{/config.showpermissions}}
                     {{#config.showowner}}
-                    <th class="th-owner d-none d-md-block">{{i18n.owner}}</th>
+                    <th class="th-owner d-none d-lg-table-cell">{{i18n.owner}}</th>
                     {{/config.showowner}}
                     {{#config.showgroup}}
-                    <th class="th-group d-none d-lg-block">{{i18n.group}}</th>
+                    <th class="th-group d-none d-xl-table-cell">{{i18n.group}}</th>
                     {{/config.showgroup}}
                     <th class="th-buttons buttons"></th>
                 </tr>

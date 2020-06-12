@@ -396,7 +396,8 @@ IFM_ASSETS
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
+		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
+
 		foreach (array("auth_source", "root_dir") as $field) {
 			unset($ret[$field]);
 		}
@@ -1233,13 +1234,12 @@ IFM_ASSETS
 	}
 
 	// combines two parts to a valid path
-	private function pathCombine( $a, $b ) {
-		if( trim( $a ) == "" && trim( $b ) == "" )
-			return "";
-		elseif( trim( $a ) == "" )
-			return ltrim( $b, '/' );
-		else
-			return rtrim( $a, '/' ) . '/' . trim( $b, '/' );
+	private function pathCombine(...$parts) {
+		$ret = "";
+		foreach($parts as $part)
+			if (trim($part) != "")
+				$ret .= (empty($ret)?rtrim($part,"/"):trim($part, '/'))."/";
+		return rtrim($ret, "/");
 	}
 
 	// check if filename is allowed

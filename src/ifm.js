@@ -129,7 +129,7 @@ function IFM(params) {
 				}
 				item.rowclasses = "isDir";
 			} else {
-				if( self.config.download && self.config.zipnload ) {
+				if( self.config.download ) {
 					item.download.action = "download";
 					item.download.icon = "icon icon-download";
 				}
@@ -484,7 +484,7 @@ function IFM(params) {
 				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
 				var aceSession = self.editor.getSession();
-				var content = self.getNodesFromString(
+				var content = self.getNodeFromString(
 					Mustache.render(
 						self.templates.file_editoroptions,
 						{
@@ -499,28 +499,32 @@ function IFM(params) {
 						}
 					)
 				);
-				content.forEach( function( el ) {
-					if( el.id == "editor-wordwrap" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'wrap', e.srcElement.checked );
-						});
-					else if( el.id == "editor-softtabs" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
-						});
-					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
-						el.lastChild.addEventListener( 'keydown', function( e ) {
-							if( e.key == 'Enter' ) {
-								e.preventDefault();
-								self.editor.setOption( 'tabSize', e.srcElement.value );
-							}
-						});
-					else if( el.id == "editor-syntax" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.getSession().setMode( e.target.value );
-						});
-				});
-				return $(content);
+				if( el = content.querySelector("#editor-wordwrap" )) {
+					el.addEventListener( 'change', function( e ) {
+						aceSession.setOption( 'wrap', e.srcElement.checked );
+					});
+				}
+				if( el = content.querySelector("#editor-softtabs" ))
+					el.addEventListener( 'change', function( e ) {
+						aceSession.setOption( 'useSoftTabs', e.srcElement.checked );
+					});
+				if( el = content.querySelector("#editor-tabsize" )) {
+					console.log("Found tabSize");
+					el.addEventListener( 'keydown', function( e ) {
+						console.log("Got keydown");
+						console.log("Set tabsize to "+e.srcElement.value);
+						if( e.key == 'Enter' ) {
+							console.log("Saw ENTER key");
+							e.preventDefault();
+							aceSession.setOption( 'tabSize', e.srcElement.value );
+						}
+					});
+				}
+				if( el = content.querySelector("#editor-syntax" ))
+					el.addEventListener( 'change', function( e ) {
+						aceSession.getSession().setMode( e.target.value );
+					});
+				return content;
 
 			}
 		});
