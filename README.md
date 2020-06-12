@@ -20,7 +20,7 @@ here](https://ifmdemo.gitea.de/).
 
 The IFM uses the following resources:
 * [ACE Editor](https://ace.c9.io)
-* [Bootstrap v3](https://getbootstrap.com)
+* [Bootstrap v4](https://getbootstrap.com)
 * custom icon set generated with [Fontello](http://fontello.com/)
 * [jQuery](https://jquery.com)
 * [Mustache](https://mustache.github.io/)
@@ -29,22 +29,24 @@ The IFM uses the following resources:
 * create/edit files and directories
 * copy/move files and directories
 * download files and directories
-* upload files directly, via URL or per drag & drop
+* upload files directly, remotely via URL or per drag & drop
 * extract archives (tar, tgz, tar.gz, tar.bz2, zip)
 * change permissions
 * image preview
+* simple authentication (LDAP via `ldap_bind` possible)
 
 ## Requirements
 * Client
   * HTML5 and CSS3 compatible browser
   * activated javascript
 * Server
-  * PHP >= 5.5
+  * PHP >= 5.6
   * extensions
     * bz2
     * curl (for remote upload)
     * fileinfo
     * json
+    * ldap (only if LDAP based authentication is used)
     * openssl (for remote uploads from https sources)
     * phar
     * posix
@@ -52,7 +54,14 @@ The IFM uses the following resources:
     * zlib
 
 ## Installation
-Just copy the ifm.php to your webspace - thats all :)
+Just download the latest release of the IFM. You can find it
+[here](https://github.com/misterunknown/ifm/releases/latest). You can choose
+between the CDN version (dependencies like bootstrap, jquery etc. are loaded
+via CDN) or the "simple" version, which bundles all these dependencies.
+
+The minified versions (`*.min.php`) are zipped via gzip. These versions are not
+recommended; if the filesize of the IFM is an issue for you, consider using the
+CDN versions.
 
 ## Security information
 The IFM is usually locked to it's own directory, so you are not able to go
@@ -116,41 +125,17 @@ following:
 
 `docker run --rm -i -p "8080:80" -v "/var/www:/var/www" ifm`
 
-The scripts configuration can be changed by adjusting the corresponding docker
-environment variables listed below:
+The scripts configuration can be changed by adjusting the corresponding
+environment variables. For example:
 
-| PHP config value   | Docker env var             |
-| ------------------ | -------------------------- |
-| `auth`             | `IFM_AUTH`                 |
-| `auth_source`      | `IFM_AUTH_SOURCE`          |
-| `root_dir`         | `IFM_ROOT_DIR`             |
-| `root_public_url`  | `IFM_ROOT_PUBLIC_URL`      |
-| `tmp_dir`          | `IFM_TMP_DIR`              |
-| `timezone`         | `IFM_TIMEZONE`             |
-| `forbiddenchars`   | `IFM_FORBIDDENCHARS`       |
-| `language`         | `IFM_LANGUAGE`             |
-| `ajaxrequest`      | `IFM_API_AJAXREQUEST`      |
-| `chmod`            | `IFM_API_CHMOD`            |
-| `copymove`         | `IFM_API_COPYMOVE`         |
-| `createdir`        | `IFM_API_CREATEDIR`        |
-| `createfile`       | `IFM_API_CREATEFILE`       |
-| `edit`             | `IFM_API_EDIT`             |
-| `delete`           | `IFM_API_DELETE`           |
-| `download`         | `IFM_API_DOWNLOAD`         |
-| `extract`          | `IFM_API_EXTRACT`          |
-| `upload`           | `IFM_API_UPLOAD`           |
-| `remoteupload`     | `IFM_API_REMOTEUPLOAD`     |
-| `rename`           | `IFM_API_RENAME`           |
-| `zipnload`         | `IFM_API_ZIPNLOAD`         |
-| `showlastmodified` | `IFM_GUI_SHOWLASTMODIFIED` |
-| `showfilesize`     | `IFM_GUI_SHOWFILESIZE`     |
-| `showowner`        | `IFM_GUI_SHOWOWNER`        |
-| `showgroup`        | `IFM_GUI_SHOWGROUP`        |
-| `showpermissions`  | `IFM_GUI_SHOWPERMISSIONS`  |
-| `showhtdocs`       | `IFM_GUI_SHOWHTDOCS`       |
-| `showhiddenfiles`  | `IFM_GUI_SHOWHIDDENFILES`  |
-| `showpath`         | `IFM_GUI_SHOWPATH`         |
-| `contextmenu`      | `IFM_GUI_CONTEXTMENU`      |
+```docker run --rm -i -p "8080:80" -v /var/www:/var/www \
+	-e IFM_AUTH=1 -e IFM_AUTH \
+	-e IFM_AUTH_SOURCE="admin:$2y$05$LPdE7u/5da/TCE8ZhqQ1o.acuV50HqB3OrHhNwxbXYeWmmZKdQxrC" \
+	ifm
+```
+
+You can get a complete list of environment variables
+[here](https://github.com/misterunknown/ifm/wiki/Configuration#configuration-options).
 
 ## screenshots
 <a href="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png"><img src="https://misterunknown.de/static/ifm_screenshot_desktop_filelist.png" height="300px"></a>
