@@ -7,7 +7,7 @@
 	<td data-order="0"></td>
 	{{/fixtop}}
 	<td>
-		<a href="{{{link}}}" tabindex="0" id="{{guid}}" class="ifmitem" {{{tooltip}}} data-type="{{type}}">
+		<a href="{{{link}}}" tabindex="0" id="{{guid}}" class="ifmitem" {{{popover}}} data-type="{{type}}">
 			<span class="{{icon}}"></span>
 			{{linkname}}
 		</a>
@@ -24,17 +24,17 @@
 	<td data-order="{{size_raw}}">{{size}}</td>
 	{{/config.showfilesize}}
 	{{#config.showpermissions}}
-	<td class="hidden-xs td-permissions">
+	<td class="d-none d-md-table-cell">
 		<input type="text" size="11" name="newpermissions" class="form-control {{filepermmode}}" value="{{fileperms}}" data-filename="{{name}}" {{readonly}}>
 	</td>
 	{{/config.showpermissions}}
 	{{#config.showowner}}
-	<td class="hidden-xs hidden-sm">
+	<td class="d-none d-lg-table-cell">
 		{{owner}}
 	</td>
 	{{/config.showowner}}
 	{{#config.showgroup}}
-	<td class="hidden-xs hidden-sm hidden-md">
+	<td class="d-none d-xl-table-cell">
 		{{group}}
 	</td>
 	{{/config.showgroup}}

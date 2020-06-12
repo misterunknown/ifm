@@ -3,21 +3,27 @@
 	<fieldset>
 		<label>{{i18n.extract_filename}} {{filename}}:</label>
 		<div class="input-group">
-			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
+			<div class="input-group-prepend">
+				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
+			</div>
 			<span class="form-control">./</span>
 		</div>
 		<div class="input-group">
-			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="./{{destination}}"></span>
+			<div class="input-group-prepend">
+				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="./{{destination}}"></span>
+			</div>
 			<span class="form-control">./{{destination}}</span>
 		</div>
 		<div class="input-group">
-			<span class="input-group-addon"><input type="radio" name="extractTargetLocation" value="custom"></span>
+			<div class="input-group-prepend">
+				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="custom"></span>
+			</div>
 			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" id="buttonExtract">{{i18n.extract}}</button>
-	<button type="button" class="btn btn-default" id="buttonCancel">{{i18n.cancel}}</button>
+	<button type="button" class="btn btn-secondary" id="buttonExtract">{{i18n.extract}}</button>
+	<button type="button" class="btn btn-secondary" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>

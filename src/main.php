@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"timezone" => "",
 		"forbiddenChars" => array(),
+		"dateLocale" => "en-US",
 		"language" => "@@@vars:defaultlanguage@@@",
 		"selfoverwrite" => 0,
 
@@ -75,6 +76,7 @@ class IFM {
 		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
+		$this->config['dateLocale'] =  getenv('IFM_DATELOCALE') !== false ? getenv('IFM_DATELOCALE') : $this->config['dateLocale'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
@@ -207,33 +209,7 @@ f00bar;
 		$this->getJS();
 	}
 
-	public function getCSS() {
-		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
-		';
-	}
-
-	public function getJS() {
-		echo <<<'f00bar'
-<script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/BootstrapMenu.min.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
-			@@@acedir:src/includes/ace@@@
-			@@@file:src/ifm.js@@@
-</script>
-f00bar;
-	}
+IFM_ASSETS
 
 	public function getHTMLHeader() {
 		print '<!DOCTYPE HTML>
@@ -1018,8 +994,8 @@ f00bar;
 
 		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
-			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
-				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
+			if( isset( $_POST["inputLogin"] ) && isset( $_POST["inputPassword"] ) ) {
+				if( $this->checkCredentials( $_POST["inputLogin"], $_POST["inputPassword"] ) ) {
 					$_SESSION['ifmauth'] = true;
 				}
 				else {
@@ -1107,7 +1083,7 @@ f00bar;
 	private function loginForm($loginFailed=false) {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-danger">'.$this->l['login_failed'].'</div>';
+			$err = '<div class="alert alert-primary" role="alert">'.$this->l['login_failed'].'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
 		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
