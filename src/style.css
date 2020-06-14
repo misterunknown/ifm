@@ -1,30 +1,6 @@
 body {
-	padding-top: 70px;
-	overflow-y: scroll !important;
-}
-
-/*
- * This prevents the content from moving when opening a modal
- */
-.modal-open {
-	padding-right: 0 !important;
-}
-
-.icon {
-	font-size: 14pt;
-}
-
-#filetable td:nth-child(5), #filetable th:nth-child(5) {
-	text-align: center;
-}
-#filetable td:nth-child(6), #filetable th:nth-child(6) {
-	text-align: center;
-}
-#filetable tr td:last-child {
-	text-align: right;
-}
-#filetable td:last-child a:hover {
-	text-decoration: none;
+    padding-top: 70px;
+    overflow-y: scroll !important;
 }
 
 a { cursor: pointer !important; }
@@ -32,9 +8,59 @@ a.ifmitem:focus { outline: 0 }
 
 img.imgpreview { max-width: 100%; }
 
-div#content { width: 100%; height: 350px; }
+div#content { width: 100%; height: 350px; } /* is for the ACE editor */
 
-input[name=newpermissions] { padding: 6px 8px; }
+label {
+    display: inline-block;
+    margin-bottom: .5rem;
+    font-weight: 700;
+}
+
+/* Make tables more compact (overwrites bootstrap default of 0.75rem) */
+.table td, .table th {
+    padding: 0.25rem;
+}
+
+/* narrow navbar */
+.navbar {
+    padding: 0.3rem;
+}
+
+/*
+ * Icon size
+ */
+.icon {
+    font-size: 14pt;
+}
+@media (max-width: 768px) {
+    .icon { font-size: 12pt; }
+    #filetable tr th.buttons { min-width: 85px !important; }
+}
+
+/*
+ * Filetable related settings
+ */
+#filetable th {
+    border-top: 0;
+}
+#filetable td:nth-child(5), #filetable th:nth-child(5) {
+    text-align: center;
+}
+#filetable td:nth-child(6), #filetable th:nth-child(6) {
+    text-align: center;
+}
+#filetable tr td:last-child {
+    text-align: right;
+}
+#filetable td:last-child a:hover {
+    text-decoration: none;
+}
+.td-permissions { width: 1px; }
+
+input[name=newpermissions] {
+	padding: 6px 8px;
+	width: 6.5rem;
+}
 
 #filetable tr th.buttons { min-width: 95px; }
 #filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
@@ -43,52 +69,51 @@ input[name=newpermissions] { padding: 6px 8px; }
 #filetable tbody tr.selectedItem * a { color: #FFF; }
 #filetable tbody tr td { vertical-align: inherit; }
 
-#navbar { max-width: 100%; }
-
 div.ifminfo { color: #adadad; font-size: 10pt; }
 div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align:  center; }
 
-@media (max-width: 768px) {
-	.icon { font-size: 12pt; }
-	#filetable tr th.buttons { min-width: 85px !important; }
-}
-
+/*
+ * Footer / Task-Queue settings
+ */
 footer {
-	position: fixed;
-	padding-top: 1em;
-	border-top: 1px;
-	background-color: #EEE;
-	bottom: 0;
-	width: 100%;
-	max-height: 6em;
-	overflow:hidden;
+    position: fixed;
+    padding-top: 1em;
+    border-top: 1px;
+    background-color: #EEE;
+    bottom: 0;
+    width: 100%;
+    max-height: 6em;
+    overflow: hidden;
 }
 
 #waitqueue .progress {
-	position:relative;
-	margin-bottom: 0;
+    position: relative;
+    margin-bottom: 0;
 }
 #waitqueue .progbarlabel {
-	position:absolute;
-	top: 0;
-	left: 10px;
-	font-weight: bold;
+    position:absolute;
+    top: 0;
+    left: 10px;
+    font-weight: bold;
 }
 
+/*
+ * File drop overlay
+ */
 #filedropoverlay {
-	display: none;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	text-align: center;
-	color: #FFF;
-	background-color: lightblue;
-	filter: alpha(opacity=70);
-	-moz-opacity: 0.7;
-	opacity: 0.7;
-	z-index: 1000;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: #FFF;
+    background-color: lightblue;
+    filter: alpha(opacity=70);
+    -moz-opacity: 0.7;
+    opacity: 0.7;
+    z-index: 1000;
 }
 
 #filedropoverlay h1 {
@@ -96,41 +121,69 @@ footer {
     color: #000;
     position:relative;
     top:50%;
-	font-size: 6em;
-	pointer-events: none;
+    font-size: 6em;
+    pointer-events: none;
 }
 
-.td-permissions { width: 1px; }
 
-/* datatables */
+/*
+ * Datatables related settings
+ */
 table.dataTable thead th {
-	position: relative;
-	background-image: none !important;
+    position: relative;
+    background-image: none !important;
 }
 
+/* remove original sort icons */
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_asc_disabled:before,
+table.dataTable thead .sorting_desc_disabled:before {
+    right: 0 !important;
+    content: "" !important;
+}
+/* custom sort icons */
 table.dataTable thead th.sorting:after,
 table.dataTable thead th.sorting_asc:after,
 table.dataTable thead th.sorting_desc:after {
-	position: absolute;
-	top: 12px;
-	right: 8px;
-	display: block;
-	font-family: fontello;
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    display: block;
+    font-family: fontello;
+    font-size: 0.8em;
+    opacity: 1;
+    color: #000;
 }
-
 table.dataTable thead th.sorting:after {
-	content: "\F0DC";
-	font-size: 0.8em;
-	padding-top: 0.12em;
+    content: "\F0DC";
+    color: #ddd;
 }
 table.dataTable thead th.sorting_asc:after {
-	content: "\f0de";
+    content: "\f0de";
 }
 table.dataTable thead th.sorting_desc:after {
-	content: "\f0dd";
+    content: "\f0dd";
 }
 
+/*
+ * Modal related settings
+ */
 #copyMoveTree {
-	max-height: 80vh;
-	overflow: auto;
+    max-height: 80vh;
+    overflow: auto;
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 600px;
+        margin: 1.75rem auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-lg, .modal-xl {
+        max-width: 800px;
+    }
 }

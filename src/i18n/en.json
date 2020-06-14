@@ -18,7 +18,7 @@
     "edit": "Edit",
     "editor_options": "Editor Options",
     "error": "Error:",
-    "extract": "extract",
+    "extract": "Extract",
     "extract_error": "Could not extract archive.",
     "extract_filename": "Extract file - ",
     "extract_success": "Archive extracted successfully.",
@@ -105,6 +105,6 @@
     "upload_file": "Upload File",
     "upload_remote": "Remote Upload",
     "upload_remote_url": "Remote Upload URL",
-    "username": "username",
+    "username": "Username",
     "word_wrap": "Word Wrap"
 }

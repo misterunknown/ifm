@@ -23,6 +23,7 @@ class IFM {
 		"tmp_dir" => "",
 		"timezone" => "",
 		"forbiddenChars" => array(),
+		"dateLocale" => "en-US",
 		"language" => "@@@vars:defaultlanguage@@@",
 		"selfoverwrite" => 0,
 
@@ -41,6 +42,7 @@ class IFM {
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
+		"search" => 1,
 
 		// gui controls
 		"showlastmodified" => 0,
@@ -52,7 +54,9 @@ class IFM {
 		"showhiddenfiles" => 1,
 		"showpath" => 0,
 		"contextmenu" => 1,
-		"disable_mime_detection" => 0
+		"disable_mime_detection" => 0,
+		"showrefresh" => 1,
+		"forceproxy" => 0
 	);
 
 	private $config = array();
@@ -72,6 +76,7 @@ class IFM {
 		$this->config['root_public_url'] =  getenv('IFM_ROOT_PUBLIC_URL') !== false ? getenv('IFM_ROOT_PUBLIC_URL') : $this->config['root_public_url'] ;
 		$this->config['tmp_dir'] =  getenv('IFM_TMP_DIR') !== false ? getenv('IFM_TMP_DIR') : $this->config['tmp_dir'] ;
 		$this->config['timezone'] =  getenv('IFM_TIMEZONE') !== false ? getenv('IFM_TIMEZONE') : $this->config['timezone'] ;
+		$this->config['dateLocale'] =  getenv('IFM_DATELOCALE') !== false ? getenv('IFM_DATELOCALE') : $this->config['dateLocale'] ;
 		$this->config['forbiddenChars'] =  getenv('IFM_FORBIDDENCHARS') !== false ? str_split( getenv('IFM_FORBIDDENCHARS') ) : $this->config['forbiddenChars'] ;
 		$this->config['language'] =  getenv('IFM_LANGUAGE') !== false ? getenv('IFM_LANGUAGE') : $this->config['language'] ;
 		$this->config['selfoverwrite'] =  getenv('IFM_SELFOVERWRITE') !== false ? getenv('IFM_SELFOVERWRITE') : $this->config['selfoverwrite'] ;
@@ -98,6 +103,9 @@ class IFM {
 		$this->config['showhiddenfiles'] =  getenv('IFM_GUI_SHOWHIDDENFILES') !== false ? intval( getenv('IFM_GUI_SHOWHIDDENFILES') ) : $this->config['showhiddenfiles'] ;
 		$this->config['showpath'] =  getenv('IFM_GUI_SHOWPATH') !== false ? intval( getenv('IFM_GUI_SHOWPATH') ) : $this->config['showpath'] ;
 		$this->config['contextmenu'] =  getenv('IFM_GUI_CONTEXTMENU') !== false ? intval( getenv('IFM_GUI_CONTEXTMENU') ) : $this->config['contextmenu'] ;
+		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
+		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
+		$this->config['forceproxy'] =  getenv('IFM_GUI_FORCEPROXY') !== false ? intval( getenv('IFM_GUI_FORCEPROXY') ) : $this->config['forceproxy'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
@@ -201,36 +209,7 @@ f00bar;
 		$this->getJS();
 	}
 
-	public function getCSS() {
-		print '
-			<style type="text/css">';?> @@@file:src/includes/bootstrap.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/bootstrap-treeview.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/datatables.min.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/fontello-embedded.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/includes/animation.css@@@ <?php print '</style>
-			<style type="text/css">';?> @@@file:src/style.css@@@ <?php print '</style>
-		';
-	}
-
-	public function getJS() {
-		echo <<<'f00bar'
-<script>
-			@@@file:src/includes/jquery.min.js@@@
-			@@@file:src/includes/jquery.ui.min.js@@@
-			@@@file:src/includes/bootstrap.min.js@@@
-			@@@file:src/includes/bootstrap-notify.min.js@@@
-			@@@file:src/includes/bootstrap-treeview.min.js@@@
-			@@@file:src/includes/datatables.min.js@@@
-			@@@file:src/includes/lodash.min.js@@@
-			@@@file:src/includes/classnames.js@@@
-			@@@file:src/includes/bootstrap-contextmenu.js@@@
-			@@@file:src/includes/mustache.min.js@@@
-			@@@file:src/includes/ace.js@@@
-			@@@acedir:src/includes/ace@@@
-			@@@file:src/ifm.js@@@
-</script>
-f00bar;
-	}
+IFM_ASSETS
 
 	public function getHTMLHeader() {
 		print '<!DOCTYPE HTML>
@@ -417,7 +396,8 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
-		$ret['isDocroot'] = ( $this->getRootDir() == $this->getScriptRoot() ) ? true : false;
+		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
+
 		foreach (array("auth_source", "root_dir") as $field) {
 			unset($ret[$field]);
 		}
@@ -454,6 +434,11 @@ f00bar;
 	}
 
 	private function searchItems( $d ) {
+		if( $this->config['search'] != 1 ) {
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+			return;
+		}
+
 		if( strpos( $d['pattern'], '/' ) !== false ) {
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['pattern_error_slashes'] ) );
 			exit( 1 );
@@ -680,6 +665,8 @@ f00bar;
 	private function downloadFile( array $d, $forceDL=true ) {
 		if( $this->config['download'] != 1 )
 			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
+		elseif( ! $this->isFilenameValid( $d['filename'] ) )
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 		elseif( $this->config['showhtdocs'] != 1 && ( substr( $d['filename'], 0, 3 ) == ".ht" || substr( $d['filename'],0,3 ) == ".ht" ) )
 			$this->jsonResponse( array( "status" => "ERROR", "message"=> $this->l['nopermissions'] ) );
 		elseif( $this->config['showhiddenfiles'] != 1 && ( substr( $d['filename'], 0, 1 ) == "." || substr( $d['filename'],0,1 ) == "." ) )
@@ -819,20 +806,22 @@ f00bar;
 		else {
 			if( ! file_exists( $d['filename'] ) )
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['folder_not_found'] ) );
-			elseif ( ! $this->isFilenameValid( $d['filename'] ) )
+			elseif (!$this->isPathValid($d['filename']))
+				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_dir'] ) );
+			elseif ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
 				try {
-					IFMArchive::createZip( realpath( $d['filename'] ), $dfile );
+					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
 					if( $d['filename'] == "." ) {
 						if( getcwd() == $this->getScriptRoot() )
 							$d['filename'] = "root";
 						else
 							$d['filename'] = basename( getcwd() );
 					}
-					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip" ) );
+					$this->fileDownload( array( "file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true ) );
 				} catch ( Exception $e ) {
 					echo $this->l['error'] . " " . $e->getMessage();
 				} finally {
@@ -1005,8 +994,8 @@ f00bar;
 
 		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
-			if( isset( $_POST["user"] ) && isset( $_POST["pass"] ) ) {
-				if( $this->checkCredentials( $_POST["user"], $_POST["pass"] ) ) {
+			if( isset( $_POST["inputLogin"] ) && isset( $_POST["inputPassword"] ) ) {
+				if( $this->checkCredentials( $_POST["inputLogin"], $_POST["inputPassword"] ) ) {
 					$_SESSION['ifmauth'] = true;
 				}
 				else {
@@ -1094,7 +1083,7 @@ f00bar;
 	private function loginForm($loginFailed=false) {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-danger">'.$this->l['login_failed'].'</div>';
+			$err = '<div class="alert alert-primary" role="alert">'.$this->l['login_failed'].'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
 		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
@@ -1245,17 +1234,16 @@ f00bar;
 	}
 
 	// combines two parts to a valid path
-	private function pathCombine( $a, $b ) {
-		if( trim( $a ) == "" && trim( $b ) == "" )
-			return "";
-		elseif( trim( $a ) == "" )
-			return ltrim( $b, '/' );
-		else
-			return rtrim( $a, '/' ) . '/' . trim( $b, '/' );
+	private function pathCombine(...$parts) {
+		$ret = "";
+		foreach($parts as $part)
+			if (trim($part) != "")
+				$ret .= (empty($ret)?rtrim($part,"/"):trim($part, '/'))."/";
+		return rtrim($ret, "/");
 	}
 
 	// check if filename is allowed
-	private function isFilenameValid( $f ) {
+	public function isFilenameValid( $f ) {
 		if( ! $this->isFilenameAllowed( $f ) )
 			return false;
 		if( strtoupper( substr( PHP_OS, 0, 3 ) ) == "WIN" ) {

@@ -129,7 +129,7 @@ function IFM(params) {
 				}
 				item.rowclasses = "isDir";
 			} else {
-				if( self.config.download && self.config.zipnload ) {
+				if( self.config.download ) {
 					item.download.action = "download";
 					item.download.icon = "icon icon-download";
 				}
@@ -166,7 +166,7 @@ function IFM(params) {
 				}
 			}
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
-			if( self.config.isDocroot )
+			if( self.config.isDocroot && !self.config.forceproxy )
 				item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
 			else if (self.config.download && self.config.zipnload) {
 				if (self.config.root_public_url) {
@@ -480,11 +480,11 @@ function IFM(params) {
 			title: self.i18n.options,
 			content: function() {
 				// see https://github.com/twbs/bootstrap/issues/12571
-				var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
-				ihatethisfuckingpopoverworkaround.$tip.find( '.popover-content' ).empty();
+				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
+				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
 				var aceSession = self.editor.getSession();
-				var content = self.getNodesFromString(
+				var content = self.getNodeFromString(
 					Mustache.render(
 						self.templates.file_editoroptions,
 						{
@@ -499,28 +499,33 @@ function IFM(params) {
 						}
 					)
 				);
-				content.forEach( function( el ) {
-					if( el.id == "editor-wordwrap" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'wrap', e.srcElement.checked );
-						});
-					else if( el.id == "editor-softtabs" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.setOption( 'useSoftTabs', e.srcElement.checked );
-						});
-					else if( el.lastChild && el.lastChild.id == "editor-tabsize" )
-						el.lastChild.addEventListener( 'keydown', function( e ) {
-							if( e.key == 'Enter' ) {
-								e.preventDefault();
-								self.editor.setOption( 'tabSize', e.srcElement.value );
-							}
-						});
-					else if( el.id == "editor-syntax" )
-						el.addEventListener( 'change', function( e ) {
-							self.editor.getSession().setMode( e.target.value );
-						});
-				});
+				if( el = content.querySelector("#editor-wordwrap" )) {
+					el.addEventListener( 'change', function( e ) {
+						aceSession.setOption( 'wrap', e.srcElement.checked );
+					});
+				}
+				if( el = content.querySelector("#editor-softtabs" ))
+					el.addEventListener( 'change', function( e ) {
+						aceSession.setOption( 'useSoftTabs', e.srcElement.checked );
+					});
+				if( el = content.querySelector("#editor-tabsize" )) {
+					console.log("Found tabSize");
+					el.addEventListener( 'keydown', function( e ) {
+						console.log("Got keydown");
+						console.log("Set tabsize to "+e.srcElement.value);
+						if( e.key == 'Enter' ) {
+							console.log("Saw ENTER key");
+							e.preventDefault();
+							aceSession.setOption( 'tabSize', e.srcElement.value );
+						}
+					});
+				}
+				if( el = content.querySelector("#editor-syntax" ))
+					el.addEventListener( 'change', function( e ) {
+						aceSession.getSession().setMode( e.target.value );
+					});
 				return content;
+
 			}
 		});
 
@@ -1131,7 +1136,7 @@ function IFM(params) {
 			searchresults.tBodies[0].addEventListener( 'click', function( e ) {
 				if( e.target.classList.contains( 'searchitem' ) || e.target.parentElement.classList.contains( 'searchitem' ) ) {
 					e.preventDefault();
-					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.foldera ), { absolute: true } );
+					self.changeDirectory( self.pathCombine( self.search.data.currentDir, e.target.dataset.folder || e.target.parentElement.dataset.folder ), { absolute: true });
 					self.hideModal();
 				}
 			});
@@ -1329,7 +1334,7 @@ function IFM(params) {
 	this.formatDate = function( timestamp ) {
 		var d = new Date( timestamp * 1000 );
 
-		return d.toLocaleString();
+		return d.toLocaleString(self.config.dateLocale);
 	};
 
 	this.getClipboardLink = function( relpath ) {
@@ -1584,8 +1589,10 @@ function IFM(params) {
 		// global key events
 		switch( e.key ) {
 			case '/':
-				e.preventDefault();
-				self.showSearchDialog();
+				if (self.config.search) {
+					e.preventDefault();
+					self.showSearchDialog();
+				}
 				break;
 			case 'g':
 				e.preventDefault();
@@ -1593,9 +1600,10 @@ function IFM(params) {
 				return;
 				break;
 			case 'r':
-				e.preventDefault();
-				self.refreshFileTable();
-				return;
+				if (self.config.showrefresh) {
+					e.preventDefault();
+					self.refreshFileTable();
+				}
 				break;
 			case 'u':
 				if( self.config.upload ) {
@@ -1822,8 +1830,12 @@ function IFM(params) {
 				});
 
 		// bind static buttons
-		document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
-		document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
+		if (el_r = document.getElementById('refresh'))
+			el_r.onclick = function() { self.refreshFileTable(); };
+		if (el_s = document.getElementById('search'))
+			el_s.onclick = function() { self.showSearchDialog(); };
+		//document.getElementById( 'refresh' ).onclick = function() { self.refreshFileTable(); };
+		//document.getElementById( 'search' ).onclick = function() { self.showSearchDialog(); };
 		if( self.config.createfile )
 			document.getElementById( 'createFile' ).onclick = function() { self.showFileDialog(); };
 		if( self.config.createdir )

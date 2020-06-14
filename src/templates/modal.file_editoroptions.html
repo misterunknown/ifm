@@ -1,14 +1,22 @@
-<input type="checkbox" id="editor-wordwrap"
-	{{#wordwrap}}
-	checked="checked"
- 	{{/wordwrap}}
-> {{i18n.word_wrap}}</input><br>
-<input type="checkbox" id="editor-softtabs"
-	{{#softtabs}}
-	checked="checked"
- 	{{/softtabs}}
-> {{i18n.soft_tabs}}</input>
-<div class="input-group"><span class="input-group-addon">{{i18n.tab_size}}</span><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
+<div>
+<div class="form-check p-0">
+<input type="checkbox" id="editor-wordwrap" 
+    {{#wordwrap}}
+    checked="checked"
+    {{/wordwrap}}
+>
+<label class="form-check-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
+</div>
+<div class="form-check">
+<input class="form-check-input" type="checkbox" id="editor-softtabs"
+    {{#softtabs}}
+    checked="checked"
+    {{/softtabs}}
+>
+<label class="form-check-label" for="editor-softtabs">{{i18n.soft_tabs}}</label>
+</div>
+<div class="input-group">
+    <div class="input-group-prepend"><span class="input-group-text">{{i18n.tab_size}}</span></div><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
 {{#ace_includes}}
 <select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" id="editor-syntax">
 	{{#modes}}
@@ -16,3 +24,4 @@
 	{{/modes}}
 </select>
 {{/ace_includes}}
+</div>

@@ -18,7 +18,7 @@
     "edit": "Editar",
     "editor_options": "Opções do Editor",
     "error": "Erro:",
-    "extract": "extrair",
+    "extract": "Extrair",
     "extract_error": "Não foi possível extrair o arquivo.",
     "extract_filename": "Extrair arquivo - ",
     "extract_success": "Arquivo extraído com sucesso.",
@@ -104,6 +104,6 @@
     "upload_file": "Enviar Arquivo",
     "upload_remote": "Envio Remoto",
     "upload_remote_url": "URL para Envio Remoto",
-    "username": "nome de usuário",
+    "username": "Nome de usuário",
     "word_wrap": "Quebra de Linha"
 }
