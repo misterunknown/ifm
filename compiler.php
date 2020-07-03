@@ -10,7 +10,7 @@ chdir( realpath( dirname( __FILE__ ) ) );
 
 // output files and common attrs
 define( "IFM_CDN",           true );
-define( "IFM_VERSION",       "<a href='https://github.com/misterunknown/ifm/tree/cryol-2.6.1' target=_blank>v2.6.1</a>" );
+define( "IFM_VERSION",       "<a href='https://github.com/misterunknown/ifm/tree/v2.6.1' target=_blank>v2.6.1</a>" );
 define( "IFM_RELEASE_DIR",   "dist/");
 define( "IFM_STANDALONE",    "ifm.php" );
 define( "IFM_STANDALONE_GZ", "ifm.min.php" );
