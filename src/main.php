@@ -62,7 +62,7 @@ class IFM {
 	private $config = array();
 	private $templates = array();
 	private $i18n = array();
-	public $mode = "";
+	public $mode = "standalone";
 
 	public function __construct( $config=array() ) {
 
@@ -218,7 +218,7 @@ IFM_ASSETS
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1">';
+				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">';
 		$this->getCSS();
 		print '</head><body>';
 	}
@@ -994,13 +994,16 @@ IFM_ASSETS
 
 		if( ! isset( $_SESSION['ifmauth'] ) || $_SESSION['ifmauth'] !== true ) {
 			$login_failed = false;
+			$login_message = "";
 			if( isset( $_POST["inputLogin"] ) && isset( $_POST["inputPassword"] ) ) {
-				if( $this->checkCredentials( $_POST["inputLogin"], $_POST["inputPassword"] ) ) {
+				$state = $this->checkCredentials( $_POST["inputLogin"], $_POST["inputPassword"] );
+				if($state['status']) {
 					$_SESSION['ifmauth'] = true;
 				}
 				else {
 					$_SESSION['ifmauth'] = false;
 					$login_failed = true;
+					$login_message = $state['message'];
 				}
 			}
 
@@ -1013,7 +1016,7 @@ IFM_ASSETS
 					else
 						$this->jsonResponse( array( "status"=>"ERROR", "message"=>"not authenticated" ) );
 				} else {
-					$this->loginForm($login_failed);
+					$this->loginForm($login_failed, $login_message);
 				}
 				return false;
 			}
@@ -1023,6 +1026,7 @@ IFM_ASSETS
 	}
 
 	private function checkCredentials( $user, $pass ) {
+		$authenticated = array("status" => false, "message" =>  "");
 		list( $src, $srcopt ) = explode( ";", $this->config['auth_source'], 2 );
 		switch( $src ) {
 			case "inline":
@@ -1035,12 +1039,11 @@ IFM_ASSETS
 					$htpasswd = new Htpasswd( $srcopt );
 					return $htpasswd->verify( $user, $pass );
 				} else {
-					trigger_error( "IFM: Fatal: Credential file does not exist or is not readable" );
-					return false;
+					// trigger_error( "IFM: Fatal: Credential file does not exist or is not readable" );
+					return $authenticated;
 				}
 				break;
 			case "ldap":
-				$authenticated = false;
 				$ldapopts = explode( ";", $srcopt );
 				if( count( $ldapopts ) === 3 ) {
 					list( $ldap_server, $rootdn, $ufilter ) = explode( ";", $srcopt );
@@ -1050,8 +1053,8 @@ IFM_ASSETS
 				}
 				$u = "uid=" . $user . "," . $rootdn;
 				if( ! $ds = ldap_connect( $ldap_server ) ) {
-					trigger_error( "Could not reach the ldap server.", E_USER_ERROR );
-					return false;
+					$authenticated['status'] = false;
+					$authenticated['message'] = "Could not reach the ldap server.";
 				}
 				ldap_set_option( $ds, LDAP_OPT_PROTOCOL_VERSION, 3 );
 				if( $ds ) {
@@ -1059,31 +1062,32 @@ IFM_ASSETS
 					if( $ldbind ) {
 						if( $ufilter ) {
 							if( ldap_count_entries( $ds, ldap_search( $ds, $rootdn, $ufilter ) ) > 0 ){
-								$authenticated = true;
+								$authenticated['status'] = true;
 							} else {
-								trigger_error( "User not allowed.", E_USER_ERROR );
-								$authenticated = false;
+								$authenticated['status'] = false;
+								$authenticated['message'] = "User not allowed.";
 							}
 						} else {
-							$authenticated = true;
+							$authenticated['status'] = true;
 						}
 					} else {
-						trigger_error( ldap_error( $ds ), E_USER_ERROR );
-						$authenticated = false;
+						$authenticated['status'] = false;
+						$authenticated['message'] = ldap_error( $ds );
 					}
 					ldap_unbind( $ds );
-				} else
-					$authenticated = false;
+				} else {
+					$authenticated['status'] = false;
+				}					
 				return $authenticated;
 				break;
 		}
-		return false;
+		return $authenticated;
 	}
 
-	private function loginForm($loginFailed=false) {
+	private function loginForm($loginFailed=false, $loginMessage) {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-primary" role="alert">'.$this->l['login_failed'].'</div>';
+			$err = '<div class="alert alert-danger" role="alert">'.$loginMessage.'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
 		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
@@ -1177,7 +1181,7 @@ IFM_ASSETS
 	private function getTypeIcon( $type ) {
 		$type = strtolower($type);
 		switch( $type ) {
-			case "aac":	case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
+			case "aac": case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
 			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": return 'icon icon-file-image'; break;
 			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
 			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": case "json": return 'icon icon-file-code'; break;
@@ -1186,7 +1190,7 @@ IFM_ASSETS
 			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
 			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
 			case "pdf": return 'icon icon-file-pdf'; break;
-			case "tgz":	case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
+			case "tgz": case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
 			default: return 'icon icon-doc';
 		}
 	}

@@ -1,12 +1,14 @@
 <form id="formCreateArchive">
 <div class="modal-body">
 	<fieldset>
-		<label>{{i18n.archivename}}:</label>
-		<input class="form-control" type="text" name="archivename" value="" />
+		<div class="form-group">
+			<label for="archivename">{{i18n.archivename}}:</label>
+			<input id="archivename" class="form-control" type="text" name="archivename" value="" />
+		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-secondary" id="buttonSave">{{i18n.save}}</button>
-	<button type="button" class="btn btn-secondary" id="buttonCancel">{{i18n.cancel}}</button>
+	<button type="button" class="btn btn-success" id="buttonSave">{{i18n.save}}</button>
+	<button type="button" class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>

@@ -1,12 +1,14 @@
 <form id="formCreateDir">
 <div class="modal-body">
 	<fieldset>
-		<label>{{i18n.directoryname}}:</label>
-		<input class="form-control" type="text" name="dirname" value="" />
+		<div class="form-group">
+			<label for="dirname">{{i18n.directoryname}}:</label>
+			<input class="form-control" id="dirname" type="text" name="dirname" value="" />
+		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-secondary" id="buttonSave">{{i18n.save}}</button>
-	<button type="button" class="btn btn-secondary" id="buttonCancel">{{i18n.cancel}}</button>
+	<button type="button" class="btn btn-success" id="buttonSave">{{i18n.save}}</button>
+	<button type="button" class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>

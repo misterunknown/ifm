@@ -1,8 +1,10 @@
 <form id="searchForm">
 <div class="modal-body">
 	<fieldset>
-		<label>{{i18n.search_pattern}}:</label>
-		<input type="text" class="form-control" id="searchPattern" name="pattern" autocomplete="off" value="{{lastSearch}}"><br>
+		<div class="form-group">
+			<label for="searchPattern">{{i18n.search_pattern}}:</label>
+			<input type="search" class="form-control" id="searchPattern" name="pattern" autocomplete="off" value="{{lastSearch}}">
+		</div>
 		<table id="searchResults" class="table">
 		</table>
 	</fieldset>
