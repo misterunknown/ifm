@@ -24,9 +24,15 @@ RUN echo "Set disable_coredump false" > /etc/sudo.conf
 # prepare files
 RUN rm -rf /var/www/html && \
     mkdir -p /usr/local/share/webapps/ifm && \
-    ln -s /var/www /usr/local/share/webapps/ifm/www
-COPY ifm.php /usr/local/share/webapps/ifm/index.php
-COPY docker-startup.sh /usr/local/bin
+    chown -R 33:33 /var/www && \
+    ln -s /var/www /usr/local/share/webapps/ifm/www && \
+    mkdir -p /usr/src/ifm
+COPY / /usr/src/ifm/
+RUN /usr/src/ifm/compiler.php --languages=all && \
+    cp /usr/src/ifm/dist/ifm.php /usr/local/share/webapps/ifm/index.php && \
+    rm -rf /usr/src/ifm
+
+COPY docker/docker-startup.sh /usr/local/bin
 
 # start php server
 WORKDIR /usr/local/share/webapps/ifm

@@ -1390,18 +1390,19 @@ function IFM(params) {
 		if( ! document.querySelector( "footer" ) ) {
 			var newFooter = self.getNodeFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
 			newFooter.addEventListener( 'click', function( e ) {
-				if( e.target.name == 'showAll' ) {
-					if( newFooter.style.maxHeight == '80%' ) {
-						newFooter.style.maxHeight = '6em';
-						newFooter.style.overflow = 'hidden';
+				if( e.target.name == 'showAll' || e.target.parentElement.name == "showAll" ) {
+					wq = newFooter.children.wq_container.children[0].children.waitqueue;
+					if( wq.style.maxHeight == '70vh' ) {
+						wq.style.maxHeight = '6rem';
+						wq.style.overflow = 'hidden';
 					} else {
-						newFooter.style.maxHeight = '80%';
-						newFooter.style.overflow = 'scroll';
+						wq.style.maxHeight = '70vh';
+						wq.style.overflow = 'auto';
 					}
 				}
 			});
 			document.body.appendChild( newFooter );
-			document.body.style.paddingBottom = '6em';
+			document.body.style.paddingBottom = '9rem';
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";

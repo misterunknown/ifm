@@ -31,15 +31,17 @@ class IFMArchive {
 		while (false !== $f = readdir($handle)) {
 			if ($f != '.' && $f != '..') {
 				$filePath = $folder . '/' . $f;
-				if (file_exists($filePath) && is_readable($filePath))
-					if (is_file($filePath))
+				if (file_exists($filePath) && is_readable($filePath)) {
+					if (is_file($filePath)) {
 						if (!is_callable($exclude_callback) || $exclude_callback($f))
 							$archive->addFile( $filePath, substr( $filePath, $offset ) );
-					elseif (is_dir($filePath))
+					} elseif (is_dir($filePath)) {
 						if (is_callable($exclude_callback))
 							self::addFolder($archive, $filePath, $offset, $exclude_callback);
 						else
 							self::addFolder($archive, $filePath, $offset);
+					}
+				}
 			}
 		}
 		closedir($handle);
@@ -54,8 +56,6 @@ class IFMArchive {
 
 		if (!is_array($src))
 			$src = array($src);
-
-		file_put_contents("debug.ifm.log", var_export(is_callable($exclude_callback), true)."\n");
 
 		foreach ($src as $s)
 			if (is_dir($s))

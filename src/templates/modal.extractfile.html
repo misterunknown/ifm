@@ -1,29 +1,37 @@
 <form id="formExtractFile">
 <div class="modal-body">
 	<fieldset>
-		<label>{{i18n.extract_filename}} {{filename}}:</label>
-		<div class="input-group">
-			<div class="input-group-prepend">
-				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="./" checked="checked"></span>
+		<div class="form-group">
+			<label>{{i18n.extract_filename}} {{filename}}:</label>
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<div class="input-group-text">
+						<input type="radio" name="extractTargetLocation" value="./" checked="checked">
+					</div>
+				</div>
+				<input class="form-control" type="text" placeholder="./" readonly>
 			</div>
-			<span class="form-control">./</span>
-		</div>
-		<div class="input-group">
-			<div class="input-group-prepend">
-				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="./{{destination}}"></span>
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<div class="input-group-text">
+						<input type="radio" name="extractTargetLocation" value="./{{destination}}">
+					</div>
+				</div>
+				<input class="form-control" type="text" placeholder="./{{destination}}" readonly>
 			</div>
-			<span class="form-control">./{{destination}}</span>
-		</div>
-		<div class="input-group">
-			<div class="input-group-prepend">
-				<span class="input-group-text"><input type="radio" name="extractTargetLocation" value="custom"></span>
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<div class="input-group-text">
+						<input type="radio" name="extractTargetLocation" value="custom">
+					</div>
+				</div>
+				<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 			</div>
-			<input id="extractCustomLocation" type="text" class="form-control" placeholder="custom location" value="">
 		</div>
 	</fieldset>
 </div>
 <div class="modal-footer">
-	<button type="button" class="btn btn-secondary" id="buttonExtract">{{i18n.extract}}</button>
-	<button type="button" class="btn btn-secondary" id="buttonCancel">{{i18n.cancel}}</button>
+	<button type="button" class="btn btn-primary" id="buttonExtract">{{i18n.extract}}</button>
+	<button type="button" class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
 </div>
 </form>

@@ -24,7 +24,7 @@ class IFM {
 		"timezone" => "",
 		"forbiddenChars" => array(),
 		"dateLocale" => "en-US",
-		"language" => "@@@vars:defaultlanguage@@@",
+		"language" => "@@@vars:default_lang@@@",
 		"selfoverwrite" => 0,
 
 		// api controls
@@ -62,7 +62,7 @@ class IFM {
 	private $config = array();
 	private $templates = array();
 	private $i18n = array();
-	public $mode = "";
+	public $mode = "standalone";
 
 	public function __construct( $config=array() ) {
 
@@ -218,7 +218,7 @@ IFM_ASSETS
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1">';
+				<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, shrink-to-fit=no">';
 		$this->getCSS();
 		print '</head><body>';
 	}
@@ -972,7 +972,7 @@ IFM_ASSETS
 				$item = utf8_encode( $item );
 	}
 
-	public function checkAuth() {
+	function checkAuth() {
 		if( $this->config['auth'] == 0 )
 			return true;
 
@@ -1080,10 +1080,10 @@ IFM_ASSETS
 		return false;
 	}
 
-	private function loginForm($loginFailed=false) {
+	private function loginForm($loginFailed=false, $loginMessage="") {
 		$err = "";
 		if( $loginFailed ) 
-			$err = '<div class="alert alert-primary" role="alert">'.$this->l['login_failed'].'</div>';
+			$err = '<div class="alert alert-danger" role="alert">'.$loginMessage.'</div>';
 		$this->getHTMLHeader();
 		$html = str_replace( "{{error}}", $err, $this->templates['login'] );
 		$html = str_replace( "{{i18n.username}}", $this->l['username'], $html );
@@ -1177,15 +1177,16 @@ IFM_ASSETS
 	private function getTypeIcon( $type ) {
 		$type = strtolower($type);
 		switch( $type ) {
-			case "aac":	case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
-			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": return 'icon icon-file-image'; break;
+			case "aac": case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
+			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": return 'icon icon-file-image'; break;
 			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
-			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": return 'icon icon-file-code'; break;
+			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": case "json": return 'icon icon-file-code'; break;
 			case "doc": case "docx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
+			case "txt": case "log": return 'icon icon-doc-text'; break;
 			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
 			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
 			case "pdf": return 'icon icon-file-pdf'; break;
-			case "tgz":	case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
+			case "tgz": case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
 			default: return 'icon icon-doc';
 		}
 	}
