@@ -105,8 +105,8 @@ if (!is_dir(IFM_RELEASE_DIR)){
 }
 
 // build standalone ifm
-file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE, $compiled );
-file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE, '
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, $compiled );
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, '
 /**
  * start IFM
  */
@@ -116,9 +116,9 @@ $ifm->run();
 
 // build compressed ifm
 file_put_contents(
-	IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_STANDALONE_GZ,
+	IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE_GZ,
 	'<?php eval( gzdecode( file_get_contents( __FILE__, false, null, 85 ) ) ); exit(0); ?>'
-	. gzencode( file_get_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') .IFM_STANDALONE, false, null, 5 ) )
+	. gzencode( file_get_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') .IFM_STANDALONE, false, null, 5 ) )
 );
 // build lib
-file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : 'simple.') . IFM_LIB, $compiled );
+file_put_contents( IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_LIB, $compiled );
