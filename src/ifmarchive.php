@@ -31,15 +31,17 @@ class IFMArchive {
 		while (false !== $f = readdir($handle)) {
 			if ($f != '.' && $f != '..') {
 				$filePath = $folder . '/' . $f;
-				if (file_exists($filePath) && is_readable($filePath))
-					if (is_file($filePath))
+				if (file_exists($filePath) && is_readable($filePath)) {
+					if (is_file($filePath)) {
 						if (!is_callable($exclude_callback) || $exclude_callback($f))
 							$archive->addFile( $filePath, substr( $filePath, $offset ) );
-					elseif (is_dir($filePath))
+					} elseif (is_dir($filePath)) {
 						if (is_callable($exclude_callback))
 							self::addFolder($archive, $filePath, $offset, $exclude_callback);
 						else
 							self::addFolder($archive, $filePath, $offset);
+					}
+				}
 			}
 		}
 		closedir($handle);
