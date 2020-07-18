@@ -55,8 +55,6 @@ class IFMArchive {
 		if (!is_array($src))
 			$src = array($src);
 
-		file_put_contents("debug.ifm.log", var_export(is_callable($exclude_callback), true)."\n");
-
 		foreach ($src as $s)
 			if (is_dir($s))
 				if (is_callable($exclude_callback))
