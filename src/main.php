@@ -24,7 +24,7 @@ class IFM {
 		"timezone" => "",
 		"forbiddenChars" => array(),
 		"dateLocale" => "en-US",
-		"language" => "@@@vars:defaultlanguage@@@",
+		"language" => "@@@vars:default_lang@@@",
 		"selfoverwrite" => 0,
 
 		// api controls
@@ -218,7 +218,7 @@ IFM_ASSETS
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
 				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">';
+				<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, shrink-to-fit=no">';
 		$this->getCSS();
 		print '</head><body>';
 	}
