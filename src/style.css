@@ -3,6 +3,10 @@ body {
 	overflow-y: scroll !important;
 }
 
+main {
+	margin-bottom: 1rem;
+}
+
 a {
 	cursor: pointer !important;
 }
@@ -94,8 +98,11 @@ footer {
 	background-color: #EEE;
 	bottom: 0;
 	width: 100%;
-	max-height: 6em;
 	overflow: hidden;
+}
+
+#waitqueue {
+	max-height: 6rem;
 }
 
 #waitqueue .progress {
