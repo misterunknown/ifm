@@ -107,6 +107,7 @@ body {
   <div class="text-center mb-4">
   	<h1 class="h3 mb-3 font-weight-normal">IFM {{i18n.login}}</h1>
   </div>
+  {{error}}
   <div class="form-label-group">
     <input type="text" name="inputLogin" id="inputLogin" class="form-control" placeholder="{{i18n.username}}" required="" autofocus="">
     <label for="inputLogin">{{i18n.username}}</label>
@@ -115,6 +116,8 @@ body {
     <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="{{i18n.password}}" required="">
     <label for="inputPassword">{{i18n.password}}</label>
   </div>
+  <div class="alert alert-danger d-none" role="alert"></div>
+   
   <button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
   
 </form>

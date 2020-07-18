@@ -1,59 +1,63 @@
 body {
-    padding-top: 70px;
-    overflow-y: scroll !important;
+	padding-top: 70px;
+	overflow-y: scroll !important;
 }
 
 a { cursor: pointer !important; }
 a.ifmitem:focus { outline: 0 }
 
-img.imgpreview { max-width: 100%; }
+img.imgpreview {
+	max-width: 100%;
+	background-repeat: repeat repeat;
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAAAAACoWZBhAAABI2lDQ1BJQ0MgcHJvZmlsZQAAKJGdkLFKw1AUhr9UsaXYSXEQhwyuBRHM5FIVgqAQYwWrU5qkWExiSFKKb+Cb6MN0EASfwCdQcPa/0cHBLF44/B+Hc/7/3gstOwnTcnkH0qwqXH8wuhxd2e032nTosksvCMt84HknNJ7PVyyjL33j1Tz351mJ4jKULlRZmBcVWPtiZ17lhlWs3w79Q/GD2I7SLBI/ibejNDJsdv00mYU/nuY2q3F2cW76qi1cjjnFw2bMjCkJFX1pps4RDntSl4KAe0pCaUKs3lwzFTeiUk4uB6KhSLdpyNus8zyljOUxlZdJuCOVp8nD/O/32sdZvWltLPKgCOrWkqo1mcD7I/RGsPYM3euGrM7vtzXMOPXMP9/4BdaxUFxWskm6AAAAAmJLR0QAy6Y7OAoAAAAJcEhZcwAALiMAAC4jAXilP3YAAAAiSURBVAjXY/zPwMDAcIaBgYGBiQEOCDJZzjAwMDCYkKoNAPmXAuEuYku0AAAAAElFTkSuQmCC");
+}
 
 div#content { width: 100%; height: 350px; } /* is for the ACE editor */
 
 label {
-    display: inline-block;
-    margin-bottom: .5rem;
-    font-weight: 700;
+	display: inline-block;
+	margin-bottom: .5rem;
+	font-weight: 700;
 }
 
 /* Make tables more compact (overwrites bootstrap default of 0.75rem) */
 .table td, .table th {
-    padding: 0.25rem;
+	padding: 0.25rem;
 }
 
 /* narrow navbar */
 .navbar {
-    padding: 0.3rem;
+	padding: 0.3rem;
 }
 
 /*
  * Icon size
  */
 .icon {
-    font-size: 14pt;
+	font-size: 14pt;
 }
 @media (max-width: 768px) {
-    .icon { font-size: 12pt; }
-    #filetable tr th.buttons { min-width: 85px !important; }
+	.icon { font-size: 12pt; }
+	#filetable tr th.buttons { min-width: 85px !important; }
 }
 
 /*
  * Filetable related settings
  */
 #filetable th {
-    border-top: 0;
+	border-top: 0;
 }
 #filetable td:nth-child(5), #filetable th:nth-child(5) {
-    text-align: center;
+	text-align: center;
 }
 #filetable td:nth-child(6), #filetable th:nth-child(6) {
-    text-align: center;
+	text-align: center;
 }
 #filetable tr td:last-child {
-    text-align: right;
+	text-align: right;
 }
 #filetable td:last-child a:hover {
-    text-decoration: none;
+	text-decoration: none;
 }
 .td-permissions { width: 1px; }
 
@@ -76,53 +80,53 @@ div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align:  cen
  * Footer / Task-Queue settings
  */
 footer {
-    position: fixed;
-    padding-top: 1em;
-    border-top: 1px;
-    background-color: #EEE;
-    bottom: 0;
-    width: 100%;
-    max-height: 6em;
-    overflow: hidden;
+	position: fixed;
+	padding-top: 1em;
+	border-top: 1px;
+	background-color: #EEE;
+	bottom: 0;
+	width: 100%;
+	max-height: 6em;
+	overflow: hidden;
 }
 
 #waitqueue .progress {
-    position: relative;
-    margin-bottom: 0;
+	position: relative;
+	margin-bottom: 0;
 }
 #waitqueue .progbarlabel {
-    position:absolute;
-    top: 0;
-    left: 10px;
-    font-weight: bold;
+	position:absolute;
+	top: 0;
+	left: 10px;
+	font-weight: bold;
 }
 
 /*
  * File drop overlay
  */
 #filedropoverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    color: #FFF;
-    background-color: lightblue;
-    filter: alpha(opacity=70);
-    -moz-opacity: 0.7;
-    opacity: 0.7;
-    z-index: 1000;
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	color: #FFF;
+	background-color: lightblue;
+	filter: alpha(opacity=70);
+	-moz-opacity: 0.7;
+	opacity: 0.7;
+	z-index: 1000;
 }
 
 #filedropoverlay h1 {
-    border-radius: 5px;
-    color: #000;
-    position:relative;
-    top:50%;
-    font-size: 6em;
-    pointer-events: none;
+	border-radius: 5px;
+	color: #000;
+	position:relative;
+	top:50%;
+	font-size: 6em;
+	pointer-events: none;
 }
 
 
@@ -130,8 +134,8 @@ footer {
  * Datatables related settings
  */
 table.dataTable thead th {
-    position: relative;
-    background-image: none !important;
+	position: relative;
+	background-image: none !important;
 }
 
 /* remove original sort icons */
@@ -140,50 +144,50 @@ table.dataTable thead .sorting_asc:before,
 table.dataTable thead .sorting_desc:before,
 table.dataTable thead .sorting_asc_disabled:before,
 table.dataTable thead .sorting_desc_disabled:before {
-    right: 0 !important;
-    content: "" !important;
+	right: 0 !important;
+	content: "" !important;
 }
 /* custom sort icons */
 table.dataTable thead th.sorting:after,
 table.dataTable thead th.sorting_asc:after,
 table.dataTable thead th.sorting_desc:after {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    display: block;
-    font-family: fontello;
-    font-size: 0.8em;
-    opacity: 1;
-    color: #000;
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	display: block;
+	font-family: fontello;
+	font-size: 0.8em;
+	opacity: 1;
+	color: #000;
 }
 table.dataTable thead th.sorting:after {
-    content: "\F0DC";
-    color: #ddd;
+	content: "\F0DC";
+	color: #ddd;
 }
 table.dataTable thead th.sorting_asc:after {
-    content: "\f0de";
+	content: "\f0de";
 }
 table.dataTable thead th.sorting_desc:after {
-    content: "\f0dd";
+	content: "\f0dd";
 }
 
 /*
  * Modal related settings
  */
 #copyMoveTree {
-    max-height: 80vh;
-    overflow: auto;
+	max-height: 80vh;
+	overflow: auto;
 }
 
 @media (min-width: 576px) {
-    .modal-dialog {
-        max-width: 600px;
-        margin: 1.75rem auto;
-    }
+	.modal-dialog {
+		max-width: 600px;
+		margin: 1.75rem auto;
+	}
 }
 
 @media (min-width: 992px) {
-    .modal-lg, .modal-xl {
-        max-width: 800px;
-    }
+	.modal-lg, .modal-xl {
+		max-width: 800px;
+	}
 }

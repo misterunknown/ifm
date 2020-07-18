@@ -1,16 +1,31 @@
 <form id="formAjaxRequest">
 <div class="modal-body">
 	<fieldset>
-		<label>URL</label><br>
-		<input class="form-control" type="text" id="ajaxurl" required><br>
-		<label>{{i18n.data}}</label><br>
-		<textarea class="form-control" id="ajaxdata"></textarea><br>
-		<label>{{i18n.method}}</label><br>
-		<input type="radio" name="arMethod" value="GET">GET</input><input type="radio" name="arMethod" value="POST" checked="checked">POST</input><br>
+		<div class="form-group">
+			<label for="ajaxurl">URL</label>
+			<input class="form-control" type="url" id="ajaxurl" required>
+		</div>
+		<div class="form-group">
+			<label for="ajaxdata">{{i18n.data}}</label>
+			<textarea class="form-control" id="ajaxdata"></textarea>
+		</div>
+		<div class="form-group">
+			<legend>{{i18n.method}}</legend>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" id="radioget" name="arMethod" value="GET">
+				<label class="form-check-label" for="radioget">GET</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" id="radiopost" name="arMethod" value="POST" checked="checked">
+				<label class="form-check-label" for="radiopost">POST</label>
+			</div>
+		</div>
 		<button type="button" class="btn btn-success" id="buttonRequest">{{i18n.request}}</button>
-		<button type="button" class="btn btn-secondary" id="buttonClose">{{i18n.cancel}}</button><br>
-		<label>{{i18n.response}}</label><br>
-		<textarea class="form-control" id="ajaxresponse"></textarea>
+		<button type="button" class="btn btn-danger" id="buttonClose">{{i18n.cancel}}</button>
+		<div class="form-group">
+			<label for="ajaxresponse">{{i18n.response}}</label>
+			<textarea class="form-control" id="ajaxresponse"></textarea>
+		</div>
 	</fieldset>
-</form>
 </div>
+</form>

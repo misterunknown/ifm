@@ -1394,9 +1394,11 @@ function IFM(params) {
 					if( newFooter.style.maxHeight == '80%' ) {
 						newFooter.style.maxHeight = '6em';
 						newFooter.style.overflow = 'hidden';
+						newFooter.hidden = true;
 					} else {
 						newFooter.style.maxHeight = '80%';
 						newFooter.style.overflow = 'scroll';
+						newFooter.hidden = false;
 					}
 				}
 			});

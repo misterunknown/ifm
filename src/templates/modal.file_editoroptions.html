@@ -1,27 +1,33 @@
-<div>
-<div class="form-check p-0">
-<input type="checkbox" id="editor-wordwrap" 
-    {{#wordwrap}}
-    checked="checked"
-    {{/wordwrap}}
->
-<label class="form-check-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
-</div>
-<div class="form-check">
-<input class="form-check-input" type="checkbox" id="editor-softtabs"
-    {{#softtabs}}
-    checked="checked"
-    {{/softtabs}}
->
-<label class="form-check-label" for="editor-softtabs">{{i18n.soft_tabs}}</label>
-</div>
-<div class="input-group">
-    <div class="input-group-prepend"><span class="input-group-text">{{i18n.tab_size}}</span></div><input class="form-control" type="text" size="2" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}"></div>
-{{#ace_includes}}
-<select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" id="editor-syntax">
-	{{#modes}}
-	<option value="ace/mode/{{.}}" {{{ace_mode_selected}}}>{{.}}</option>
-	{{/modes}}
-</select>
-{{/ace_includes}}
-</div>
+<form>
+	<div class="form-group">
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="editor-wordwrap" 
+				{{#wordwrap}}
+				checked="checked"
+				{{/wordwrap}}
+			>
+			<label class="form-check-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
+		</div>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="editor-softtabs"
+				{{#softtabs}}
+				checked="checked"
+				{{/softtabs}}
+			>
+			<label class="form-check-label" for="editor-softtabs">{{i18n.soft_tabs}}</label>
+		</div>
+	</div>
+	<div class="input-group">
+		<div class="input-group-prepend">
+			<span class="input-group-text" id="editor-tabsize-label">{{i18n.tab_size}}</span>
+		</div>
+		<input class="form-control" type="number" min="1" max="9" maxlength="1" id="editor-tabsize" title="{{i18n.tab_size}}" value="{{tabsize}}" aria-describedby="editor-tabsize-label">
+	</div>
+	{{#ace_includes}}
+	<select class="form-control selectpicker" data-toggle="dropdown" data-live-search="true" data-size="15" id="editor-syntax">
+		{{#modes}}
+		<option value="ace/mode/{{.}}" {{{ace_mode_selected}}}>{{.}}</option>
+		{{/modes}}
+	</select>
+	{{/ace_includes}}
+</form>
