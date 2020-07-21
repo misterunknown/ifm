@@ -6,9 +6,9 @@ ENV IFM_ROOT_DIR="/var/www"    \
     IFM_TMP_DIR="/tmp"
 
 # add missing extensions and dependencies
-RUN apk add --no-cache libbz2 libzip libcap sudo && \
+RUN apk add --no-cache libbz2 libzip libcap openldap-dev sudo && \
     apk add --no-cache --virtual .php-extension-build-deps bzip2 bzip2-dev libzip-dev && \
-    docker-php-ext-install bz2 zip && \
+    docker-php-ext-install bz2 zip ldap && \
     apk del --no-cache --purge .php-extension-build-deps
 
 # allow php binary to bind ports <1000, even if $USER != root
