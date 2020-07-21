@@ -223,7 +223,8 @@ function IFM(params) {
 			orderFixed: [0, 'desc'],
 			language: {
 				"search": self.i18n.filter
-			}
+			},
+			stateSave: true
 		});
 
 
