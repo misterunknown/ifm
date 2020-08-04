@@ -1,6 +1,7 @@
 body {
 	padding-top: 70px;
 	overflow-y: scroll !important;
+	padding-right: 0px !important;
 }
 
 main {
@@ -188,9 +189,6 @@ table.dataTable thead th.sorting_desc:after {
 	overflow: auto;
 }
 
-.modal-open {
-    padding-right: 0px !important;
-}
 
 @media (min-width: 576px) {
 	.modal-dialog {

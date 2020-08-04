@@ -947,12 +947,12 @@ function IFM(params) {
 				e.preventDefault();
 				var newfilename = form.elements.newfilename.value;
 				var files = Array.prototype.slice.call( form.elements.files.files );
-				var existing_files = [];
+				var existing_files;
 				if (files.length > 1)
 					existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
 				else
-					existing_files = self.fileCache.map(x => x.name).includes(newfilename);
-				if (existing_files.length > 0)
+					existing_files = self.fileCache.map(x => x.name).indexOf(newfilename) ? [newfilename] : [];
+				if (existing_files.length > 0 && self.config.confirmoverwrite)
 					self.showUploadConfirmOverwrite(files, existing_files, newfilename);
 				else {
 					if (files.length == 1)
@@ -970,13 +970,13 @@ function IFM(params) {
 		});
 	};
 
-	this.showUploadConfirmOverwrite = function(files, existing_files, newfilename="") {
+	this.showUploadConfirmOverwrite = function(files, existing_files, newfilename=undefined) {
 		self.showModal(Mustache.render(self.templates.uploadconfirmoverwrite, {files: existing_files, i18n: self.i18n}));
 		var form = document.forms.formUploadConfirmOverwrite;
 		form.addEventListener('click', function(e) {
 			if (e.target.id == "buttonConfirm") {
 				e.preventDefault();
-				if (files.length == 1)
+				if (files.length == 1 && newfilename)
 					self.uploadFile(files[0], newfilename);
 				else
 					files.forEach(function(file) {
@@ -1889,10 +1889,14 @@ function IFM(params) {
 					div.ondrop = function( e ) {
 						e.preventDefault();
 						e.stopPropagation();
-						var files = e.dataTransfer.files;
-						for( var i = 0; i < files.length; i++ ) {
-							self.uploadFile( files[i] );
-						}
+						var files = Array.from(e.dataTransfer.files);
+						var existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
+						if (existing_files.length > 0 && self.config.confirmoverwrite)
+							self.showUploadConfirmOverwrite(files, existing_files);
+						else 
+							files.forEach(function(file) {
+								self.uploadFile(file);
+							});
 						if( e.target.id == 'filedropoverlay' )
 							e.target.style.display = 'none';
 						else if( e.target.parentElement.id == 'filedropoverlay' ) {

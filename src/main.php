@@ -56,7 +56,8 @@ class IFM {
 		"contextmenu" => 1,
 		"disable_mime_detection" => 0,
 		"showrefresh" => 1,
-		"forceproxy" => 0
+		"forceproxy" => 0,
+		"confirmoverwrite" => 1
 	);
 
 	private $config = array();
@@ -106,6 +107,7 @@ class IFM {
 		$this->config['search'] =  getenv('IFM_API_SEARCH') !== false ? intval( getenv('IFM_API_SEARCH') ) : $this->config['search'] ;
 		$this->config['showrefresh'] =  getenv('IFM_GUI_REFRESH') !== false ? intval( getenv('IFM_GUI_REFRESH') ) : $this->config['showrefresh'] ;
 		$this->config['forceproxy'] =  getenv('IFM_GUI_FORCEPROXY') !== false ? intval( getenv('IFM_GUI_FORCEPROXY') ) : $this->config['forceproxy'] ;
+		$this->config['confirmoverwrite'] =  getenv('IFM_GUI_CONFIRMOVERWRITE') !== false ? intval( getenv('IFM_GUI_CONFIRMOVERWRITE') ) : $this->config['confirmoverwrite'] ;
 
 		// optional settings
 		if( getenv('IFM_SESSION_LIFETIME') !== false )
