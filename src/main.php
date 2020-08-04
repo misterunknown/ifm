@@ -812,7 +812,11 @@ IFM_ASSETS
 				$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
 			else {
 				unset( $zip );
-				$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				if ($this->isAbsolutePath($this->config['tmp_dir']))
+					$dfile = $this->pathCombine( $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+				else
+					$dfile = $this->pathCombine( __DIR__, $this->config['tmp_dir'], uniqid( "ifm-tmp-" ) . ".zip" ); // temporary filename
+
 				try {
 					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
 					if( $d['filename'] == "." ) {
