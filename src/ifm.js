@@ -33,7 +33,7 @@ function IFM(params) {
 	this.showModal = function( content, options ) {
 		options = options || {};
 		var modal = document.createElement( 'div' );
-		modal.classList.add( 'modal', 'fade' );
+		modal.classList.add( 'modal' );
 		modal.id = 'ifmmodal';
 		modal.attributes.role = 'dialog';
 		var modalDialog = document.createElement( 'div' );
