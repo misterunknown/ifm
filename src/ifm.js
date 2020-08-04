@@ -150,9 +150,9 @@ function IFM(params) {
 						(
 							typeof item.mime_type === "string" && (
 								item.mime_type.substr( 0, 4 ) == "text"
-								|| item.mime_type == "inode/x-empty"
-								|| item.mime_type.indexOf( "xml" ) != -1
-								|| item.mime_type.indexOf( "json" ) != -1
+								|| item.mime_type.indexOf("x-empty") != -1
+								|| item.mime_type.indexOf("xml") != -1
+								|| item.mime_type.indexOf("json") != -1
 							)
 						)
 					)
