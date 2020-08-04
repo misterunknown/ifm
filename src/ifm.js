@@ -951,15 +951,45 @@ function IFM(params) {
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'buttonUpload' ) {
 				e.preventDefault();
+				var newfilename = form.elements.newfilename.value;
 				var files = Array.prototype.slice.call( form.elements.files.files );
-				if( files.length > 1 )
-					files.forEach( function( file ) {
-						self.uploadFile( file );
-					});
+				var existing_files = [];
+				if (files.length > 1)
+					existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
 				else
-					self.uploadFile( files[0], form.elements.newfilename.value );
+					existing_files = self.fileCache.map(x => x.name).includes(newfilename);
+				if (existing_files.length > 0)
+					self.showUploadConfirmOverwrite(files, existing_files, newfilename);
+				else {
+					if (files.length == 1)
+						self.uploadFile(files[0], newfilename);
+					else
+						files.forEach( function( file ) {
+							self.uploadFile( file );
+						});
+				}
 				self.hideModal();
 			} else if( e.target.id == 'buttonCancel' ) {
+				e.preventDefault();
+				self.hideModal();
+			}
+		});
+	};
+
+	this.showUploadConfirmOverwrite = function(files, existing_files, newfilename="") {
+		self.showModal(Mustache.render(self.templates.uploadconfirmoverwrite, {files: existing_files, i18n: self.i18n}));
+		var form = document.forms.formUploadConfirmOverwrite;
+		form.addEventListener('click', function(e) {
+			if (e.target.id == "buttonConfirm") {
+				e.preventDefault();
+				if (files.length == 1)
+					self.uploadFile(files[0], newfilename);
+				else
+					files.forEach(function(file) {
+						self.uploadFile(file);
+					});
+				self.hideModal();
+			} else if (e.target.id == 'buttonCancel') {
 				e.preventDefault();
 				self.hideModal();
 			}

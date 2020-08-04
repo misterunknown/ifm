@@ -177,6 +177,9 @@ f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
 @@@file:src/templates/modal.uploadfile.html@@@
 f00bar;
+		$templates['uploadconfirmoverwrite'] = <<<'f00bar'
+@@@file:src/templates/modal.uploadconfirmoverwrite.html@@@
+f00bar;
 		$this->templates = $templates;
 
 		$i18n = array();

@@ -1,0 +1,15 @@
+<form id="formUploadConfirmOverwrite">
+<div class="modal-body">
+{{i18n.upload_overwrite_hint}}
+<ul>
+{{#files}}
+<li>{{.}}</li>
+{{/files}}
+</ul>
+{{i18n.upload_overwrite_confirm}}
+</div>
+<div class="modal-footer">
+	<button class="btn btn-primary" id="buttonConfirm">{{i18n.upload}}</button>
+	<button class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
+</div>
+</form>

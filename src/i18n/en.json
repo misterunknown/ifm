@@ -103,6 +103,8 @@
     "upload": "Upload",
     "upload_drop": "Drop files to upload",
     "upload_file": "Upload File",
+    "upload_overwrite_hint": "The following files would be overwritten:",
+    "upload_overwrite_confirm": "Upload anyway?",
     "upload_remote": "Remote Upload",
     "upload_remote_url": "Remote Upload URL",
     "username": "Username",

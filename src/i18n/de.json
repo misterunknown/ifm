@@ -102,6 +102,8 @@
     "upload": "Hochladen",
     "upload_drop": "Dateien zum hochladen hier ablegen",
     "upload_file": "Datei hochladen",
+    "upload_overwrite_hint": "Die folgenden Dateien würden überschrieben:",
+    "upload_overwrite_confirm": "Sollen die Dateien dennoch hochgeladen werden?",
     "upload_remote": "Hochladen von ausserhalb",
     "upload_remote_url": "Entfernte URL zum hochladen",
     "username": "Benutzername",
