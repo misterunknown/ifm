@@ -13,7 +13,7 @@
         echo <<<'f00bar'
 <script>
             @@@file:src/includes/jquery.min.js@@@
-            @@@file:src/includes/jquery.ui.min.js@@@
+            @@@file:src/includes/jquery-ui.min.js@@@
             @@@file:src/includes/popper.min.js@@@
             @@@file:src/includes/bootstrap.min.js@@@
             @@@file:src/includes/bootstrap-notify.min.js@@@
