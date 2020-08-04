@@ -184,9 +184,10 @@ f00bar;
 		$this->i18n = $i18n;
 		
 		if( in_array( $this->config['language'], array_keys( $this->i18n ) ) )
-			$this->l = $this->i18n[$this->config['language']];
+			// Merge english with the language in case of missing keys
+			$this->l = (object)array_merge((array)$this->i18n['en'], (array)$this->i18n[$this->config['language']]);
 		else
-			$this->l = reset($this->i18n);
+			$this->l = $this->i18n['en'];
 
 		if ($this->config['timezone'])
 			date_default_timezone_set($this->config['timezone']);
