@@ -1,4 +1,4 @@
 *
 !compiler.php
 !src
-!docker/docker-startup.sh
+!docker

@@ -32,4 +32,4 @@ else
 	adduser -SHD -u 33 -G www-data www-data
 fi
 
-sudo -Eu www-data /usr/local/bin/php -S 0:80 -t /usr/local/share/webapps/ifm
+sudo -Eu www-data /usr/local/bin/php -c /usr/local/share/webapps/ifm/php.ini -S 0:80 -t /usr/local/share/webapps/ifm

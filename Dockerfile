@@ -30,6 +30,7 @@ RUN rm -rf /var/www/html && \
 COPY / /usr/src/ifm/
 RUN /usr/src/ifm/compiler.php --languages=all && \
     cp /usr/src/ifm/dist/ifm.php /usr/local/share/webapps/ifm/index.php && \
+    cp /usr/src/ifm/docker/php.ini /usr/local/share/webapps/ifm/ && \
     rm -rf /usr/src/ifm
 
 COPY docker/docker-startup.sh /usr/local/bin
