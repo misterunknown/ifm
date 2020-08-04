@@ -510,12 +510,8 @@ function IFM(params) {
 						aceSession.setOption( 'useSoftTabs', e.srcElement.checked );
 					});
 				if( el = content.querySelector("#editor-tabsize" )) {
-					console.log("Found tabSize");
 					el.addEventListener( 'keydown', function( e ) {
-						console.log("Got keydown");
-						console.log("Set tabsize to "+e.srcElement.value);
 						if( e.key == 'Enter' ) {
-							console.log("Saw ENTER key");
 							e.preventDefault();
 							aceSession.setOption( 'tabSize', e.srcElement.value );
 						}
@@ -546,8 +542,6 @@ function IFM(params) {
 			bindKey: "Ctrl-Shift-F",
 			exec: function(e) {
 				var el = e.container;
-				console.log("toggleFullscreen was called");
-				console.log("el.parentElement.tagName is "+el.parentElement.tagName);
 				if (el.parentElement.tagName == "BODY") {
 					el.remove();
 					var fieldset = document.getElementsByClassName('modal-body')[0].firstElementChild;

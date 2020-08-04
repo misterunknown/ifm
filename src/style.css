@@ -26,12 +26,6 @@ div#content { /* is for the ACE editor */
 	height: 350px;
 }
 
-/* label {
-	display: inline-block;
-	margin-bottom: .5rem;
-	font-weight: 700;
-} */
-
 /* Make tables more compact (overwrites bootstrap default of 0.75rem) */
 .table td, .table th {
 	padding: 0.25rem;
