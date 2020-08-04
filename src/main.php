@@ -190,7 +190,7 @@ f00bar;
 		
 		if( in_array( $this->config['language'], array_keys( $this->i18n ) ) )
 			// Merge english with the language in case of missing keys
-			$this->l = (object)array_merge((array)$this->i18n['en'], (array)$this->i18n[$this->config['language']]);
+			$this->l = array_merge($this->i18n['en'], $this->i18n[$this->config['language']]);
 		else
 			$this->l = $this->i18n['en'];
 
