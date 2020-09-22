@@ -215,7 +215,7 @@ function IFM(params) {
 		if( self.datatable ) self.datatable.destroy();
 		self.datatable = $('#filetable').DataTable({
 			paging: !!self.config.paging,
-			pageLength: 50,
+			pageLength: self.config.pageLength||50,
 			info: false,
 			autoWidth: false,
 			columnDefs: [
