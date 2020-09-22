@@ -43,6 +43,7 @@ class IFM {
 		"zipnload" => 1,
 		"createarchive" => 1,
 		"search" => 1,
+		"pagination" => 0,
 
 		// gui controls
 		"showlastmodified" => 0,
