@@ -52,7 +52,8 @@ class IFM {
 		"zipnload" => 1,
 		"createarchive" => 1,
 		"search" => 1,
-		"paging" => 1,
+		"paging" => 0,
+		"pageLength" => 50,
 
 		// gui controls
 		"showlastmodified" => 0,
