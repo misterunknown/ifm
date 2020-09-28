@@ -377,7 +377,7 @@ function IFM(params) {
 							if( data.selected.length > 0 )
 								self.showMessage( "At the moment it is not possible to download a set of files." );
 							else
-								document.forms["d_"+data.clicked.guid].submit();
+								window.location = data.clicked.download.link;
 						},
 						iconClass: "icon icon-download",
 						isShown: function() { return !!self.config.download; }
