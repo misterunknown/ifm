@@ -44,6 +44,7 @@
 					<a id="createDir" class="nav-link"><span title="{{i18n.folder_new}}" class="icon icon-folder" href="#"></span> <span class="d-inline d-sm-none">{{i18n.folder_new}}</span></a>
 				</li>
 				{{/config.createdir}}
+				{{#generic.hasdropdown}}
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" href="#" id="menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
 					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="menu">
@@ -58,6 +59,7 @@
 						{{/config.auth}}
 					</div>
 				</li>
+				{{/generic.hasdropdown}}
 			</ul>
 		</div>
 	</div>

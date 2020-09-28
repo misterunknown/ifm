@@ -1851,6 +1851,9 @@ function IFM(params) {
 					showpath: "/",
 					config: self.config,
 					i18n: self.i18n,
+					generic: {
+						hasdropdown: (!!self.config.ajaxrequest||!!self.config.remoteupload||!!self.config.auth)
+					},
 					ftbuttons: function(){
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
