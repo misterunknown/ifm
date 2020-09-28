@@ -38,7 +38,6 @@
     "file_save_error": "Le fichier n'a pas pu être enregistré.",
     "file_save_success": "Le fichier a été enregistré avec succès.",
     "file_save_confirm": "Voulez-vous enregistré le fichier -",
-    "file_save_error": "Le fichier n'a pas pu être créé ou modifié : ",
     "file_upload_error": "Le fichier n'a pas pu être envoyé.",
     "file_upload_success": "Le fichier a été envoyé avec succès.",
     "filename": "Nom de fichier",

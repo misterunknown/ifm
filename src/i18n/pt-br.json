@@ -38,7 +38,6 @@
     "file_save_error": "Não foi possível salvar o arquivo.",
     "file_save_success": "Arquivo salvo com sucesso.",
     "file_save_confirm": "Você quer salvar o seguinte arquivo -",
-    "file_save_error": "Não foi possível criar ou editar o arquivo: ",
     "file_upload_error": "Não foi possível enviar o arquivo.",
     "file_upload_success": "Arquivo enviado com sucesso.",
     "filename": "Nome do arquivo",

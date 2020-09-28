@@ -38,7 +38,6 @@
     "file_save_error": "Datei konnte nicht gespeichert werden.",
     "file_save_success": "Datei erfolgreich gespeichert.",
     "file_save_confirm": "Soll diese Datei wirklich gespeichert werden -",
-    "file_save_error": "Datei konnte nicht geändert oder angelegt werden: ",
     "file_upload_error": "Datei konnte nicht hochgeladen werden.",
     "file_upload_success": "Datei erfolgreich hochgeladen",
     "filename": "Dateiname",
