@@ -47,6 +47,7 @@ The IFM uses the following resources:
     * fileinfo
     * json
     * ldap (only if LDAP based authentication is used)
+    * mbstring
     * openssl (for remote uploads from https sources)
     * phar
     * posix
