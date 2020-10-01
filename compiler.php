@@ -45,7 +45,7 @@ if (!in_array("all", $langs) || !in_array("en", $langs))
 
 if (in_array("all", $langs))
 	$langs = array_map(
-		function($i) { return str_replace("src/i18n/", "", str_replace(".json", "", $i)); },
+		function($lang_file) {return pathinfo($lang_file)['filename']; },
 		glob("src/i18n/*.json")
 	);
 
