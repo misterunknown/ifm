@@ -37,7 +37,11 @@ foreach ($options as $key => $value)
 	if (substr($key, 0, 4) == "lang")
 		$langs = array_merge($langs, explode(",", $value));
 $langs = array_unique($langs);
-$vars['default_lang'] = ($langs[0] == "all") ? "en" : $langs[0];
+if (!empty($langs)) {
+	$vars['default_lang'] = ($langs[0] == "all") ? "en" : $langs[0];
+} else {
+	$vars['default_lang'] = "en";
+}
 // ensure english is available, as it gets merged with the other languages
 // in case of missing keys in other languages.
 if (!in_array("all", $langs) || !in_array("en", $langs))
