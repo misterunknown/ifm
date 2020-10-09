@@ -14,8 +14,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 class IFMException extends Exception {
-	public $forUser = false;
-	public function __construct($message, $forUser = false, $code = 0, Exception $previous = null) {
+	public $forUser = true;
+	public function __construct($message, $forUser = true, $code = 0, Exception $previous = null) {
 		$this->forUser = $forUser;
 		parent::__construct($message, $code, $previous);
 	}
@@ -92,7 +92,9 @@ class IFM {
 		// load config from passed array
 		$this->config = array_merge($this->config, $config);
 
-
+		$i18n = [];
+		@@@vars:languageincludes@@@
+		$this->i18n = $i18n;
 
 		if ($this->config['timezone'])
 			date_default_timezone_set($this->config['timezone']);
@@ -147,84 +149,6 @@ f00bar;
 	 * main functions
 	 */
 
-	private function dispatch() {
-		// APIs which do not need authentication
-		switch ($_REQUEST['api']) {
-			case "checkAuth":
-				try {
-					if ($this->checkAuth())
-						$this->jsonResponse(["status" => "OK", "message" => "Authenticated"]);
-				} catch (Exception $e) {
-					$this->jsonResponse(["status" => "ERROR", "message" => "Not authenticated"]);
-				}
-				return;
-			case "getConfig":
-				$this->getConfig();
-				return;
-			case "getTemplates":
-				$this->getTemplates();
-				return;
-			case "getI18N":
-				$this->getI18N($_REQUEST);
-				return;
-			case "logout":
-				unset($_SESSION);
-				session_destroy();
-				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
-				return;
-		}
-
-		// check authentication
-		if (!$this->checkAuth())
-			throw new IFMException("Not authenticated", true);
-
-		// api requests which work without a valid working directory
-		switch ($_REQUEST['api']) {
-			case "getRealpath":
-				if (isset($_REQUEST["dir"]) && $_REQUEST["dir"] != "")
-					$this->jsonResponse(array("realpath" => $this->getValidDir($_REQUEST["dir"])));
-				else
-					$this->jsonResponse(array("realpath" => ""));
-				return;
-			case "getFiles":
-				if (isset($_REQUEST["dir"]) && $this->isPathValid($_REQUEST["dir"]))
-					$this->getFiles($_REQUEST["dir"]);
-				else
-					$this->getFiles("");
-				return;
-			case "getFolders":
-				$this->getFolders($_REQUEST);
-				return;
-		}
-		
-		// checking working directory
-		if (!isset($_REQUEST["dir"]) || !$this->isPathValid($_REQUEST["dir"]))
-			throw new IFMException("Invalid working directory", true);
-
-		$this->chDirIfNecessary($_REQUEST['dir']);
-		switch ($_REQUEST["api"]) {
-			case "createDir":	$this->createDir($_REQUEST); return;
-			case "saveFile":	$this->saveFile($_REQUEST); return;
-			case "getContent":	$this->getContent($_REQUEST); return;
-			case "delete":		$this->deleteFiles($_REQUEST); return;
-			case "rename":		$this->renameFile($_REQUEST); return;
-			case "download":	$this->downloadFile($_REQUEST); return;
-			case "extract":		$this->extractFile($_REQUEST); return;
-			case "upload":		$this->uploadFile($_REQUEST); return;
-			case "copyMove":	$this->copyMove($_REQUEST); return;
-			case "changePermissions":	$this->changePermissions($_REQUEST); return;
-			case "zipnload":	$this->zipnload($_REQUEST); return;
-			case "remoteUpload":	$this->remoteUpload($_REQUEST); return;
-			case "searchItems":	$this->searchItems($_REQUEST); return;
-			case "getFolderTree":	$this->getFolderTree($_REQUEST); return;
-			case "createArchive":	$this->createArchive($_REQUEST); return;
-			case "proxy":		$this->downloadFile($_REQUEST, false); return;
-			default:
-				throw new IFMException("Invalid api action given", true);
-				return;
-		}
-	}
-
 	public function run($mode="standalone") {
 		try {
 			if (!is_dir(realpath($this->config['root_dir'])) || !is_readable(realpath($this->config['root_dir'])))
@@ -234,15 +158,83 @@ f00bar;
 
 			$this->mode = $mode;
 			if (isset($_REQUEST['api']) || $mode == "api")
-				$this->dispatch();
+				$this->jsonResponse($this->dispatch());
 			elseif ($mode == "standalone")
 				$this->getApplication();
 			else
 				$this->getInlineApplication();
 		} catch (IFMException $e) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $e->getMessage()]);
+			throw new IFMException($e->getMessage());
 		} catch (Exception $e) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $e->getMessage()]);
+			throw new IFMException($e->getMessage());
+		}
+	}
+
+	private function dispatch() {
+		// APIs which do not need authentication
+		switch ($_REQUEST['api']) {
+			case "checkAuth":
+				if ($this->checkAuth())
+					return ["status" => "OK", "message" => "Authenticated"];
+				else
+					return ["status" => "ERROR", "message" => "Not authenticated"];
+			case "getConfig":
+				return $this->getConfig();
+			case "getTemplates":
+				return $this->getTemplates();
+			case "getI18N":
+				return $this->getI18N($_REQUEST);
+			case "logout":
+				unset($_SESSION);
+				session_destroy();
+				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
+				exit;
+		}
+
+		// check authentication
+		if (!$this->checkAuth())
+			throw new IFMException("Not authenticated");
+
+		// api requests which work without a valid working directory
+		switch ($_REQUEST['api']) {
+			case "getRealpath":
+				if (isset($_REQUEST["dir"]) && $_REQUEST["dir"] != "")
+					return ["realpath" => $this->getValidDir($_REQUEST["dir"])];
+				else
+					return ["realpath" => ""];
+			case "getFiles":
+				if (isset($_REQUEST["dir"]) && $this->isPathValid($_REQUEST["dir"]))
+					return $this->getFiles($_REQUEST["dir"]);
+				else
+					return $this->getFiles("");
+			case "getFolders":
+				return $this->getFolders($_REQUEST);
+		}
+		
+		// checking working directory
+		if (!isset($_REQUEST["dir"]) || !$this->isPathValid($_REQUEST["dir"]))
+			throw new IFMException($this->l("invalid_dir"));
+
+		$this->chDirIfNecessary($_REQUEST['dir']);
+		switch ($_REQUEST["api"]) {
+			case "createDir":	return $this->createDir($_REQUEST); 
+			case "saveFile":	return $this->saveFile($_REQUEST); 
+			case "getContent":	return $this->getContent($_REQUEST); 
+			case "delete":		return $this->deleteFiles($_REQUEST); 
+			case "rename":		return $this->renameFile($_REQUEST); 
+			case "download":	return $this->downloadFile($_REQUEST); 
+			case "extract":		return $this->extractFile($_REQUEST); 
+			case "upload":		return $this->uploadFile($_REQUEST); 
+			case "copyMove":	return $this->copyMove($_REQUEST); 
+			case "changePermissions": return $this->changePermissions($_REQUEST); 
+			case "zipnload":	return $this->zipnload($_REQUEST); 
+			case "remoteUpload":	return $this->remoteUpload($_REQUEST); 
+			case "searchItems":	return $this->searchItems($_REQUEST); 
+			case "getFolderTree":	return $this->getFolderTree($_REQUEST); 
+			case "createArchive":	return $this->createArchive($_REQUEST); 
+			case "proxy":		return $this->downloadFile($_REQUEST, false); 
+			default:
+				throw new IFMException($this->l("invalid_action"));
 		}
 	}
 
@@ -251,15 +243,12 @@ f00bar;
 	 */
 
 	private function getI18N($lang="en") {
-		$i18n = [];
-		@@@vars:languageincludes@@@
-		$this->i18n = $i18n;
 		
 		if (in_array($lang, array_keys($i18n)))
 			// Merge english with the language in case of missing keys
-			$this->jsonResponse(array_merge($i18n['en'], $i18n[$lang]));
+			return array_merge($this->i18n['en'], $this->i18n[$lang]);
 		else
-			$this->jsonResponse($i18n['en']);
+			return $this->i18n['en'];
 	}
 
 	private function getTemplates() {
@@ -322,7 +311,7 @@ f00bar;
 		$templates['uploadconfirmoverwrite'] = <<<'f00bar'
 @@@file:src/templates/modal.uploadconfirmoverwrite.html@@@
 f00bar;
-		$this->jsonResponse($templates);
+		return $templates;
 	}
 
 	private function getFiles($dir) {
@@ -353,7 +342,7 @@ f00bar;
 		usort($dirs, [$this, "sortByName"]);
 		usort($files, [$this, "sortByName"]);
 
-		$this->jsonResponse(array_merge($dirs, $files));
+		return array_merge($dirs, $files);
 	}
 
 	private function getItemInformation($name) {
@@ -424,7 +413,7 @@ f00bar;
 		foreach (["auth_source", "root_dir"] as $field)
 			unset($ret[$field]);
 
-		$this->jsonResponse($ret);
+		return $ret;
 	}
 
 	private function getFolders( $d ) {
@@ -432,7 +421,7 @@ f00bar;
 			$d['dir'] = $this->getRootDir();
 
 		if (!$this->isPathValid($d['dir']))
-			echo "[]";
+			return [];
 		else {
 			$ret = [];
 			foreach (glob($this->pathCombine($d['dir'], "*"), GLOB_ONLYDIR) as $dir) {
@@ -453,27 +442,19 @@ f00bar;
 					],
 					$ret
 				);
-			$this->jsonResponse($ret);
+			return $ret;
 		}
 	}
 
 	private function searchItems($d) {
-		if ($this->config['search'] != 1) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-			return;
-		}
+		if ($this->config['search'] != 1)
+			throw new IFMException($this->l('nopermissions'));
 
-		if (strpos($d['pattern'], '/') !== false) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['pattern_error_slashes']]);
-			exit(1);
-		}
+		if (strpos($d['pattern'], '/') !== false)
+			throw new IFMException($this->l('pattern_error_slashes'));
 
-		try {
-			$results = $this->searchItemsRecursive($d['pattern']);
-			$this->jsonResponse($results);
-		} catch (Exception $e) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['error'] . " " . $e->getMessage()]);
-		}
+		$results = $this->searchItemsRecursive($d['pattern']);
+		return $results;
 	}
 
 	private function searchItemsRecursive( $pattern, $dir="" ) {
@@ -490,17 +471,15 @@ f00bar;
 	}
 
 	private function getFolderTree( $d ) {
-		$this->jsonResponse(
-			array_merge(
-				[
-					0 => [
-						"text" => "/ [root]",
-						"nodes" => [],
-						"dataAttributes" => ["path" => $this->getRootDir()]
-					]
-				],
-				$this->getFolderTreeRecursive($d['dir'])
-			)
+		return array_merge(
+			[
+				0 => [
+					"text" => "/ [root]",
+					"nodes" => [],
+					"dataAttributes" => ["path" => $this->getRootDir()]
+				]
+			],
+			$this->getFolderTreeRecursive($d['dir'])
 		);
 	}
 
@@ -523,25 +502,17 @@ f00bar;
 	}
 
 	private function copyMove($d) {
-		if ($this->config['copymove'] != 1) {
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
-			exit(1);
-		}
+		if ($this->config['copymove'] != 1)
+			throw new IFMException($this->l('nopermissions'));
 
-		if (!isset($d['destination']) || !$this->isPathValid(realpath($d['destination']))) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_dir']]);
-			exit(1);
-		}
+		if (!isset($d['destination']) || !$this->isPathValid(realpath($d['destination'])))
+			throw new IFMException($this->l('invalid_dir'));
 
-		if (!is_array($d['filenames'])) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_params']]);
-			exit(1);
-		}
+		if (!is_array($d['filenames']))
+			throw new IFMException($this->l('invalid_params'));
 
-		if (!in_array($d['action'], ['copy', 'move'])) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_action']]);
-			exit(1);
-		}
+		if (!in_array($d['action'], ['copy', 'move']))
+			throw new IFMException($this->l('invalid_action'));
 
 		$err = []; $errFlag = -1; // -1 -> all errors; 0 -> at least some errors; 1 -> no errors
 		foreach ($d['filenames'] as $file) {
@@ -562,35 +533,32 @@ f00bar;
 		}
 		$action = ($d['action'] == "copy") ? "copied" : "moved";
 		if (empty($err)) {
-			$this->jsonResponse([
+			return [
 				"status" => "OK",
-				"message" => ($d['action'] == "copy" ? $this->l['copy_success'] : $this->l['move_success'] ),
+				"message" => ($d['action'] == "copy" ? $this->l('copy_success') : $this->l['move_success'] ),
 				"errflag" => "1"
-			]);
+			];
 		} else {
-			$errmsg = ($d['action'] == "copy" ? $this->l['copy_error'] : $this->l['move_error'] ) . "<ul>";
+			$errmsg = ($d['action'] == "copy" ? $this->l('copy_error') : $this->l['move_error'] ) . "<ul>";
 			foreach ($err as $item)
 				$errmsg .= "<li>".$item."</li>";
 			$errmsg .= "</ul>";
-			$this->jsonResponse(["status" => "OK", "message" => $errmsg, "flag" => $errFlag]);
+			throw new IFMException($errmsg);
 		}
 	}
 
 	// creates a directory
 	private function createDir($d) {
-		if ($this->config['createdir'] != 1) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-			exit(1);
-		}
+		if ($this->config['createdir'] != 1)
+			throw new IFMException($this->l('nopermissions'));
 
 		if ($d['dirname'] == "" || !$this->isFilenameValid($d['dirname']))
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_dir']]);
-		else {
-			if (@mkdir($dn))
-				$this->jsonResponse(["status" => "OK", "message" => $this->l['folder_create_success']]);
-			else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['folder_create_error']]);
-		}
+			throw new IFMException($this->l('invalid_dir'));
+
+		if (@mkdir($dn))
+			return ["status" => "OK", "message" => $this->l('folder_create_success')]);
+		else
+			throw new IFMException($this->l('folder_create_error').". ".error_get_last()['message']);
 	}
 
 	// save a file
@@ -598,99 +566,94 @@ f00bar;
 		if (
 			(file_exists($this->pathCombine($d['dir'], $d['filename'])) && $this->config['edit'] != 1 )
 			|| (!file_exists($this->pathCombine($d['dir'], $d['filename'])) && $this->config['createfile'] != 1)
-		) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-			exit(1);
-		}
+		)
+			throw new IFMException($this->l('nopermissions'));
 
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
 				$content = get_magic_quotes_gpc() == 1 ? stripslashes($d['content']) : $d['content'];
 				if (@file_put_contents($d['filename'], $content) !== false)
-					$this->jsonResponse(["status" => "OK", "message" => $this->l['file_save_success']]);
+					return ["status" => "OK", "message" => $this->l('file_save_success')]);
 				else
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_save_error']]);
+					throw new Exception($this->l('file_save_error'));
 			} else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_save_error']]);
+				throw new IFMException($this->l('file_save_error'));
 		} else
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+			throw new IFMException($this->l('invalid_filename'));
 	}
 
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
-	private function getContent(array $d) {
+	private function getContent($d) {
 		if ($this->config['edit'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['npermissions']]);
-		else {
-			if (isset($d['filename']) && $this->isFilenameAllowed($d['filename']) && file_exists($d['filename']) && is_readable($d['filename'])) {
-				$content = @file_get_contents($d['filename']);
-				if (function_exists("mb_check_encoding") && !mb_check_encoding($content, "UTF-8"))
-					$content = utf8_encode($content);
-				$this->jsonResponse(["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]]);
-			} else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_not_found']]);
-		}
+			throw new IFMException($this->l('npermissions'));
+		if (isset($d['filename']) && $this->isFilenameAllowed($d['filename']) && file_exists($d['filename']) && is_readable($d['filename'])) {
+			$content = @file_get_contents($d['filename']);
+			if (function_exists("mb_check_encoding") && !mb_check_encoding($content, "UTF-8"))
+				$content = utf8_encode($content);
+			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]]);
+		} else
+			throw new IFMException($this->l('file_not_found'));
 	}
 
 	// deletes a bunch of files or directories
-	private function deleteFiles(array $d) {
+	private function deleteFiles($d) {
 		if ($this->config['delete'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-		else {
-			$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
-			foreach ($d['filenames'] as $file) {
-				if ($this->isFilenameAllowed($file)) {
-					if (is_dir($file)) {
-						$res = $this->rec_rmdir($file);
-						if ($res != 0)
-							array_push($err, $file);
-						else
-							$errFLAG = 0;
-					} else {
-						if (@unlink($file))
-							$errFLAG = 0;
-						else
-							array_push($err, $file);
-					}
+			throw new IFMException($this->l('nopermissions'));
+
+		$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
+		foreach ($d['filenames'] as $file) {
+			if ($this->isFilenameAllowed($file)) {
+				if (is_dir($file)) {
+					$res = $this->rec_rmdir($file);
+					if ($res != 0)
+						array_push($err, $file);
+					else
+						$errFLAG = 0;
 				} else {
-					array_push($err, $file);
+					if (@unlink($file))
+						$errFLAG = 0;
+					else
+						array_push($err, $file);
 				}
+			} else {
+				array_push($err, $file);
 			}
-			if (empty($err))
-				$this->jsonResponse(["status" => "OK", "message" => $this->l['file_delete_success'], "errflag" => "1"]);
-			else {
-				$errmsg = $this->l['file_delete_error'] . "<ul>";
-				foreach ($err as $item)
-					$errmsg .= "<li>".$item."</li>";
-				$errmsg .= "</ul>";
-				$this->jsonResponse(["status" => "ERROR", "message" => $errmsg, "flag" => $errFLAG]);
-			}
+		}
+		if (empty($err))
+			return ["status" => "OK", "message" => $this->l('file_delete_success'), "errflag" => "1"]);
+		else {
+			$errmsg = $this->l('file_delete_error') . "<ul>";
+			foreach ($err as $item)
+				$errmsg .= "<li>".$item."</li>";
+			$errmsg .= "</ul>";
+			throw new IFMException($errmsg);
 		}
 	}
 
 	// renames a file
 	private function renameFile(array $d) {
 		if ($this->config['rename'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
+			throw new IFMException($this->l('nopermissions'));
 		elseif (!$this->isFilenameValid($d['filename']))
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+			throw new IFMException($this->l('invalid_filename'));
 		elseif (!$this->isFilenameValid($d['newname']))
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['invalid_filename'] ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l('invalid_filename') ) );
 		else {
 			if (@rename($d['filename'], $d['newname']))
-				$this->jsonResponse(["status" => "OK", "message" => $this->l['file_rename_success']]);
+				$this->jsonResponse(["status" => "OK", "message" => $this->l('file_rename_success')]);
 			else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_rename_error']]);
+				throw new IFMException($this->l('file_rename_error'));
 		}
 	}
 
 	// provides a file for downloading
 	private function downloadFile(array $d, $forceDL=true) {
 		if ($this->config['download'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
+			throw new IFMException($this->l('nopermissions'));
 		elseif (!$this->isFilenameValid($d['filename']))
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+			throw new IFMException($this->l('invalid_filename'));
 		else {
 			if (!is_file($d['filename']))
 				http_response_code(404);
@@ -705,10 +668,10 @@ f00bar;
 		$tmpSelfContent = null;
 		$tmpSelfChecksum = null;
 		if ($this->config['extract'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
+			throw new IFMException($this->l('nopermissions'));
 		else {
 			if (!file_exists($d['filename'])) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l['invalid_filename']]);
+				$this->jsonResponse(["status" => "ERROR","message" => $this->l('invalid_filename')]);
 				exit(1);
 			}
 
@@ -716,12 +679,12 @@ f00bar;
 				$d['targetdir'] = "./";
 
 			if (!$this->isPathValid($d['targetdir'])) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l['invalid_dir']]);
+				$this->jsonResponse(["status" => "ERROR","message" => $this->l('invalid_dir')]);
 				exit(1);
 			}
 
 			if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0777, true)) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l['folder_create_error']]);
+				$this->jsonResponse(["status" => "ERROR","message" => $this->l('folder_create_error')]);
 				exit(1);
 			}
 
@@ -734,14 +697,14 @@ f00bar;
 
 			if (substr(strtolower($d['filename']), -4) == ".zip") {
 				if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
-					$this->jsonResponse(["status" => "ERROR","message" => $this->l['extract_error']]);
+					$this->jsonResponse(["status" => "ERROR","message" => $this->l('extract_error')]);
 				else
-					$this->jsonResponse(["status" => "OK","message" => $this->l['extract_success']]);
+					$this->jsonResponse(["status" => "OK","message" => $this->l('extract_success')]);
 			} else {
 				if (!IFMArchive::extractTar($d['filename'], $d['targetdir']))
-					$this->jsonResponse(["status" => "ERROR","message" => $this->l['extract_error']]);
+					$this->jsonResponse(["status" => "ERROR","message" => $this->l('extract_error')]);
 				else
-					$this->jsonResponse(["status" => "OK","message" => $this->l['extract_success']]);
+					$this->jsonResponse(["status" => "OK","message" => $this->l('extract_success')]);
 			} 
 
 			if ($restoreIFM) {
@@ -760,24 +723,24 @@ f00bar;
 	// uploads a file
 	private function uploadFile(array $d) {
 		if($this->config['upload'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
+			throw new IFMException($this->l('nopermissions'));
 		elseif (!isset($_FILES['file']))
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_upload_error']]);
+			throw new IFMException($this->l('file_upload_error'));
 		else {
 			$newfilename = (isset($d["newfilename"]) && $d["newfilename"]!="") ? $d["newfilename"] : $_FILES['file']['name'];
 			if (!$this->isFilenameValid($newfilename))
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+				throw new IFMException($this->l('invalid_filename'));
 			else {
 				if ($_FILES['file']['tmp_name']) {
 					if (is_writable(getcwd())) {
 						if (move_uploaded_file($_FILES['file']['tmp_name'], $newfilename))
-							$this->jsonResponse(["status" => "OK", "message" => $this->l['file_upload_success'], "cd" => $d['dir']]);
+							$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success'), "cd" => $d['dir']]);
 						else
-							$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_upload_error']]);
+							throw new IFMException($this->l('file_upload_error'));
 					} else
-						$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_upload_error']]);
+						throw new IFMException($this->l('file_upload_error'));
 				} else
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_not_found']]);
+					throw new IFMException($this->l('file_not_found'));
 			}
 		}
 	}
@@ -785,99 +748,102 @@ f00bar;
 	// change permissions of a file
 	private function changePermissions(array $d) {
 		if ($this->config['chmod'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-		elseif (!isset($d["chmod"]) || $d['chmod'] == "" )
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['permission_parse_error']]);
-		elseif (!$this->isPathValid($this->pathCombine($d['dir'], $d['filename'])))
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-		else {
-			$chmod = $d["chmod"]; $cmi = true;
-			if (!is_numeric($chmod)) {
-				$cmi = false;
-				$chmod = str_replace(" ", "", $chmod);
+			throw new IFMException($this->l('nopermissions'));
 
-				if (strlen($chmod) == 9) {
-					$cmi = true;
-					$arr = [substr($chmod, 0, 3), substr($chmod, 3, 3), substr($chmod, 6, 3)];
-					$chtmp = "0";
-					foreach ($arr as $right) {
-						$rtmp = 0;
-						if (substr($right, 0, 1) == "r") $rtmp = $rtmp + 4; elseif (substr($right, 0, 1) <> "-") $cmi = false;
-						if (substr($right, 1, 1) == "w") $rtmp = $rtmp + 2; elseif (substr($right, 1, 1) <> "-") $cmi = false;
-						if (substr($right, 2, 1) == "x") $rtmp = $rtmp + 1; elseif (substr($right, 2, 1) <> "-") $cmi = false;
-						$chtmp = $chtmp . $rtmp;
-					}
-					$chmod = intval($chtmp);
-				}
-			} else
-				$chmod = "0" . $chmod;
+		if (!isset($d["chmod"]) || $d['chmod'] == "" )
+			throw new IFMException($this->l('permission_parse_error'));
 
-			if ($cmi) {
-				try {
-					chmod($d["filename"], (int)octdec($chmod));
-					$this->jsonResponse(["status" => "OK", "message" => $this->l['permission_change_success']]);
-				} catch (Exception $e) {
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['permission_change_error']]);
+		if (!$this->isPathValid($this->pathCombine($d['dir'], $d['filename'])))
+			throw new IFMException($this->l('nopermissions'));
+
+		$chmod = $d["chmod"]; $cmi = true;
+		if (!is_numeric($chmod)) {
+			$cmi = false;
+			$chmod = str_replace(" ", "", $chmod);
+
+			if (strlen($chmod) == 9) {
+				$cmi = true;
+				$arr = [substr($chmod, 0, 3), substr($chmod, 3, 3), substr($chmod, 6, 3)];
+				$chtmp = "0";
+				foreach ($arr as $right) {
+					$rtmp = 0;
+					if (substr($right, 0, 1) == "r") $rtmp = $rtmp + 4; elseif (substr($right, 0, 1) <> "-") $cmi = false;
+					if (substr($right, 1, 1) == "w") $rtmp = $rtmp + 2; elseif (substr($right, 1, 1) <> "-") $cmi = false;
+					if (substr($right, 2, 1) == "x") $rtmp = $rtmp + 1; elseif (substr($right, 2, 1) <> "-") $cmi = false;
+					$chtmp = $chtmp . $rtmp;
 				}
-			} else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['permission_parse_error']]);
-		}
+				$chmod = intval($chtmp);
+			}
+		} else
+			$chmod = "0" . $chmod;
+
+		if ($cmi) {
+			try {
+				chmod($d["filename"], (int)octdec($chmod));
+				$this->jsonResponse(["status" => "OK", "message" => $this->l('permission_change_success')]);
+			} catch (Exception $e) {
+				throw new IFMException($this->l('permission_change_error'));
+			}
+		} else
+			throw new IFMException($this->l('permission_parse_error'));
 	}
 
 	// zips a directory and provides it for downloading
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload(array $d) {
 		if ($this->config['zipnload'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermission']]);
-		else {
-			if (!file_exists($d['filename']))
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['folder_not_found']]);
-			elseif (!$this->isPathValid($d['filename']))
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_dir']]);
-			elseif ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
-			else {
-				unset($zip);
-				if ($this->isAbsolutePath($this->config['tmp_dir']))
-					$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
-				else
-					$dfile = $this->pathCombine(__DIR__, $this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
+			throw new IFMException($this->l('nopermission'));
 
-				try {
-					IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
-					if ($d['filename'] == ".") {
-						if (getcwd() == $this->getScriptRoot())
-							$d['filename'] = "root";
-						else
-							$d['filename'] = basename(getcwd());
-					}
-					$this->fileDownload(["file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true]);
-				} catch (Exception $e) {
-					echo $this->l['error'] . " " . $e->getMessage();
-				} finally {
-					if (file_exists($dfile))
-						@unlink($dfile);
-				}
+		if (!file_exists($d['filename']))
+			throw new IFMException($this->l('folder_not_found'));
+
+		if (!$this->isPathValid($d['filename']))
+			throw new IFMException($this->l('invalid_dir'));
+
+		if ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
+			throw new IFMException($this->l('invalid_filename'));
+
+		unset($zip);
+		if ($this->isAbsolutePath($this->config['tmp_dir']))
+			$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
+		else
+			$dfile = $this->pathCombine(__DIR__, $this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
+
+		try {
+			IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
+			if ($d['filename'] == ".") {
+				if (getcwd() == $this->getScriptRoot())
+					$d['filename'] = "root";
+				else
+					$d['filename'] = basename(getcwd());
 			}
+			$this->fileDownload(["file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true]);
+		} catch (Exception $e) {
+			throw new IFMException($this->l('error') . " " . $e->getMessage());
+		} finally {
+			if (file_exists($dfile))
+				@unlink($dfile);
 		}
 	}
 
 	// uploads a file from an other server using the curl extention
 	private function remoteUpload(array $d) {
 		if ($this->config['remoteupload'] != 1)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
-		elseif (!isset($d['method']) || !in_array($d['method'], ["curl", "file"]))
-			$this->jsonResponse(["status" => "error", "message" => $this->l['invalid_params']]);
-		elseif ($d['method'] == "curl" && $this->checkCurl() == false)
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['error']." cURL extention not installed."]);
+			throw new IFMException($this->l('nopermissions'));
+
+		if (!isset($d['method']) || !in_array($d['method'], ["curl", "file"]))
+			throw new IFMException($this->l('invalid_params'));
+
+		if ($d['method'] == "curl" && $this->checkCurl() == false)
+			throw new IFMException($this->l('error')." cURL extention not installed.");
 		elseif ($d['method'] == "curl" && $this->checkCurl() == true) {
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
 			$ch = curl_init();
 			if ($ch) {
 				if ($this->isFilenameValid($filename) == false)
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+					throw new IFMException($this->l('invalid_filename'));
 				elseif (filter_var($d['url'], FILTER_VALIDATE_URL) === false)
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_url']]);
+					throw new IFMException($this->l('invalid_url'));
 				else {
 					$fp = fopen($filename, "w");
 					if ($fp) {
@@ -887,67 +853,67 @@ f00bar;
 							|| !curl_setopt($ch, CURLOPT_HEADER, 0)
 							|| !curl_exec($ch)
 						)
-							$this->jsonResponse(["status" => "ERROR", "message" => $this->l['error']." ".curl_error( $ch )]);
+							throw new IFMException($this->l('error')." ".curl_error( $ch ));
 						else
-							$this->jsonResponse(["status" => "OK", "message" => $this->l['file_upload_success']]);
+							$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success')]);
 						curl_close($ch);
 						fclose($fp);
 					} else 
-						$this->jsonResponse(["status" => "ERROR", "message" => $this->l['file_open_error']]);
+						throw new IFMException($this->l('file_open_error'));
 				}
 			} else
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['error']." curl init"]);
+				throw new IFMException($this->l('error')." curl init");
 		} elseif ($d['method'] == 'file') {
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
 			if ($this->isFilenameValid($filename) == false)
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+				throw new IFMException($this->l('invalid_filename'));
 			else {
 				try {
 					file_put_contents($filename, file_get_contents($d['url']));
-					$this->jsonResponse(["status" => "OK", "message" => $this->l['file_upload_success']]);
+					$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success')]);
 				} catch (Exception $e) {
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['error'] . " " . $e->getMessage()]);
+					throw new IFMException($this->l('error') . " " . $e->getMessage());
 				}
 			}
 		} else
-			$this->jsonResponse(["status" => "error", "message" => $this->l['invalid_params']]);
+			$this->jsonResponse(["status" => "error", "message" => $this->l('invalid_params')]);
 	}
 
 	private function createArchive($d) {
 		if ($this->config['createarchive'] != 1) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['nopermissions']]);
+			throw new IFMException($this->l('nopermissions'));
 			return false;
 		}
 
 		if (!$this->isFilenameValid($d['archivename'])) {
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+			throw new IFMException($this->l('invalid_filename'));
 			return false;
 		}
 
 		$filenames = array();
 		foreach ($d['filenames'] as $file)
 			if (!$this->isFilenameValid($file)) {
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['invalid_filename']]);
+				throw new IFMException($this->l('invalid_filename'));
 				exit(1);
 			} else 
 				array_push($filenames, realpath($file));
 		switch ($d['format']) {
 			case "zip":
 				if (IFMArchive::createZip($filenames, $d['archivename']))
-					$this->jsonResponse(["status" => "OK", "message" => $this->l['archive_create_success']]);
+					$this->jsonResponse(["status" => "OK", "message" => $this->l('archive_create_success')]);
 				else
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['archive_create_error']]);
+					throw new IFMException($this->l('archive_create_error'));
 				break;
 			case "tar":
 			case "tar.gz":
 			case "tar.bz2":
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
-					$this->jsonResponse(["status" => "OK", "message" => $this->l['archive_create_success']]);
+					$this->jsonResponse(["status" => "OK", "message" => $this->l('archive_create_success')]);
 				else
-					$this->jsonResponse(["status" => "ERROR", "message" => $this->l['archive_create_error']]);
+					throw new IFMException($this->l('archive_create_error'));
 				break;
 			default:
-				$this->jsonResponse(["status" => "ERROR", "message" => $this->l['archive_invalid_format']]);
+				throw new IFMException($this->l('archive_invalid_format'));
 				break;
 		}
 	}
@@ -955,6 +921,15 @@ f00bar;
 	/*
 	   help functions
 	 */
+
+	private function l($str) {
+		if (isset($_REQUEST['lang'])
+			&& in_array($_REQUEST['lang'], array_keys($this->i18n))
+			&& isset($this->i18n[$_REQUEST['lang'][$str]))
+			return $this->i18n[$_REQUEST['lang'][$str];
+		else
+			return $this->i18n['en'][$str];
+	}
 
 	private function log($d) {
 		file_put_contents($this->pathCombine($this->getRootDir(), "debug.ifm.log"), (is_array($d) ? print_r($d, true)."\n" : $d."\n"), FILE_APPEND);
@@ -988,7 +963,7 @@ f00bar;
 					break;
 			}
 
-			$this->jsonResponse(["status" => "ERROR", "message" => $this->l['json_encode_error']." ".$err]);
+			throw new IFMException($this->l('json_encode_error')." ".$err);
 		} else
 			echo $json;
 	}
