@@ -346,23 +346,23 @@ f00bar;
 	}
 
 	private function getItemInformation($name) {
-		$item = array();
+		$item = [];
 		$item["name"] = $name;
 		if (is_dir($name)) {
 			$item["type"] = "dir";
-			if( $name == ".." )
+			if ($name == "..")
 				$item["icon"] = "icon icon-up-open";
 			else 
 				$item["icon"] = "icon icon-folder-empty";
 		} else {
 			$item["type"] = "file";
-			if (in_array(substr($name, -7), array( ".tar.gz", ".tar.xz" )))
+			if (in_array(substr($name, -7), [".tar.gz", ".tar.xz"]))
 				$type = substr($name, -6);
-			elseif( substr( $name, -8 ) == ".tar.bz2" )
+			elseif (substr($name, -8) == ".tar.bz2")
 				$type = "tar.bz2";
 			else
-				$type = substr( strrchr( $name, "." ), 1 );
-			$item["icon"] = $this->getTypeIcon( $type );
+				$type = substr(strrchr($name, "."), 1);
+			$item["icon"] = $this->getTypeIcon($type);
 			$item["ext"] = strtolower($type);
 			if (!$this->config['disable_mime_detection'])
 				$item["mime_type"] = mime_content_type($name);
@@ -407,7 +407,7 @@ f00bar;
 
 	private function getConfig() {
 		$ret = $this->config;
-		$ret['inline'] = ( $this->mode == "inline" ) ? true : false;
+		$ret['inline'] = ($this->mode == "inline") ? true : false;
 		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
 
 		foreach (["auth_source", "root_dir"] as $field)
@@ -416,7 +416,7 @@ f00bar;
 		return $ret;
 	}
 
-	private function getFolders( $d ) {
+	private function getFolders($d) {
 		if (!isset($d['dir']))
 			$d['dir'] = $this->getRootDir();
 
@@ -425,14 +425,14 @@ f00bar;
 		else {
 			$ret = [];
 			foreach (glob($this->pathCombine($d['dir'], "*"), GLOB_ONLYDIR) as $dir) {
-				array_push( $ret, [
+				array_push($ret, [
 					"text" => htmlspecialchars(basename($dir)),
 					"lazyLoad" => true,
 					"dataAttr" => ["path" => $dir]
 				]);
 			}
-			sort( $ret );
-			if( $this->getScriptRoot() == realpath( $d['dir'] ) )
+			sort($ret);
+			if ($this->getScriptRoot() == realpath($d['dir']))
 				$ret = array_merge(
 					[
 						0 => [
@@ -457,12 +457,12 @@ f00bar;
 		return $results;
 	}
 
-	private function searchItemsRecursive( $pattern, $dir="" ) {
+	private function searchItemsRecursive($pattern, $dir="") {
 		$items = [];
 		$dir = $dir ?? '.';
 
 		foreach (glob($this->pathCombine($dir, $pattern)) as $result)
-			array_push($items, $this->getItemInformation( $result ) );
+			array_push($items, $this->getItemInformation($result));
 
 		foreach (glob($this->pathCombine($dir, '*'), GLOB_ONLYDIR) as $subdir)
 			$items = array_merge($items, $this->searchItemsRecursive($pattern, $subdir));
@@ -470,7 +470,7 @@ f00bar;
 		return $items;
 	}
 
-	private function getFolderTree( $d ) {
+	private function getFolderTree($d) {
 		return array_merge(
 			[
 				0 => [
@@ -587,7 +587,8 @@ f00bar;
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent($d) {
 		if ($this->config['edit'] != 1)
-			throw new IFMException($this->l('npermissions'));
+			throw new IFMException($this->l('nopermissions'));
+
 		if (isset($d['filename']) && $this->isFilenameAllowed($d['filename']) && file_exists($d['filename']) && is_readable($d['filename'])) {
 			$content = @file_get_contents($d['filename']);
 			if (function_exists("mb_check_encoding") && !mb_check_encoding($content, "UTF-8"))
@@ -602,7 +603,7 @@ f00bar;
 		if ($this->config['delete'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 
-		$err = array(); $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
+		$err = []; $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
 		foreach ($d['filenames'] as $file) {
 			if ($this->isFilenameAllowed($file)) {
 				if (is_dir($file)) {
@@ -636,30 +637,27 @@ f00bar;
 	private function renameFile(array $d) {
 		if ($this->config['rename'] != 1)
 			throw new IFMException($this->l('nopermissions'));
-		elseif (!$this->isFilenameValid($d['filename']))
-			throw new IFMException($this->l('invalid_filename'));
-		elseif (!$this->isFilenameValid($d['newname']))
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l('invalid_filename') ) );
-		else {
-			if (@rename($d['filename'], $d['newname']))
-				$this->jsonResponse(["status" => "OK", "message" => $this->l('file_rename_success')]);
-			else
-				throw new IFMException($this->l('file_rename_error'));
-		}
+		elseif (!$this->isFilenameValid($d['filename']) || !$this->isFilenameValid($d['newname']))
+			throw new IFMException($this->l('invalid_filename')));
+
+		if (@rename($d['filename'], $d['newname']))
+			return ["status" => "OK", "message" => $this->l('file_rename_success')];
+		else
+			throw new IFMException($this->l('file_rename_error'));
 	}
 
 	// provides a file for downloading
 	private function downloadFile(array $d, $forceDL=true) {
 		if ($this->config['download'] != 1)
 			throw new IFMException($this->l('nopermissions'));
-		elseif (!$this->isFilenameValid($d['filename']))
+
+		if (!$this->isFilenameValid($d['filename']))
 			throw new IFMException($this->l('invalid_filename'));
-		else {
-			if (!is_file($d['filename']))
-				http_response_code(404);
-			else 
-				$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL]);
-		}
+
+		if (!is_file($d['filename']))
+			http_response_code(404);
+		else 
+			$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL]);
 	}
 
 	// extracts a zip-archive
@@ -669,54 +667,47 @@ f00bar;
 		$tmpSelfChecksum = null;
 		if ($this->config['extract'] != 1)
 			throw new IFMException($this->l('nopermissions'));
-		else {
-			if (!file_exists($d['filename'])) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l('invalid_filename')]);
-				exit(1);
+
+		if (!file_exists($d['filename']))
+			throw new IFMException($this->l('invalid_filename'));
+
+		if (!isset($d['targetdir']) || trim($d['targetdir']) == "")
+			$d['targetdir'] = "./";
+
+		if (!$this->isPathValid($d['targetdir']))
+			throw new IFMException($this->l('invalid_dir'));
+
+		if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0777, true))
+			throw new IFMException($this->l('folder_create_error'));
+
+		if (realpath($d['targetdir']) == substr($this->getScriptRoot(), 0, strlen(realpath($d['targetdir'])))) {
+			$tmpSelfContent = tmpfile();
+			fwrite($tmpSelfContent, file_get_contents(__FILE__));
+			$tmpSelfChecksum = hash_file("sha256", __FILE__);
+			$restoreIFM = true;
+		}
+
+		if (substr(strtolower($d['filename']), -4) == ".zip") {
+			if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
+				throw new IFMException($this->l('extract_error'));
+			else
+				return ["status" => "OK","message" => $this->l('extract_success')];
+		} else {
+			if (!IFMArchive::extractTar($d['filename'], $d['targetdir']))
+				throw new IFMException($this->l('extract_error'));
+			else
+				return ["status" => "OK","message" => $this->l('extract_success')];
+		} 
+
+		if ($restoreIFM) {
+			if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
+				rewind($tmpSelfContent);
+				$fh = fopen(__FILE__, "w");
+				while (!feof($tmpSelfContent))
+					fwrite($fh, fread($tmpSelfContent, 8196));
+				fclose($fh);
 			}
-
-			if (!isset($d['targetdir']) || trim($d['targetdir']) == "")
-				$d['targetdir'] = "./";
-
-			if (!$this->isPathValid($d['targetdir'])) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l('invalid_dir')]);
-				exit(1);
-			}
-
-			if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0777, true)) {
-				$this->jsonResponse(["status" => "ERROR","message" => $this->l('folder_create_error')]);
-				exit(1);
-			}
-
-			if (realpath($d['targetdir']) == substr($this->getScriptRoot(), 0, strlen(realpath($d['targetdir'])))) {
-				$tmpSelfContent = tmpfile();
-				fwrite($tmpSelfContent, file_get_contents(__FILE__));
-				$tmpSelfChecksum = hash_file("sha256", __FILE__);
-				$restoreIFM = true;
-			}
-
-			if (substr(strtolower($d['filename']), -4) == ".zip") {
-				if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
-					$this->jsonResponse(["status" => "ERROR","message" => $this->l('extract_error')]);
-				else
-					$this->jsonResponse(["status" => "OK","message" => $this->l('extract_success')]);
-			} else {
-				if (!IFMArchive::extractTar($d['filename'], $d['targetdir']))
-					$this->jsonResponse(["status" => "ERROR","message" => $this->l('extract_error')]);
-				else
-					$this->jsonResponse(["status" => "OK","message" => $this->l('extract_success')]);
-			} 
-
-			if ($restoreIFM) {
-				if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
-					rewind( $tmpSelfContent );
-					$fh = fopen( __FILE__, "w" );
-					while (!feof($tmpSelfContent))
-						fwrite($fh, fread($tmpSelfContent, 8196));
-					fclose($fh);
-				}
-				fclose($tmpSelfContent);
-			}
+			fclose($tmpSelfContent);
 		}
 	}
 
@@ -724,25 +715,24 @@ f00bar;
 	private function uploadFile(array $d) {
 		if($this->config['upload'] != 1)
 			throw new IFMException($this->l('nopermissions'));
-		elseif (!isset($_FILES['file']))
+
+		if (!isset($_FILES['file']))
 			throw new IFMException($this->l('file_upload_error'));
-		else {
-			$newfilename = (isset($d["newfilename"]) && $d["newfilename"]!="") ? $d["newfilename"] : $_FILES['file']['name'];
-			if (!$this->isFilenameValid($newfilename))
-				throw new IFMException($this->l('invalid_filename'));
-			else {
-				if ($_FILES['file']['tmp_name']) {
-					if (is_writable(getcwd())) {
-						if (move_uploaded_file($_FILES['file']['tmp_name'], $newfilename))
-							$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success'), "cd" => $d['dir']]);
-						else
-							throw new IFMException($this->l('file_upload_error'));
-					} else
-						throw new IFMException($this->l('file_upload_error'));
-				} else
-					throw new IFMException($this->l('file_not_found'));
-			}
-		}
+
+		$newfilename = (isset($d["newfilename"]) && $d["newfilename"]!="") ? $d["newfilename"] : $_FILES['file']['name'];
+		if (!$this->isFilenameValid($newfilename))
+			throw new IFMException($this->l('invalid_filename'));
+
+		if ($_FILES['file']['tmp_name']) {
+			if (is_writable(getcwd())) {
+				if (move_uploaded_file($_FILES['file']['tmp_name'], $newfilename))
+					return ["status" => "OK", "message" => $this->l('file_upload_success'), "cd" => $d['dir']];
+				else
+					throw new IFMException($this->l('file_upload_error'));
+			} else
+				throw new IFMException($this->l('file_upload_error'));
+		} else
+			throw new IFMException($this->l('file_not_found'));
 	}
 
 	// change permissions of a file
@@ -780,7 +770,7 @@ f00bar;
 		if ($cmi) {
 			try {
 				chmod($d["filename"], (int)octdec($chmod));
-				$this->jsonResponse(["status" => "OK", "message" => $this->l('permission_change_success')]);
+				return ["status" => "OK", "message" => $this->l('permission_change_success')];
 			} catch (Exception $e) {
 				throw new IFMException($this->l('permission_change_error'));
 			}
@@ -810,7 +800,7 @@ f00bar;
 			$dfile = $this->pathCombine(__DIR__, $this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
 
 		try {
-			IFMArchive::createZip(realpath($d['filename']), $dfile, array($this, 'isFilenameValid'));
+			IFMArchive::createZip(realpath($d['filename']), $dfile, [$this, 'isFilenameValid']);
 			if ($d['filename'] == ".") {
 				if (getcwd() == $this->getScriptRoot())
 					$d['filename'] = "root";
@@ -836,7 +826,8 @@ f00bar;
 
 		if ($d['method'] == "curl" && $this->checkCurl() == false)
 			throw new IFMException($this->l('error')." cURL extention not installed.");
-		elseif ($d['method'] == "curl" && $this->checkCurl() == true) {
+
+		if ($d['method'] == "curl" && $this->checkCurl() == true) {
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
 			$ch = curl_init();
 			if ($ch) {
@@ -853,9 +844,9 @@ f00bar;
 							|| !curl_setopt($ch, CURLOPT_HEADER, 0)
 							|| !curl_exec($ch)
 						)
-							throw new IFMException($this->l('error')." ".curl_error( $ch ));
+							throw new IFMException($this->l('error')." ".curl_error($ch));
 						else
-							$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success')]);
+							return ["status" => "OK", "message" => $this->l('file_upload_success')];
 						curl_close($ch);
 						fclose($fp);
 					} else 
@@ -870,37 +861,33 @@ f00bar;
 			else {
 				try {
 					file_put_contents($filename, file_get_contents($d['url']));
-					$this->jsonResponse(["status" => "OK", "message" => $this->l('file_upload_success')]);
+					return ["status" => "OK", "message" => $this->l('file_upload_success')];
 				} catch (Exception $e) {
 					throw new IFMException($this->l('error') . " " . $e->getMessage());
 				}
 			}
 		} else
-			$this->jsonResponse(["status" => "error", "message" => $this->l('invalid_params')]);
+			throw new IFMException($this->l('invalid_params'));
 	}
 
 	private function createArchive($d) {
-		if ($this->config['createarchive'] != 1) {
+		if ($this->config['createarchive'] != 1)
 			throw new IFMException($this->l('nopermissions'));
-			return false;
-		}
 
-		if (!$this->isFilenameValid($d['archivename'])) {
+		if (!$this->isFilenameValid($d['archivename']))
 			throw new IFMException($this->l('invalid_filename'));
-			return false;
-		}
 
-		$filenames = array();
+		$filenames = [];
 		foreach ($d['filenames'] as $file)
-			if (!$this->isFilenameValid($file)) {
+			if (!$this->isFilenameValid($file))
 				throw new IFMException($this->l('invalid_filename'));
-				exit(1);
-			} else 
+			else 
 				array_push($filenames, realpath($file));
+
 		switch ($d['format']) {
 			case "zip":
 				if (IFMArchive::createZip($filenames, $d['archivename']))
-					$this->jsonResponse(["status" => "OK", "message" => $this->l('archive_create_success')]);
+					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
 					throw new IFMException($this->l('archive_create_error'));
 				break;
@@ -908,7 +895,7 @@ f00bar;
 			case "tar.gz":
 			case "tar.bz2":
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
-					$this->jsonResponse(["status" => "OK", "message" => $this->l('archive_create_success')]);
+					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
 					throw new IFMException($this->l('archive_create_error'));
 				break;
@@ -1072,7 +1059,7 @@ f00bar;
 
 	private function filePermsDecode($perms) {
 		$oct = str_split(strrev(decoct($perms)), 1);
-		$masks = array( '---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx' );
+		$masks = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
 		return(
 			sprintf(
 				'%s %s %s',
@@ -1126,7 +1113,7 @@ f00bar;
 		 * nonexistent paths. Hence we need to check the path manually in the following lines.
 		 */
 		$tmp_d = $dir;
-		$tmp_missing_parts = array();
+		$tmp_missing_parts = [];
 		while (realpath($tmp_d) === false) {
 			$tmp_i = pathinfo($tmp_d);
 			array_push($tmp_missing_parts, $tmp_i['filename']);
@@ -1182,7 +1169,7 @@ f00bar;
 				if ($res == -1) {
 					@closedir($dir);
 					return -2;
-				} else if( $res == -2 ) {
+				} else if ($res == -2) {
 					@closedir($dir);
 					return -2;
 				} else if ($res == -3) {
@@ -1239,6 +1226,7 @@ f00bar;
 	public function isFilenameValid($f) {
 		if (!$this->isFilenameAllowed($f))
 			return false;
+
 		if (strtoupper(substr(PHP_OS, 0, 3)) == "WIN") {
 			// windows-specific limitations
 			foreach (['\\', '/', ':', '*', '?', '"', '<', '>', '|'] as $char)
@@ -1250,6 +1238,7 @@ f00bar;
 				if (strpos($f, $char) !== false)
 					return false;
 		}
+
 		// custom limitations
 		foreach ($this->config['forbiddenChars'] as $char)
 			if (strpos($f, $char) !== false)
@@ -1262,7 +1251,7 @@ f00bar;
 			return false;
 		elseif ($this->config['showhiddenfiles'] != 1 && substr($f, 0, 1) == ".")
 			return false;
-		elseif ($this->config['selfoverwrite'] != 1 && getcwd() == $this->getScriptRoot() && $f == basename( __FILE__ ))
+		elseif ($this->config['selfoverwrite'] != 1 && getcwd() == $this->getScriptRoot() && $f == basename(__FILE__))
 			return false;
 		else
 			return true;
@@ -1277,7 +1266,7 @@ f00bar;
 
 	// is cURL extention avaliable?
 	private function checkCurl() {
-		if( !function_exists("curl_init")
+		if (!function_exists("curl_init")
 			|| !function_exists("curl_setopt")
 			|| !function_exists("curl_exec")
 			|| !function_exists("curl_close")
@@ -1295,7 +1284,7 @@ f00bar;
 			$content_type = "application/octet-stream";
 			header('Content-Disposition: attachment; filename="'.$options['name'].'"');
 		} else
-			$content_type = mime_content_type( $options['file'] );
+			$content_type = mime_content_type($options['file']);
 
 		header('Content-Type: '.$content_type);
 		header('Expires: 0');
