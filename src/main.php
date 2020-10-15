@@ -164,9 +164,9 @@ f00bar;
 			else
 				$this->getInlineApplication();
 		} catch (IFMException $e) {
-			throw new IFMException($e->getMessage());
+			$this->jsonResponse(["status" => "ERROR", "message" => $e->getMessage()]);
 		} catch (Exception $e) {
-			throw new IFMException($e->getMessage());
+			$this->jsonResponse(["status" => "ERROR", "message" => $e->getMessage()]);
 		}
 	}
 
@@ -243,9 +243,7 @@ f00bar;
 	 */
 
 	private function getI18N($lang="en") {
-		
-		if (in_array($lang, array_keys($i18n)))
-			// Merge english with the language in case of missing keys
+		if (in_array($lang, array_keys($this->i18n)))
 			return array_merge($this->i18n['en'], $this->i18n[$lang]);
 		else
 			return $this->i18n['en'];
@@ -342,7 +340,7 @@ f00bar;
 		usort($dirs, [$this, "sortByName"]);
 		usort($files, [$this, "sortByName"]);
 
-		return array_merge($dirs, $files);
+		return ["data" => array_merge($dirs, $files)];
 	}
 
 	private function getItemInformation($name) {
@@ -556,7 +554,7 @@ f00bar;
 			throw new IFMException($this->l('invalid_dir'));
 
 		if (@mkdir($dn))
-			return ["status" => "OK", "message" => $this->l('folder_create_success')]);
+			return ["status" => "OK", "message" => $this->l('folder_create_success')];
 		else
 			throw new IFMException($this->l('folder_create_error').". ".error_get_last()['message']);
 	}
@@ -574,7 +572,7 @@ f00bar;
 				// work around magic quotes
 				$content = get_magic_quotes_gpc() == 1 ? stripslashes($d['content']) : $d['content'];
 				if (@file_put_contents($d['filename'], $content) !== false)
-					return ["status" => "OK", "message" => $this->l('file_save_success')]);
+					return ["status" => "OK", "message" => $this->l('file_save_success')];
 				else
 					throw new Exception($this->l('file_save_error'));
 			} else
@@ -593,7 +591,7 @@ f00bar;
 			$content = @file_get_contents($d['filename']);
 			if (function_exists("mb_check_encoding") && !mb_check_encoding($content, "UTF-8"))
 				$content = utf8_encode($content);
-			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]]);
+			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]];
 		} else
 			throw new IFMException($this->l('file_not_found'));
 	}
@@ -623,7 +621,7 @@ f00bar;
 			}
 		}
 		if (empty($err))
-			return ["status" => "OK", "message" => $this->l('file_delete_success'), "errflag" => "1"]);
+			return ["status" => "OK", "message" => $this->l('file_delete_success'), "errflag" => "1"];
 		else {
 			$errmsg = $this->l('file_delete_error') . "<ul>";
 			foreach ($err as $item)
@@ -638,7 +636,7 @@ f00bar;
 		if ($this->config['rename'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 		elseif (!$this->isFilenameValid($d['filename']) || !$this->isFilenameValid($d['newname']))
-			throw new IFMException($this->l('invalid_filename')));
+			throw new IFMException($this->l('invalid_filename'));
 
 		if (@rename($d['filename'], $d['newname']))
 			return ["status" => "OK", "message" => $this->l('file_rename_success')];
@@ -912,8 +910,8 @@ f00bar;
 	private function l($str) {
 		if (isset($_REQUEST['lang'])
 			&& in_array($_REQUEST['lang'], array_keys($this->i18n))
-			&& isset($this->i18n[$_REQUEST['lang'][$str]))
-			return $this->i18n[$_REQUEST['lang'][$str];
+			&& isset($this->i18n[$_REQUEST['lang']][$str]))
+			return $this->i18n[$_REQUEST['lang']][$str];
 		else
 			return $this->i18n['en'][$str];
 	}
