@@ -9,11 +9,11 @@
 chdir(realpath(dirname(__FILE__)));
 
 // output files and common attrs
-define("IFM_VERSION",       "v2.6.2");
-define("IFM_RELEASE_DIR",   "dist/");
-define("IFM_STANDALONE",    "ifm.php");
-define("IFM_STANDALONE_GZ", "ifm.min.php");
-define("IFM_LIB",           "libifm.php");
+define( "IFM_VERSION",       "v2.6.3" );
+define( "IFM_RELEASE_DIR",   "dist/");
+define( "IFM_STANDALONE",    "ifm.php" );
+define( "IFM_STANDALONE_GZ", "ifm.min.php" );
+define( "IFM_LIB",           "libifm.php" );
 
 // php source files
 $IFM_SRC_PHP = [

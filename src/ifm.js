@@ -171,9 +171,9 @@ function IFM(params) {
 			else if (self.config.download && self.config.zipnload) {
 				if (self.config.root_public_url) {
 					if (self.config.root_public_url.charAt(0) == "/")
-						item.link = self.pathCombine(window.location.origin, self.config.root_public_url, self.currentDir, item.name);
+						item.link = self.pathCombine(window.location.origin, self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 					else
-						item.link = self.pathCombine(self.config.root_public_url, self.currentDir, item.name);
+						item.link = self.pathCombine(self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 				} else
 					item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
 			} else
