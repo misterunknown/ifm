@@ -951,8 +951,10 @@ function IFM(params) {
 				var existing_files;
 				if (files.length > 1)
 					existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
-				else
-					existing_files = self.fileCache.map(x => x.name).indexOf(newfilename) ? [newfilename] : [];
+				else if (newfilename)
+					existing_files = self.fileCache.map(x => x.name).indexOf(newfilename) !== -1 ? [newfilename] : [];
+				else 
+					existing_files = self.fileCache.map(x => x.name).indexOf(files[0].name) !== -1 ? [files[0].name] : [];
 				if (existing_files.length > 0 && self.config.confirmoverwrite)
 					self.showUploadConfirmOverwrite(files, existing_files, newfilename);
 				else {
