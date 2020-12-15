@@ -597,7 +597,7 @@ IFM_ASSETS
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent( array $d ) {
 		if( $this->config['edit'] != 1 )
-			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['npermissions'] ) );
+			$this->jsonResponse( array( "status" => "ERROR", "message" => $this->l['nopermissions'] ) );
 		else {
 			if( isset( $d['filename'] ) && $this->isFilenameAllowed( $d['filename'] ) && file_exists( $d['filename'] ) && is_readable( $d['filename'] ) ) {
 				$content = @file_get_contents( $d['filename'] );
