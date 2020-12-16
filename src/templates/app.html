@@ -72,27 +72,27 @@
 		<table id="filetable" class="table">
 			<thead>
 				<tr>
-					<th class="th-meta hidden" data-visible="false"></th>
-					<th class="th-filename">{{i18n.filename}}</th>
+					<th class="th-meta hidden never" data-visible="false"></th>
+					<th class="th-filename all">{{i18n.filename}}</th>
 					{{#config.download}}
-					<th class="th-download"></th>
+					<th class="th-download all"></th>
 					{{/config.download}}
 					{{#config.showlastmodified}}
-					<th class="th-lastmod">{{i18n.last_modified}}</th>
+					<th class="th-lastmod tablet-l desktop">{{i18n.last_modified}}</th>
 					{{/config.showlastmodified}}
 					{{#config.showfilesize}}
-					<th class="th-size">{{i18n.size}}</th>
+					<th class="th-size tablet-p tablet-l desktop">{{i18n.size}}</th>
 					{{/config.showfilesize}}
 					{{#config.showpermissions}}
-					<th class="th-permissions d-none d-md-table-cell">{{i18n.permissions}}</th>
+					<th class="th-permissions d-none d-md-table-cell tablet-p tablet-l desktop">{{i18n.permissions}}</th>
 					{{/config.showpermissions}}
 					{{#config.showowner}}
-					<th class="th-owner d-none d-lg-table-cell">{{i18n.owner}}</th>
+					<th class="th-owner d-none d-lg-table-cell tablet-l desktop">{{i18n.owner}}</th>
 					{{/config.showowner}}
 					{{#config.showgroup}}
-					<th class="th-group d-none d-xl-table-cell">{{i18n.group}}</th>
+					<th class="th-group d-none d-xl-table-cell desktop">{{i18n.group}}</th>
 					{{/config.showgroup}}
-					<th class="th-buttons buttons"></th>
+					<th class="th-buttons buttons all"></th>
 				</tr>
 			</thead>
 			<tbody>

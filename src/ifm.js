@@ -225,7 +225,8 @@ function IFM(params) {
 			language: {
 				"search": self.i18n.filter
 			},
-			stateSave: true
+			stateSave: true,
+			responsive: true
 		});
 
 
