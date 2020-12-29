@@ -11,6 +11,9 @@ function IFM(params) {
 	// set the backend for the application
 	self.api = params.api || window.location.href.replace(/#.*/, "");
 
+	// desktop browser not support window.orientation
+	const ISMOBILE = typeof window.orientation !== 'undefined';
+
 	this.editor = null;		// global ace editor
 	this.fileChanged = false;	// flag for check if file was changed already
 	this.currentDir = "";		// this is the global variable for the current directory; it is used for AJAX requests
@@ -133,7 +136,7 @@ function IFM(params) {
 					item.download.action = "download";
 					item.download.icon = "icon icon-download";
 				}
-				if( item.icon.indexOf( 'file-image' ) !== -1  ) {
+				if ((item.icon.indexOf( 'file-image' ) !== -1) && (ISMOBILE == false)) {
 					item.popover = 'data-toggle="popover"';
 				}
 				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
