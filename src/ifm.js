@@ -32,15 +32,15 @@ function IFM(params) {
 	 */
 	this.showModal = function( content, options ) {
 		options = options || {};
-		var modal = document.createElement( 'div' );
+		let modal = document.createElement( 'div' );
 		modal.classList.add( 'modal' );
 		modal.id = 'ifmmodal';
 		modal.attributes.role = 'dialog';
-		var modalDialog = document.createElement( 'div' );
+		let modalDialog = document.createElement( 'div' );
 		modalDialog.classList.add( 'modal-dialog' );
 		modalDialog.attributes.role = 'document';
 		if( options.large == true ) modalDialog.classList.add( 'modal-lg' );
-		var modalContent = document.createElement('div');
+		let modalContent = document.createElement('div');
 		modalContent.classList.add( 'modal-content' );
 		modalContent.innerHTML = content;
 		modalDialog.appendChild( modalContent );
@@ -58,7 +58,7 @@ function IFM(params) {
 					$(this).remove();
 			})
 			.on( 'shown.bs.modal', function( e ) {
-				var formElements = $(this).find('input, button');
+				let formElements = $(this).find('input, button');
 				if( formElements.length > 0 ) {
 					formElements.first().focus();
 				}
@@ -79,7 +79,7 @@ function IFM(params) {
 	 * Refreshes the file table
 	 */
 	this.refreshFileTable = function () {
-		var taskid = self.generateGuid();
+		let taskid = self.generateGuid();
 		self.task_add( { id: taskid, name: self.i18n.refresh } );
 		$.ajax({
 			url: self.api,
@@ -206,8 +206,8 @@ function IFM(params) {
 
 
 		// build new tbody and replace the old one with the new
-		var newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n, api: self.api } );
-		var filetable = document.getElementById( 'filetable' );
+		let newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n, api: self.api } );
+		let filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
@@ -252,7 +252,7 @@ function IFM(params) {
 			} else if( e.target.parentElement.name && e.target.parentElement.name.substring(0, 3) == "do-" ) {
 				e.stopPropagation();
 				e.preventDefault();
-				var item = self.fileCache.find( function( x ) { if( x.guid === e.target.parentElement.dataset.id ) return x; } );
+				let item = self.fileCache.find( function( x ) { if( x.guid === e.target.parentElement.dataset.id ) return x; } );
 				switch( e.target.parentElement.name.substr( 3 ) ) {
 					case "rename":
 						self.showRenameFileDialog( item.name );
@@ -275,8 +275,8 @@ function IFM(params) {
 		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="popover"]' ).popover({
 			content: function() {
-				var item = self.fileCache.find( x => x.guid == $(this).attr('id') );
-				var popover = document.createElement( 'img' );
+				let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
+				let popover = document.createElement( 'img' );
 				if( self.config.isDocroot )
 					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
 				else
@@ -292,9 +292,9 @@ function IFM(params) {
 
 		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
 			// create the context menu, this also uses jquery, AFAIK
-			var contextMenu = new BootstrapMenu( '.clickable-row', {
+			let contextMenu = new BootstrapMenu( '.clickable-row', {
 				fetchElementData: function( row ) {
-					var data = {};
+					let data = {};
 					data.selected =
 						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
 						.map( function(e){ return self.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
@@ -340,9 +340,9 @@ function IFM(params) {
 							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
 								self.copyToClipboard( data.clicked.link );
 							else {
-								var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+								let pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
 								pathname.pop();
-								var link = self.pathCombine( window.location.origin, data.clicked.link )
+								let link = self.pathCombine( window.location.origin, data.clicked.link )
 								if( pathname.length > 0 )
 									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
 								self.copyToClipboard( link );
@@ -453,11 +453,11 @@ function IFM(params) {
 	 * Shows a file, either a new file or an existing
 	 */
 	this.showFileDialog = function () {
-		var filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
-		var content = arguments.length > 1 ? arguments[1] : "";
+		let filename = arguments.length > 0 ? arguments[0] : "newfile.txt";
+		let content = arguments.length > 1 ? arguments[1] : "";
 		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
 
-		var form = document.getElementById( 'formFile' );
+		let form = document.getElementById( 'formFile' );
 		form.addEventListener( 'keypress', function( e ) {
 			if( e.target.name == 'filename' && e.key == 'Enter' )
 				e.preventDefault();
@@ -486,8 +486,8 @@ function IFM(params) {
 				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
 				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
-				var aceSession = self.editor.getSession();
-				var content = self.getNodeFromString(
+				let aceSession = self.editor.getSession();
+				let content = self.getNodeFromString(
 					Mustache.render(
 						self.templates.file_editoroptions,
 						{
@@ -535,7 +535,7 @@ function IFM(params) {
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
 		if( self.ace && self.inArray( "ext-modelist", self.ace.files ) ) {
-			var mode = ace.require( "ace/ext/modelist" ).getModeForPath( filename ).mode;
+			let mode = ace.require( "ace/ext/modelist" ).getModeForPath( filename ).mode;
 			if( self.inArray( mode, self.ace.modes.map( x => "ace/mode/"+x ) ) )
 				self.editor.getSession().setMode( mode );
 		}
@@ -543,10 +543,10 @@ function IFM(params) {
 			name: "toggleFullscreen",
 			bindKey: "Ctrl-Shift-F",
 			exec: function(e) {
-				var el = e.container;
+				let el = e.container;
 				if (el.parentElement.tagName == "BODY") {
 					el.remove();
-					var fieldset = document.getElementsByClassName('modal-body')[0].firstElementChild;
+					let fieldset = document.getElementsByClassName('modal-body')[0].firstElementChild;
 					fieldset.insertBefore(el, fieldset.getElementsByTagName('button')[0].previousElementSibling);
 					el.style = Object.assign({}, ifm.tmpEditorStyles);
 					ifm.tmpEditorStyles = undefined;
@@ -625,7 +625,7 @@ function IFM(params) {
 	 */
 	this.showCreateDirDialog = function() {
 		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
-		var form = document.forms.formCreateDir;
+		let form = document.forms.formCreateDir;
 		form.elements.dirname.addEventListener( 'keypress', function( e ) {
 			if(e.key == 'Enter' ) {
 				e.preventDefault();
@@ -681,7 +681,7 @@ function IFM(params) {
 			filename: ( Array.isArray( items ) ? items[0].name : items.name ),
 			i18n: self.i18n
 		}));
-		var form = document.forms.formDeleteFiles;
+		let form = document.forms.formDeleteFiles;
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'buttonYes' ) {
 				e.preventDefault();
@@ -728,7 +728,7 @@ function IFM(params) {
 	 */
 	this.showRenameFileDialog = function( filename ) {
 		self.showModal( Mustache.render( self.templates.renamefile, { filename: filename, i18n: self.i18n } ) );
-		var form = document.forms.formRenameFile;
+		let form = document.forms.formRenameFile;
 		form.elements.newname.addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
@@ -812,7 +812,7 @@ function IFM(params) {
 			},
 			error: function() { self.hideModal(); self.showMessage( self.i18n.folder_tree_load_error, "e" ) }
 		});
-		var form = document.forms.formCopyMove;
+		let form = document.forms.formCopyMove;
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'copyButton' ) {
 				e.preventDefault();
@@ -839,7 +839,7 @@ function IFM(params) {
 	this.copyMove = function( sources, destination, action ) {
 		if( ! Array.isArray( sources ) )
 			sources = [sources];
-		var id = self.generateGuid();
+		let id = self.generateGuid();
 		self.task_add( { id: id, name: self.i18n[action] + " " + ( sources.length > 1 ? sources.length : sources[0].name ) + " " + self.i18n.file_copy_to + " " + destination } );
 		$.ajax({
 			url: self.api,
@@ -875,13 +875,13 @@ function IFM(params) {
 	 * @param {string} filename - name of the file
 	 */
 	this.showExtractFileDialog = function( filename ) {
-		var targetDirSuggestion = ( filename.lastIndexOf( '.' ) > 1 ) ? filename.substr( 0, filename.lastIndexOf( '.' ) ) : filename;
+		let targetDirSuggestion = ( filename.lastIndexOf( '.' ) > 1 ) ? filename.substr( 0, filename.lastIndexOf( '.' ) ) : filename;
 		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
-		var form = document.forms.formExtractFile;
+		let form = document.forms.formExtractFile;
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'buttonExtract' ) {
 				e.preventDefault();
-				var loc = form.elements.extractTargetLocation.value;
+				let loc = form.elements.extractTargetLocation.value;
 				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
 				self.hideModal();
 			} else if( e.target.id == 'buttonCancel' ) {
@@ -890,7 +890,7 @@ function IFM(params) {
 			}
 		});
 		form.elements.extractCustomLocation.addEventListener( 'keypress', function( e ) {
-			var loc = form.elements.extractTargetLocation.value;
+			let loc = form.elements.extractTargetLocation.value;
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
 				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) );
@@ -909,7 +909,7 @@ function IFM(params) {
 	 * @param string destination - name of the target directory
 	 */
 	this.extractFile = function( filename, destination ) {
-		var id = self.generateGuid();
+		let id = self.generateGuid();
 		self.task_add( { id: id, name: "extract "+filename } );
 		$.ajax({
 			url: self.api,
@@ -937,7 +937,7 @@ function IFM(params) {
 	 */
 	this.showUploadFileDialog = function() {
 		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
-		var form = document.forms.formUploadFile;
+		let form = document.forms.formUploadFile;
 		form.elements.files.addEventListener( 'change', function( e ) {
 			if( e.target.files.length > 1 )
 				form.elements.newfilename.readOnly = true;
@@ -947,9 +947,9 @@ function IFM(params) {
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'buttonUpload' ) {
 				e.preventDefault();
-				var newfilename = form.elements.newfilename.value;
-				var files = Array.prototype.slice.call( form.elements.files.files );
-				var existing_files;
+				let newfilename = form.elements.newfilename.value;
+				let files = Array.prototype.slice.call( form.elements.files.files );
+				let existing_files;
 				if (files.length > 1)
 					existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
 				else if (newfilename)
@@ -976,7 +976,7 @@ function IFM(params) {
 
 	this.showUploadConfirmOverwrite = function(files, existing_files, newfilename=undefined) {
 		self.showModal(Mustache.render(self.templates.uploadconfirmoverwrite, {files: existing_files, i18n: self.i18n}));
-		var form = document.forms.formUploadConfirmOverwrite;
+		let form = document.forms.formUploadConfirmOverwrite;
 		form.addEventListener('click', function(e) {
 			if (e.target.id == "buttonConfirm") {
 				e.preventDefault();
@@ -998,13 +998,13 @@ function IFM(params) {
 	 * Uploads a file
 	 */
 	this.uploadFile = function( file, newfilename ) {
-		var data = new FormData();
+		let data = new FormData();
  		data.append( 'api', 'upload' );
  		data.append( 'dir', self.currentDir );
  		data.append( 'file', file );
 		if( newfilename )
 			data.append( 'newfilename', newfilename );
-		var id = self.generateGuid();
+		let id = self.generateGuid();
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -1013,7 +1013,7 @@ function IFM(params) {
 			contentType: false,
 			dataType: "json",
 			xhr: function(){
-				var xhr = $.ajaxSettings.xhr() ;
+				let xhr = $.ajaxSettings.xhr() ;
 				xhr.upload.onprogress = function(evt){ self.task_update(evt.loaded/evt.total*100,id); } ;
 				xhr.upload.onload = function(){ self.log('Uploading '+file.name+' done.') } ;
 				return xhr ;
@@ -1065,8 +1065,8 @@ function IFM(params) {
 	 */
 	this.showRemoteUploadDialog = function() {
 		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
-		var form = document.forms.formRemoteUpload;
-		var urlChangeHandler = function( e ) {
+		let form = document.forms.formRemoteUpload;
+		let urlChangeHandler = function( e ) {
 			form.elements.filename.value = e.target.value.substr( e.target.value.lastIndexOf( '/' ) + 1 );
 		};
 		form.elements.url.addEventListener( 'keypress', self.preventEnter );
@@ -1093,7 +1093,7 @@ function IFM(params) {
 	 * Remote uploads a file
 	 */
 	this.remoteUpload = function( url, filename, method ) {
-		var id = ifm.generateGuid();
+		let id = ifm.generateGuid();
 		$.ajax({
 			url: ifm.api,
 			type: "POST",
@@ -1123,7 +1123,7 @@ function IFM(params) {
 	 */
 	this.showAjaxRequestDialog = function() {
 		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
-		var form = document.forms.formAjaxRequest;
+		let form = document.forms.formAjaxRequest;
 		form.elements.ajaxurl.addEventListener( 'keypress', self.preventEnter );
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == 'buttonRequest' ) {
@@ -1156,9 +1156,9 @@ function IFM(params) {
 	this.showSearchDialog = function() {
 		self.showModal( Mustache.render( self.templates.search, { lastSearch: self.search.lastSearch, i18n: self.i18n } ) );
 
-		var updateResults = function( data ) {
+		let updateResults = function( data ) {
 			self.log( 'updated search results' );
-			var searchresults = document.getElementById( 'searchResults' );
+			let searchresults = document.getElementById( 'searchResults' );
 			if( searchresults.tBodies[0] ) searchresults.tBodies[0].remove();
 			searchresults.appendChild( document.createElement( 'tbody' ) );
 			searchresults.tBodies[0].innerHTML = Mustache.render( self.templates.searchresults, { items: self.search.data } );
@@ -1219,7 +1219,7 @@ function IFM(params) {
 	this.showCreateArchiveDialog = function( items ) {
 		self.showModal( Mustache.render( self.templates.createarchive, { i18n: self.i18n } ) );
 
-		var form = document.forms.formCreateArchive;
+		let form = document.forms.formCreateArchive;
 		form.elements.archivename.addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
@@ -1240,7 +1240,7 @@ function IFM(params) {
 	};
 
 	this.createArchive = function( items, archivename ) {
-		var type = "";
+		let type = "";
 		if( archivename.substr( -3 ).toLowerCase() == "zip" )
 			type = "zip";
 		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
@@ -1253,7 +1253,7 @@ function IFM(params) {
 			self.showMessage( self.i18n.invalid_archive_format, "e" );
 			return;
 		}
-		var id = self.generateGuid();
+		let id = self.generateGuid();
 		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
 
 		if( ! Array.isArray( items ) )
@@ -1294,8 +1294,8 @@ function IFM(params) {
 	 * @param string t - message type (e: error, s: success)
 	 */
 	this.showMessage = function(m, t) {
-		var msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
-		var element = ( self.config.inline ) ? self.rootElement : "body";
+		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
+		let element = ( self.config.inline ) ? self.rootElement : "body";
 		$.notify(
 			{ message: m },
 			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
@@ -1312,7 +1312,7 @@ function IFM(params) {
 	this.pathCombine = function() {
 		if( !arguments.length )
 			return "";
-		var args = Array.prototype.slice.call(arguments);
+		let args = Array.prototype.slice.call(arguments);
 		args = args.filter( x => typeof x === 'string' && x != '' );
 
 		if( args.length == 0 )
@@ -1349,7 +1349,7 @@ function IFM(params) {
 	 * @returns {boolean}
 	 */
 	this.inArray = function(needle, haystack) {
-		for( var i = 0; i < haystack.length; i++ )
+		for( let i = 0; i < haystack.length; i++ )
 			if( haystack[i] == needle )
 				return true;
 		return false;
@@ -1361,26 +1361,26 @@ function IFM(params) {
 	 * @param {integer} timestamp - UNIX timestamp
 	 */
 	this.formatDate = function( timestamp ) {
-		var d = new Date( timestamp * 1000 );
+		let d = new Date( timestamp * 1000 );
 
 		return d.toLocaleString(self.config.dateLocale);
 	};
 
 	this.getClipboardLink = function( relpath ) {
-		var link = window.location.origin;
+		let link = window.location.origin;
 		link += window.location.pathname.substr( 0, window.location.pathname.lastIndexOf( "/" ) );
 		link = self.pathCombine( link, relpath );
 		return link;
 	}
 
 	this.getNodeFromString = function( s ) {
-		var template = document.createElement( 'template');
+		let template = document.createElement( 'template');
 		template.innerHTML = s;
 		return template.content.childNodes[0];
 	};
 
 	this.getNodesFromString = function( s ) {
-		var template = document.createElement( 'template');
+		let template = document.createElement( 'template');
 		template.innerHTML = s;
 		return template.content.childNodes;
 	};
@@ -1417,7 +1417,7 @@ function IFM(params) {
 			return false;
 		}
 		if( ! document.querySelector( "footer" ) ) {
-			var newFooter = self.getNodeFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
+			let newFooter = self.getNodeFromString( Mustache.render( self.templates.footer, { i18n: self.i18n } ) );
 			newFooter.addEventListener( 'click', function( e ) {
 				if( e.target.name == 'showAll' || e.target.parentElement.name == "showAll" ) {
 					wq = newFooter.children.wq_container.children[0].children.waitqueue;
@@ -1435,7 +1435,7 @@ function IFM(params) {
 		}
 		task.id = "wq-"+task.id;
 		task.type = task.type || "info";
-		var wq = document.getElementById( 'waitqueue' );
+		let wq = document.getElementById( 'waitqueue' );
 		wq.prepend( self.getNodeFromString( Mustache.render( self.templates.task, task ) ) );
 		document.getElementsByName( 'taskCount' )[0].innerText = wq.children.length;
 	};
@@ -1447,7 +1447,7 @@ function IFM(params) {
 	 */
 	this.task_done = function( id ) {
 		document.getElementById( 'wq-' + id ).remove();
-		var wq = document.getElementById( 'waitqueue' );
+		let wq = document.getElementById( 'waitqueue' );
 		if( wq.children.length == 0 ) {
 			document.getElementsByTagName( 'footer' )[0].remove();
 			document.body.style.paddingBottom = 0;
@@ -1463,7 +1463,7 @@ function IFM(params) {
 	 * @param string id - task identifier
 	 */
 	this.task_update = function( progress, id ) {
-		var progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
+		let progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
 		progbar.style.width = progress+'%';
 		progbar.setAttribute( 'aria-valuenow', progress );
 	};
@@ -1474,14 +1474,14 @@ function IFM(params) {
 	 * @param object param - either an element id or a jQuery object
 	 */
 	this.highlightItem = function( direction ) {
-		var highlight = function( el ) {
+		let highlight = function( el ) {
 			[].slice.call( el.parentElement.children ).forEach( function( e ) {
 				e.classList.remove( 'highlightedItem' );
 			});
 			el.classList.add( 'highlightedItem' );
 			el.firstElementChild.firstElementChild.focus();
 			if( ! self.isElementInViewport( el ) ) {
-				var scrollOffset =  0;
+				let scrollOffset =  0;
 				if( direction=="prev" )
 					scrollOffset = el.offset().top - ( window.innerHeight || document.documentElement.clientHeight ) + el.height() + 15;
 				else
@@ -1491,14 +1491,14 @@ function IFM(params) {
 		};
 
 
-		var highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
+		let highlightedItem = document.getElementsByClassName( 'highlightedItem' )[0];
 		if( ! highlightedItem ) {
 			if( document.activeElement.classList.contains( 'ifmitem' ) )
 				highlight( document.activeElement.parentElement.parentElement );
 			else 
 				highlight( document.getElementById( 'filetable' ).tBodies[0].firstElementChild );
 		} else  {
-			var newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
+			let newItem = ( direction=="next" ? highlightedItem.nextElementSibling : highlightedItem.previousElementSibling );
 			if( newItem != null )
 				highlight( newItem );
 		}
@@ -1510,7 +1510,7 @@ function IFM(params) {
 	 * @param object el - element object
 	 */
 	this.isElementInViewport = function( el ) {
-		var rect = el.getBoundingClientRect();
+		let rect = el.getBoundingClientRect();
 		return (
 				rect.top >= 80 &&
 				rect.left >= 0 &&
@@ -1523,7 +1523,7 @@ function IFM(params) {
 	 * Generates a GUID
 	 */
 	this.generateGuid = function() {
-		var result, i, j;
+		let result, i, j;
 		result = '';
 		for( j = 0; j < 20; j++ ) {
 			i = Math.floor( Math.random() * 16 ).toString( 16 ).toUpperCase();
@@ -1593,7 +1593,7 @@ function IFM(params) {
 	 * @param object event - event object
 	 */
 	this.historyPopstateHandler = function( e ) {
-		var dir = "";
+		let dir = "";
 		if( e.state && e.state.dir )
 			dir = e.state.dir;
 		self.changeDirectory( dir, { pushState: false, absolute: true } );
@@ -1605,7 +1605,7 @@ function IFM(params) {
 	 * @param object e - event object
 	 */
 	this.handleKeystrokes = function( e ) {
-		var isFormElement = function( el ) {
+		let isFormElement = function( el ) {
 			do {
 				if( self.inArray( el.tagName, ['INPUT', 'TEXTAREA'] ) ) {
 					return true;
@@ -1692,7 +1692,7 @@ function IFM(params) {
 		}
 
 		// key events which need a highlighted item
-		var element = document.getElementsByClassName( 'highlightedItem' )[0];
+		let element = document.getElementsByClassName( 'highlightedItem' )[0];
 		if( element )
 			item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
 		else
@@ -1700,7 +1700,7 @@ function IFM(params) {
 
 		// Some operations do not work if the highlighted item is the parent
 		// directory. In these cases the keybindings are ignored.
-		var selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
+		let selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
 			.map( function( e ) { return self.fileCache.find( x => x.guid === e.children[0].children[0].id ) } );
 
 		switch( e.key ) {
@@ -1891,13 +1891,13 @@ function IFM(params) {
 				if( Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 ) {
 					e.preventDefault();
 					e.stopPropagation();
-					var div = document.getElementById( 'filedropoverlay' );
+					let div = document.getElementById( 'filedropoverlay' );
 					div.style.display = 'block';
 					div.ondrop = function( e ) {
 						e.preventDefault();
 						e.stopPropagation();
-						var files = Array.from(e.dataTransfer.files);
-						var existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
+						let files = Array.from(e.dataTransfer.files);
+						let existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
 						if (existing_files.length > 0 && self.config.confirmoverwrite)
 							self.showUploadConfirmOverwrite(files, existing_files);
 						else 
@@ -1917,7 +1917,7 @@ function IFM(params) {
 							e.target.style.display = 'none';
 					};
 				} else {
-					var div = document.getElementById( 'filedropoverlay' );
+					let div = document.getElementById( 'filedropoverlay' );
 					if( div.style.display == 'block' )
 						div.stye.display == 'none';
 				}
@@ -1925,10 +1925,10 @@ function IFM(params) {
 
 		// drag and drop of filetable items
 		if( self.config.copymove ) {
-			var isFile = function(e) { return Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 };
+			let isFile = function(e) { return Array.prototype.indexOf.call(e.dataTransfer.types, "Files") != -1 };
 			document.addEventListener( 'dragstart', function( e ) {
-				var selectedItems = document.getElementsByClassName( 'selectedItem' );
-				var data;
+				let selectedItems = document.getElementsByClassName( 'selectedItem' );
+				let data;
 				if( selectedItems.length > 0 ) 
 					data = self.fileCache.filter(
 							x => self.inArray(
@@ -1939,7 +1939,7 @@ function IFM(params) {
 				else 
 					data = self.fileCache.find( x => x.guid === e.target.dataset.id );
 				e.dataTransfer.setData( 'text/plain', JSON.stringify( data ) );
-				var dragImage = document.createElement( 'div' );
+				let dragImage = document.createElement( 'div' );
 				dragImage.style.display = 'inline';
 				dragImage.style.padding = '10px';
 				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> '+self.i18n.move+' '+( data.length || data.name );
@@ -1963,10 +1963,10 @@ function IFM(params) {
 					e.preventDefault();
 					e.stopPropagation();
 					try {
-						var source = JSON.parse( e.dataTransfer.getData( 'text' ) );
+						let source = JSON.parse( e.dataTransfer.getData( 'text' ) );
 						self.log( "source:" );
 						self.log( source );
-						var destination = self.fileCache.find( x => x.guid === e.target.firstElementChild.id );
+						let destination = self.fileCache.find( x => x.guid === e.target.firstElementChild.id );
 						if( ! Array.isArray( source ) )
 							source = [source];
 						if( source.find( x => x.name === destination.name ) )
