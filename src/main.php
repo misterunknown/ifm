@@ -340,7 +340,7 @@ f00bar;
 		usort($dirs, [$this, "sortByName"]);
 		usort($files, [$this, "sortByName"]);
 
-		return ["data" => array_merge($dirs, $files)];
+		return array_merge($dirs, $files);
 	}
 
 	private function getItemInformation($name) {
@@ -533,11 +533,11 @@ f00bar;
 		if (empty($err)) {
 			return [
 				"status" => "OK",
-				"message" => ($d['action'] == "copy" ? $this->l('copy_success') : $this->l['move_success'] ),
+				"message" => ($d['action'] == "copy" ? $this->l('copy_success') : $this->l('move_success')),
 				"errflag" => "1"
 			];
 		} else {
-			$errmsg = ($d['action'] == "copy" ? $this->l('copy_error') : $this->l['move_error'] ) . "<ul>";
+			$errmsg = ($d['action'] == "copy" ? $this->l('copy_error') : $this->l('move_error')) . "<ul>";
 			foreach ($err as $item)
 				$errmsg .= "<li>".$item."</li>";
 			$errmsg .= "</ul>";
@@ -553,7 +553,7 @@ f00bar;
 		if ($d['dirname'] == "" || !$this->isFilenameValid($d['dirname']))
 			throw new IFMException($this->l('invalid_dir'));
 
-		if (@mkdir($dn))
+		if (@mkdir($d['dirname']))
 			return ["status" => "OK", "message" => $this->l('folder_create_success')];
 		else
 			throw new IFMException($this->l('folder_create_error').". ".error_get_last()['message']);

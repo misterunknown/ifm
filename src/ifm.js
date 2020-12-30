@@ -102,10 +102,10 @@ function IFM(params) {
 	 */
 	this.rebuildFileTable = function( data ) {
 		if( data.status == "ERROR" ) {
-			this.showMessage( data.message, "e" );
+			self.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( self.i18n.invalid_data, "e" );
+			self.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -2037,15 +2037,12 @@ function IFM(params) {
 		// handle window.onbeforeunload
 		window.onbeforeunload = self.onbeforeunloadHandler;
 
-		/*
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
 		} else {
 			this.refreshFileTable();
 		}
-		*/
-		console.log("Finished initialisation without file table");
 	};
 
 	this.init = function(id) {
