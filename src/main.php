@@ -185,6 +185,7 @@ f00bar;
 			case "getI18N":
 				return $this->getI18N($_REQUEST);
 			case "logout":
+				session_start();
 				unset($_SESSION);
 				session_destroy();
 				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
@@ -975,27 +976,27 @@ f00bar;
 		if (session_status() !== PHP_SESSION_ACTIVE)
 			session_start();
 
-		if (!isset($_SESSION['ifmauth']) || $_SESSION['ifmauth'] !== true) {
-			$login_failed = false;
-			if (isset($_POST["inputLogin"]) && isset($_POST["inputPassword"])) {
-				if ($this->checkCredentials($_POST["inputLogin"], $_POST["inputPassword"])) {
-					$_SESSION['ifmauth'] = true;
-				} else {
-					$_SESSION['ifmauth'] = false;
-					$login_failed = true;
-				}
-			}
-
-			if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] === true)
-				return true;
-			else {
-				if ($login_failed === true)
-					throw new IFMException("Authentication failed: Wrong credentials", true);
-				else
-					throw new IFMException("Not authenticated" , true);
-			}
-		} else
+		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] == true)
 			return true;
+
+		$login_failed = false;
+		if (isset($_POST["inputLogin"]) && isset($_POST["inputPassword"])) {
+			if ($this->checkCredentials($_POST["inputLogin"], $_POST["inputPassword"])) {
+				$_SESSION['ifmauth'] = true;
+			} else {
+				$_SESSION['ifmauth'] = false;
+				$login_failed = true;
+			}
+		}
+
+		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] === true)
+			return true;
+		else {
+			if ($login_failed === true)
+				throw new IFMException("Authentication failed: Wrong credentials", true);
+			else
+				throw new IFMException("Not authenticated" , true);
+		}
 	}
 
 	private function checkCredentials($user, $pass) {
