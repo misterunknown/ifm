@@ -275,6 +275,14 @@ function IFM(params) {
 				}
 			}
 		});
+
+		// as we cannot specify the rows for datatable responsive plugin, and it intercepts all the clicks, we ignore all browser actions and change directory manually
+		$('#filetable tbody tr.isDir td a.ifmitem').on('click', function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+		});
+
 		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="popover"]' ).popover({
 			content: function() {
