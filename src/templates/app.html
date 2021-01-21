@@ -21,27 +21,27 @@
 			<ul class="navbar-nav">
 				{{#config.showrefresh}}
 				<li class="nav-item">
-					<a id="refresh" class="nav-link"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw" href="#"></span> <span class="d-inline d-lg-none">{{i18n.refresh}}</span></a>
+					<a id="refresh" class="nav-link"><span title="{{i18n.refresh}}" class="icon icon-arrows-cw"></span> <span class="d-inline d-lg-none">{{i18n.refresh}}</span></a>
 				</li>
 				{{/config.showrefresh}}
 				{{#config.search}}
 				<li class="nav-item">
-					<a id="search" class="nav-link"><span title="{{i18n.search}}" class="icon icon-search" href="#"></span> <span class="d-inline d-lg-none">{{i18n.search}}</span></a>
+					<a id="search" class="nav-link"><span title="{{i18n.search}}" class="icon icon-search"></span> <span class="d-inline d-lg-none">{{i18n.search}}</span></a>
 				</li>
 				{{/config.search}}
 				{{#config.upload}}
 				<li class="nav-item">
-					<a id="upload" class="nav-link"><span title="{{i18n.upload}}" class="icon icon-upload" href="#"></span> <span class="d-inline d-lg-none">{{i18n.upload}}</span></a>
+					<a id="upload" class="nav-link"><span title="{{i18n.upload}}" class="icon icon-upload"></span> <span class="d-inline d-lg-none">{{i18n.upload}}</span></a>
 				</li>
 				{{/config.upload}}
 				{{#config.createfile}}
 				<li class="nav-item">
-					<a id="createFile" class="nav-link"><span title="{{i18n.file_new}}" class="icon icon-doc-inv" href="#"></span> <span class="d-inline d-lg-none">{{i18n.file_new}}</span></a>
+					<a id="createFile" class="nav-link"><span title="{{i18n.file_new}}" class="icon icon-doc-inv"></span> <span class="d-inline d-lg-none">{{i18n.file_new}}</span></a>
 				</li>
 				{{/config.createfile}}
 				{{#config.createdir}}
 				<li class="nav-item">
-					<a id="createDir" class="nav-link"><span title="{{i18n.folder_new}}" class="icon icon-folder" href="#"></span> <span class="d-inline d-lg-none">{{i18n.folder_new}}</span></a>
+					<a id="createDir" class="nav-link"><span title="{{i18n.folder_new}}" class="icon icon-folder"></span> <span class="d-inline d-lg-none">{{i18n.folder_new}}</span></a>
 				</li>
 				{{/config.createdir}}
 				{{#generic.hasdropdown}}
@@ -49,10 +49,10 @@
 					<a class="nav-link dropdown-toggle" href="#" id="menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
 					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="menu">
 						{{#config.remoteupload}}
-						<a class="dropdown-item" href="#" id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a>
+						<a class="dropdown-item" id="buttonRemoteUpload"><span class="icon icon-upload-cloud"></span> {{i18n.upload_remote}}</a>
 						{{/config.remoteupload}}
 						{{#config.ajaxrequest}}
-						<a class="dropdown-item" href="#" id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a>
+						<a class="dropdown-item" id="buttonAjaxRequest"><span class="icon icon-link-ext"></span> {{i18n.ajax_request}}</a>
 						{{/config.ajaxrequest}}
 						{{#config.auth}}
 						<a class="dropdown-item" href="?api=logout" id="buttonLogout"><span class="icon icon-logout"></span> {{i18n.logout}}</a>
@@ -72,27 +72,27 @@
 		<table id="filetable" class="table">
 			<thead>
 				<tr>
-					<th class="th-meta hidden" data-visible="false"></th>
-					<th class="th-filename">{{i18n.filename}}</th>
+					<th class="th-meta hidden never" data-visible="false"></th>
+					<th class="th-filename all">{{i18n.filename}}</th>
 					{{#config.download}}
-					<th class="th-download"></th>
+					<th class="th-download all"></th>
 					{{/config.download}}
 					{{#config.showlastmodified}}
-					<th class="th-lastmod">{{i18n.last_modified}}</th>
+					<th class="th-lastmod tablet-l desktop">{{i18n.last_modified}}</th>
 					{{/config.showlastmodified}}
 					{{#config.showfilesize}}
-					<th class="th-size">{{i18n.size}}</th>
+					<th class="th-size tablet-p tablet-l desktop">{{i18n.size}}</th>
 					{{/config.showfilesize}}
 					{{#config.showpermissions}}
-					<th class="th-permissions d-none d-md-table-cell">{{i18n.permissions}}</th>
+					<th class="th-permissions d-none d-md-table-cell tablet-p tablet-l desktop">{{i18n.permissions}}</th>
 					{{/config.showpermissions}}
 					{{#config.showowner}}
-					<th class="th-owner d-none d-lg-table-cell">{{i18n.owner}}</th>
+					<th class="th-owner d-none d-lg-table-cell tablet-l desktop">{{i18n.owner}}</th>
 					{{/config.showowner}}
 					{{#config.showgroup}}
-					<th class="th-group d-none d-xl-table-cell">{{i18n.group}}</th>
+					<th class="th-group d-none d-xl-table-cell desktop">{{i18n.group}}</th>
 					{{/config.showgroup}}
-					<th class="th-buttons buttons"></th>
+					<th class="th-buttons buttons all"></th>
 				</tr>
 			</thead>
 			<tbody>
