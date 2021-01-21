@@ -105,10 +105,10 @@ function IFM(params) {
 	 */
 	this.rebuildFileTable = function( data ) {
 		if( data.status == "ERROR" ) {
-			this.showMessage( data.message, "e" );
+			self.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( self.i18n.invalid_data, "e" );
+			self.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -217,8 +217,8 @@ function IFM(params) {
 
 		if( self.datatable ) self.datatable.destroy();
 		self.datatable = $('#filetable').DataTable({
-			paging: self.config.pagination,
-			pageLength: 50,
+			paging: !!self.config.paging,
+			pageLength: self.config.pageLength||50,
 			info: false,
 			autoWidth: false,
 			columnDefs: [
@@ -351,75 +351,107 @@ function IFM(params) {
 								self.copyToClipboard( link );
 							}
 						},
-						iconClass: "icon icon-link-ext",
-						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
-					},
-					copymove: {
-						name: function( data ) {
-							if( data.selected.length > 0 )
-								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
-							else
-								return self.i18n.copy+'/'+self.i18n.move;
+						extract: {
+							name: self.i18n.extract,
+							onClick: function( data ) {
+								self.showExtractFileDialog( data.clicked.name );
+							},
+							iconClass: "icon icon-archive",
+							isShown: function( data ) {
+								return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+							}
 						},
-						onClick: function( data ) {
-							if( data.selected.length > 0 )
-								self.showCopyMoveDialog( data.selected );
-							else
-								self.showCopyMoveDialog( data.clicked );
+						rename: {
+							name: self.i18n.rename,
+							onClick: function( data ) {
+								self.showRenameFileDialog( data.clicked.name );
+							},
+							iconClass: "icon icon-terminal",
+							isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
 						},
-						iconClass: "icon icon-folder-empty",
-						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
-					},
-					download: {
-						name: function( data ) {
-							if( data.selected.length > 0 )
-								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
-							else
-								return self.i18n.download;
+						copylink: {
+							name: self.i18n.copylink,
+							onClick: function( data ) {
+								if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
+									self.copyToClipboard( data.clicked.link );
+								else {
+									var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+									pathname.pop();
+									var link = self.pathCombine( window.location.origin, data.clicked.link )
+									if( pathname.length > 0 )
+										link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
+									self.copyToClipboard( link );
+								}
+							},
+							iconClass: "icon icon-link-ext",
+							isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
 						},
-						onClick: function( data ) {
-							if( data.selected.length > 0 )
-								self.showMessage( "At the moment it is not possible to download a set of files." );
-							else
-								window.location = data.clicked.download.link;
+						copymove: {
+							name: function( data ) {
+								if( data.selected.length > 0 )
+									return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
+								else
+									return self.i18n.copy+'/'+self.i18n.move;
+							},
+							onClick: function( data ) {
+								if( data.selected.length > 0 )
+									self.showCopyMoveDialog( data.selected );
+								else
+									self.showCopyMoveDialog( data.clicked );
+							},
+							iconClass: "icon icon-folder-empty",
+							isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
 						},
-						iconClass: "icon icon-download",
-						isShown: function() { return !!self.config.download; }
-					},
-					createarchive: {
-						name: function( data ) {
-							if( data.selected.length > 0 )
-								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
-							else
-								return self.i18n.create_archive;
+						download: {
+							name: function( data ) {
+								if( data.selected.length > 0 )
+									return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
+								else
+									return self.i18n.download;
+							},
+							onClick: function( data ) {
+								if( data.selected.length > 0 )
+									self.showMessage( "At the moment it is not possible to download a set of files." );
+								else
+									window.location = data.clicked.download.link;
+							},
+							iconClass: "icon icon-download",
+							isShown: function() { return !!self.config.download; }
 						},
-						onClick: function( data ) {
-							if( data.selected.length > 0 )
-								self.showCreateArchiveDialog( data.selected );
-							else
-								self.showCreateArchiveDialog( data.clicked );
+						createarchive: {
+							name: function( data ) {
+								if( data.selected.length > 0 )
+									return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
+								else
+									return self.i18n.create_archive;
+							},
+							onClick: function( data ) {
+								if( data.selected.length > 0 )
+									self.showCreateArchiveDialog( data.selected );
+								else
+									self.showCreateArchiveDialog( data.clicked );
+							},
+							iconClass: "icon icon-archive",
+							isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
 						},
-						iconClass: "icon icon-archive",
-						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
-					},
-					'delete': {
-						name: function( data ) {
-							if( data.selected.length > 0 )
-								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
-							else
-								return self.i18n.delete;
-						},
-						onClick: function( data ) {
-							if( data.selected.length > 0 )
-								self.showDeleteDialog( data.selected );
-							else
-								self.showDeleteDialog( data.clicked );
-						},
-						iconClass: "icon icon-trash",
-						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
+						'delete': {
+							name: function( data ) {
+								if( data.selected.length > 0 )
+									return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
+								else
+									return self.i18n.delete;
+							},
+							onClick: function( data ) {
+								if( data.selected.length > 0 )
+									self.showDeleteDialog( data.selected );
+								else
+									self.showDeleteDialog( data.clicked );
+							},
+							iconClass: "icon icon-trash",
+							isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
+						}
 					}
-				}
-			});
+				});
 		}
 	};
 
@@ -1540,9 +1572,9 @@ function IFM(params) {
 	 *
 	 * @param string m - message text
 	 */
-	this.log = function( m ) {
-		if( self.config.debug ) {
-			console.log( "IFM (debug): " + m );
+	this.log = function(m) {
+		if (self.config.debug) {
+			console.log("IFM (debug): " + m);
 		}
 	};
 
@@ -1841,11 +1873,55 @@ function IFM(params) {
 			dataType: "json",
 			success: function(d) {
 				self.i18n = d;
-				self.log( "I18N loaded" );
-				self.initApplication();
+				self.log("I18N loaded");
+				self.initCheckAuth();
 			},
 			error: function() {
 				throw new Error( self.i18n.load_text_error );
+			}
+		});
+	};
+	
+	this.initCheckAuth = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "checkAuth"
+			},
+			dataType: "json",
+			success: function(d) {
+				if (d.status == "ERROR") {
+					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true});
+
+					var form = document.forms.loginForm;
+					form.addEventListener('click', function(e) {
+						if (e.target.id == "buttonLogin") {
+							$.ajax({
+								url: self.api,
+								type: "POST",
+								data: {
+									api: "checkAuth",
+									inputLogin: form.elements[0].value,
+									inputPassword: form.elements[1].value
+								},
+								dataType: "json",
+								success: function(e) {
+									self.hideModal();
+									self.initApplication();
+								},
+								error: function(e) {
+									self.showMessage("Authentication failed", "e");
+								}
+							});
+						}
+					});
+				} else {
+					self.initApplication();
+				}
+			},
+			error: function(resp) {
+				throw new Error("Not authenticated");
 			}
 		});
 	};
@@ -2004,8 +2080,8 @@ function IFM(params) {
 		}
 	};
 
-	this.init = function( id ) {
-		self.rootElement = document.getElementById( id );
+	this.init = function(id) {
+		self.rootElement = document.getElementById(id);
 		this.initLoadConfig();
 	};
 }
