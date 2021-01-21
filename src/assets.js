@@ -7,10 +7,10 @@
 @@@file:src/includes/bootstrap-treeview.min.js@@@
 @@@file:src/includes/datatables.min.js@@@
 @@@file:src/includes/lodash.min.js@@@
-@@@file:src/includes/classnames.js@@@
+@@@file:src/includes/classnames.min.js@@@
 @@@file:src/includes/BootstrapMenu.min.js@@@
 @@@file:src/includes/mustache.min.js@@@
-@@@file:src/includes/ace.js@@@
+@@@file:src/includes/ace.min.js@@@
 @@@acedir:src/includes/ace@@@
 @@@file:src/ifm.js@@@
 </script>

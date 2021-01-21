@@ -351,107 +351,108 @@ function IFM(params) {
 								self.copyToClipboard( link );
 							}
 						},
-						extract: {
-							name: self.i18n.extract,
-							onClick: function( data ) {
-								self.showExtractFileDialog( data.clicked.name );
-							},
-							iconClass: "icon icon-archive",
-							isShown: function( data ) {
-								return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+					},
+					extract: {
+						name: self.i18n.extract,
+						onClick: function( data ) {
+							self.showExtractFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) {
+							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+						}
+					},
+					rename: {
+						name: self.i18n.rename,
+						onClick: function( data ) {
+							self.showRenameFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-terminal",
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
+					},
+					copylink: {
+						name: self.i18n.copylink,
+						onClick: function( data ) {
+							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
+								self.copyToClipboard( data.clicked.link );
+							else {
+								var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+								pathname.pop();
+								var link = self.pathCombine( window.location.origin, data.clicked.link )
+								if( pathname.length > 0 )
+									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
+								self.copyToClipboard( link );
 							}
 						},
-						rename: {
-							name: self.i18n.rename,
-							onClick: function( data ) {
-								self.showRenameFileDialog( data.clicked.name );
-							},
-							iconClass: "icon icon-terminal",
-							isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
+						iconClass: "icon icon-link-ext",
+						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
+					},
+					copymove: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
+							else
+								return self.i18n.copy+'/'+self.i18n.move;
 						},
-						copylink: {
-							name: self.i18n.copylink,
-							onClick: function( data ) {
-								if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
-									self.copyToClipboard( data.clicked.link );
-								else {
-									var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
-									pathname.pop();
-									var link = self.pathCombine( window.location.origin, data.clicked.link )
-									if( pathname.length > 0 )
-										link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
-									self.copyToClipboard( link );
-								}
-							},
-							iconClass: "icon icon-link-ext",
-							isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCopyMoveDialog( data.selected );
+							else
+								self.showCopyMoveDialog( data.clicked );
 						},
-						copymove: {
-							name: function( data ) {
-								if( data.selected.length > 0 )
-									return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
-								else
-									return self.i18n.copy+'/'+self.i18n.move;
-							},
-							onClick: function( data ) {
-								if( data.selected.length > 0 )
-									self.showCopyMoveDialog( data.selected );
-								else
-									self.showCopyMoveDialog( data.clicked );
-							},
-							iconClass: "icon icon-folder-empty",
-							isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
+						iconClass: "icon icon-folder-empty",
+						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
+					},
+					download: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
+							else
+								return self.i18n.download;
 						},
-						download: {
-							name: function( data ) {
-								if( data.selected.length > 0 )
-									return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
-								else
-									return self.i18n.download;
-							},
-							onClick: function( data ) {
-								if( data.selected.length > 0 )
-									self.showMessage( "At the moment it is not possible to download a set of files." );
-								else
-									window.location = data.clicked.download.link;
-							},
-							iconClass: "icon icon-download",
-							isShown: function() { return !!self.config.download; }
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showMessage( "At the moment it is not possible to download a set of files." );
+							else
+								window.location = data.clicked.download.link;
 						},
-						createarchive: {
-							name: function( data ) {
-								if( data.selected.length > 0 )
-									return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
-								else
-									return self.i18n.create_archive;
-							},
-							onClick: function( data ) {
-								if( data.selected.length > 0 )
-									self.showCreateArchiveDialog( data.selected );
-								else
-									self.showCreateArchiveDialog( data.clicked );
-							},
-							iconClass: "icon icon-archive",
-							isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
+						iconClass: "icon icon-download",
+						isShown: function() { return !!self.config.download; }
+					},
+					createarchive: {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
+							else
+								return self.i18n.create_archive;
 						},
-						'delete': {
-							name: function( data ) {
-								if( data.selected.length > 0 )
-									return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
-								else
-									return self.i18n.delete;
-							},
-							onClick: function( data ) {
-								if( data.selected.length > 0 )
-									self.showDeleteDialog( data.selected );
-								else
-									self.showDeleteDialog( data.clicked );
-							},
-							iconClass: "icon icon-trash",
-							isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
-						}
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showCreateArchiveDialog( data.selected );
+							else
+								self.showCreateArchiveDialog( data.clicked );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
+					},
+					'delete': {
+						name: function( data ) {
+							if( data.selected.length > 0 )
+								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
+							else
+								return self.i18n.delete;
+						},
+						onClick: function( data ) {
+							if( data.selected.length > 0 )
+								self.showDeleteDialog( data.selected );
+							else
+								self.showDeleteDialog( data.clicked );
+						},
+						iconClass: "icon icon-trash",
+						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
 					}
-				});
+				}
+			});
 		}
 	};
 
