@@ -68,7 +68,9 @@ class IFM {
 		"disable_mime_detection" => 0,
 		"showrefresh" => 1,
 		"forceproxy" => 0,
-		"confirmoverwrite" => 1
+		"confirmoverwrite" => 1,
+		"epub_reader" => 0,
+		"epub_path" => 'https://futurepress.github.io/epubjs-reader/index.html?bookPath='
 	];
 
 	private $config = [];
