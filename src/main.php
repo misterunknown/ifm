@@ -70,7 +70,7 @@ class IFM {
 		"forceproxy" => 0,
 		"confirmoverwrite" => 1,
 		"epub_reader" => 0,
-		"epub_path" => 'https://futurepress.github.io/epubjs-reader/index.html?bookPath='
+		"epub_reader_url" => 'https://futurepress.github.io/epubjs-reader/index.html?bookPath='
 	];
 
 	private $config = [];

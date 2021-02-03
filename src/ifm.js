@@ -171,19 +171,19 @@ function IFM(params) {
 			item.download.link = self.api+"?api="+item.download.action+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
 			if( self.config.isDocroot && !self.config.forceproxy )
 				if( self.config.epub_reader && item.name.split(/[#?]/)[0].split('.').pop().trim() == "epub" ) {
-					item.link = self.config.epub_path+self.api.substring(0, self.api.lastIndexOf('/'))+"/"+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
+					item.link = self.config.epub_reader_url+self.api.substring(0, self.api.lastIndexOf('/'))+"/"+self.hrefEncode( self.pathCombine( self.currentDir, item.name ) );
 				} else
 					item.link = self.hrefEncode( self.pathCombine( window.location.path, self.currentDir, item.name ) );
 			else if (self.config.download && self.config.zipnload) {
 				if (self.config.root_public_url) {
 					if (self.config.root_public_url.charAt(0) == "/")
 						if( self.config.epub_reader && item.name.split(/[#?]/)[0].split('.').pop().trim() == "epub" ) {
-							item.link = self.config.epub_path+self.pathCombine(window.location.origin, self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
+							item.link = self.config.epub_reader_url+self.pathCombine(window.location.origin, self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 						} else
 							item.link = self.pathCombine(window.location.origin, self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 					else
 						if( self.config.epub_reader && item.name.split(/[#?]/)[0].split('.').pop().trim() == "epub" ) {
-							item.link = self.config.epub_path+self.pathCombine(self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
+							item.link = self.config.epub_reader_url+self.pathCombine(self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 						} else
 							item.link = self.pathCombine(self.config.root_public_url, self.hrefEncode(self.currentDir), self.hrefEncode(item.name) );
 				} else
