@@ -190,7 +190,6 @@ function IFM(params) {
 					item.link = self.api+"?api="+(item.download.action=="zipnload"?"zipnload":"proxy")+"&dir="+self.hrefEncode(self.currentDir)+"&filename="+self.hrefEncode(item.download.name);
 			} else
 				item.link = '#';
-
 			if( ! self.inArray( item.name, [".", ".."] ) ) {
 				item.dragdrop = 'draggable="true"';
 				if( self.config.copymove )
