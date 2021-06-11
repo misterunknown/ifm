@@ -828,9 +828,8 @@ function IFM(params) {
 				$( '#copyMoveTree' ).treeview({
 					data: data,
 					levels: 1,
-					expandIcon: "icon icon-folder-empty",
-					emptyIcon: "icon icon-folder-empty",
-					collapseIcon: "icon icon-folder-open-empty",
+					expandIcon: "icon icon-plus-squared",
+					collapseIcon: "icon icon-minus-squared-alt",
 					loadingIcon: "icon icon-spin5",
 					lazyLoad: function( n, cb ) {
 						$.ajax({
