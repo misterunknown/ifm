@@ -289,7 +289,7 @@ function IFM(params) {
 				let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
 				let popover = document.createElement( 'img' );
 				if( self.config.isDocroot )
-					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( /#/g, '%23' ).replace( /\?/g, '%3F' );
 				else
 					popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
 				popover.classList.add( 'imgpreview' );
