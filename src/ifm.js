@@ -275,13 +275,21 @@ function IFM(params) {
 				}
 			}
 		});
+
+		// as we cannot specify the rows for datatable responsive plugin, and it intercepts all the clicks, we ignore all browser actions and change directory manually
+		$('#filetable tbody tr.isDir td a.ifmitem').on('click', function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+		});
+
 		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="popover"]' ).popover({
 			content: function() {
 				let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
 				let popover = document.createElement( 'img' );
 				if( self.config.isDocroot )
-					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( /#/g, '%23' ).replace( /\?/g, '%3F' );
 				else
 					popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
 				popover.classList.add( 'imgpreview' );
