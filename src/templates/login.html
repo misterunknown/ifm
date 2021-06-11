@@ -103,7 +103,7 @@ body {
 }
 </style>
 
-<form class="form-signin" method="POST" action>
+<form id="loginForm" class="form-signin" method="post">
   <div class="text-center mb-4">
   	<h1 class="h3 mb-3 font-weight-normal">IFM {{i18n.login}}</h1>
   </div>
@@ -118,6 +118,6 @@ body {
   </div>
   <div class="alert alert-danger d-none" role="alert"></div>
    
-  <button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
+  <button id="buttonLogin" class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
   
 </form>

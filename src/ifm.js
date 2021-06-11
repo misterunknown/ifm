@@ -105,10 +105,10 @@ function IFM(params) {
 	 */
 	this.rebuildFileTable = function( data ) {
 		if( data.status == "ERROR" ) {
-			this.showMessage( data.message, "e" );
+			self.showMessage( data.message, "e" );
 			return;
 		} else if ( ! Array.isArray( data ) ) {
-			this.showMessage( self.i18n.invalid_data, "e" );
+			self.showMessage( self.i18n.invalid_data, "e" );
 			return;
 		}
 		data.forEach( function( item ) {
@@ -217,8 +217,8 @@ function IFM(params) {
 
 		if( self.datatable ) self.datatable.destroy();
 		self.datatable = $('#filetable').DataTable({
-			paging: self.config.pagination,
-			pageLength: 50,
+			paging: !!self.config.paging,
+			pageLength: self.config.pageLength||50,
 			info: false,
 			autoWidth: false,
 			columnDefs: [
@@ -354,6 +354,39 @@ function IFM(params) {
 								let pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
 								pathname.pop();
 								let link = self.pathCombine( window.location.origin, data.clicked.link )
+								if( pathname.length > 0 )
+									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
+								self.copyToClipboard( link );
+							}
+						},
+					},
+					extract: {
+						name: self.i18n.extract,
+						onClick: function( data ) {
+							self.showExtractFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-archive",
+						isShown: function( data ) {
+							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
+						}
+					},
+					rename: {
+						name: self.i18n.rename,
+						onClick: function( data ) {
+							self.showRenameFileDialog( data.clicked.name );
+						},
+						iconClass: "icon icon-terminal",
+						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
+					},
+					copylink: {
+						name: self.i18n.copylink,
+						onClick: function( data ) {
+							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
+								self.copyToClipboard( data.clicked.link );
+							else {
+								var pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
+								pathname.pop();
+								var link = self.pathCombine( window.location.origin, data.clicked.link )
 								if( pathname.length > 0 )
 									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
 								self.copyToClipboard( link );
@@ -1548,9 +1581,9 @@ function IFM(params) {
 	 *
 	 * @param string m - message text
 	 */
-	this.log = function( m ) {
-		if( self.config.debug ) {
-			console.log( "IFM (debug): " + m );
+	this.log = function(m) {
+		if (self.config.debug) {
+			console.log("IFM (debug): " + m);
 		}
 	};
 
@@ -1849,11 +1882,55 @@ function IFM(params) {
 			dataType: "json",
 			success: function(d) {
 				self.i18n = d;
-				self.log( "I18N loaded" );
-				self.initApplication();
+				self.log("I18N loaded");
+				self.initCheckAuth();
 			},
 			error: function() {
 				throw new Error( self.i18n.load_text_error );
+			}
+		});
+	};
+	
+	this.initCheckAuth = function() {
+		$.ajax({
+			url: self.api,
+			type: "POST",
+			data: {
+				api: "checkAuth"
+			},
+			dataType: "json",
+			success: function(d) {
+				if (d.status == "ERROR") {
+					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true});
+
+					var form = document.forms.loginForm;
+					form.addEventListener('click', function(e) {
+						if (e.target.id == "buttonLogin") {
+							$.ajax({
+								url: self.api,
+								type: "POST",
+								data: {
+									api: "checkAuth",
+									inputLogin: form.elements[0].value,
+									inputPassword: form.elements[1].value
+								},
+								dataType: "json",
+								success: function(e) {
+									self.hideModal();
+									self.initApplication();
+								},
+								error: function(e) {
+									self.showMessage("Authentication failed", "e");
+								}
+							});
+						}
+					});
+				} else {
+					self.initApplication();
+				}
+			},
+			error: function(resp) {
+				throw new Error("Not authenticated");
 			}
 		});
 	};
@@ -2012,8 +2089,8 @@ function IFM(params) {
 		}
 	};
 
-	this.init = function( id ) {
-		self.rootElement = document.getElementById( id );
+	this.init = function(id) {
+		self.rootElement = document.getElementById(id);
 		this.initLoadConfig();
 	};
 }
