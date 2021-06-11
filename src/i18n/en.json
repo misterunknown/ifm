@@ -33,7 +33,7 @@
     "file_not_found": "Could either not find or open file.",
     "file_open_error": "Could not open the file.",
     "file_rename": "Rename File",
-    "file_rename_error": "File could not be renamed:",
+    "file_rename_error": "File could not be renamed",
     "file_rename_success": "File renamed.",
     "file_save_confirm": "Do you want to save the following file:",
     "file_save_error": "Could not save file.",

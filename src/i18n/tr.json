@@ -93,7 +93,7 @@
     "file_save_error": "Dosya kaydedilemedi.",
     "file_save_confirm": "Dosyayı kaydetmek istiyor musunuz:",
     "file_rename_success": "Dosya ismi değiştirildi.",
-    "file_rename_error": "Dosya ismi değiştirilemedi:",
+    "file_rename_error": "Dosya ismi değiştirilemedi",
     "file_open_error": "Dosya açılamadı.",
     "file_not_found": "Dosya açılamadı ya da bulunamadı.",
     "file_no_permission": "Dosyayı düzenleme/oluşturma yetkiniz yok.",

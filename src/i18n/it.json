@@ -68,7 +68,7 @@
     "file_save_error": "Impossibile salvare il file.",
     "file_save_confirm": "Vuoi salvare il file seguente:",
     "file_rename_success": "File rinominato.",
-    "file_rename_error": "Il file non ha potuto essere rinominato:",
+    "file_rename_error": "Il file non ha potuto essere rinominato",
     "file_rename": "Rinomina il file",
     "file_open_error": "Impossibile aprire il file.",
     "file_not_found": "Impossibile trovare o aprire il file.",

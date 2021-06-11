@@ -33,7 +33,7 @@
     "file_not_found": "Kunne enten ikke finne eller åpne fil.",
     "file_open_error": "Kunne ikke åpne filen.",
     "file_rename": "Gi fil nytt navn",
-    "file_rename_error": "Kunne ikke gi filen nytt navn:",
+    "file_rename_error": "Kunne ikke gi filen nytt navn",
     "file_rename_success": "Filnavn endret.",
     "file_save_confirm": "Ønsker du å lagre følgende fil:",
     "file_save_error": "Kunne ikke lagre fil.",

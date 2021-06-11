@@ -33,7 +33,7 @@
     "file_not_found": "Die Datei wurde nicht gefunden oder kann nicht geöffnet werden.",
     "file_open_error": "Die Datei konnte nicht geöffnet werden.",
     "file_rename": "Datei umbenennen",
-    "file_rename_error": "Datei konnte nicht umbenannt werden:",
+    "file_rename_error": "Datei konnte nicht umbenannt werden",
     "file_rename_success": "Datei umbenannt.",
     "file_save_confirm": "Soll diese Datei gespeichert werden:",
     "file_save_error": "Datei konnte nicht gespeichert werden.",

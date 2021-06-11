@@ -33,7 +33,7 @@
     "file_not_found": "تعذر العثور على الملف أو تعذر فتحه.",
     "file_open_error": "تعذر فتح الملف.",
     "file_rename": "تعديل اسم الملف",
-    "file_rename_error": "تعذر تعديل اسم الملف:",
+    "file_rename_error": "تعذر تعديل اسم الملف",
     "file_rename_success": "تم تعديل اسم الملف.",
     "file_save_confirm": "هل تود حفظ الملف التالي:",
     "file_save_error": "تعذر حفظ الملف.",
