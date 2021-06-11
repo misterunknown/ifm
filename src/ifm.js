@@ -767,7 +767,7 @@ function IFM(params) {
 						if(data.status == "OK") {
 							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage( self.i18n.file_rename_error +data.message, "e");
+						} else ifm.showMessage( self.i18n.file_rename_error, "e");
 					},
 			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
