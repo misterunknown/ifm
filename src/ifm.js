@@ -621,7 +621,7 @@ function IFM(params) {
 						if( data.status == "OK" ) {
 							self.showMessage( self.i18n.file_save_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
+						} else self.showMessage( data.message, "e" );
 					},
 			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
@@ -650,7 +650,7 @@ function IFM(params) {
 						else if( data.status == "OK" && data.data.content == null ) {
 							self.showMessage( self.i18n.file_load_error, "e" );
 						}
-						else self.showMessage( self.i18n.error +data.message, "e" );
+						else self.showMessage( data.message, "e" );
 					},
 			error: function() { self.showMessage( self.i18n.file_display_error, "e" ); }
 		});
@@ -700,7 +700,7 @@ function IFM(params) {
 						self.refreshFileTable();
 					}
 					else {
-						self.showMessage( self.i18n.folder_create_error +data.message, "e" );
+						self.showMessage( data.message, "e" );
 					}
 				},
 			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
@@ -804,7 +804,7 @@ function IFM(params) {
 						if(data.status == "OK") {
 							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage( self.i18n.file_rename_error, "e");
+						} else ifm.showMessage( data.message, "e");
 					},
 			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
@@ -1145,7 +1145,7 @@ function IFM(params) {
 					self.showMessage( self.i18n.file_upload_success, "s" );
 					self.refreshFileTable();
 				} else
-					self.showMessage( self.i18n.file_upload_error + data.message, "e" );
+					self.showMessage( data.message, "e" );
 			},
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
