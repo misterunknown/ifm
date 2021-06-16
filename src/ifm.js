@@ -1333,10 +1333,12 @@ function IFM(params) {
 		let offsetY = ( document.activeElement.tagName == "BODY" ) ? 15 : 70;
 		$.notify(
 			{ message: m },
-			{ type: msgType, delay: 3000, mouse_over: 'pause', 	offset: { x: 0, y: offsetY }, placement: {
-				from: "bottom",
-				align: "right"
-			},
+			{ type: msgType, delay: 3000, mouse_over: 'pause', 
+				offset: { x: 0, y: offsetY }, 
+				placement: {
+					from: "bottom",
+					align: "right"
+				},
 			element: document.activeElement }
 		);
 	};
