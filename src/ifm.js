@@ -1235,7 +1235,7 @@ function IFM(params) {
 							self.showMessage( data.message, "e" );
 						} else {
 							data.forEach( function(e) {
-								e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+								e.folder = ( e.name.substr( 0, e.name.lastIndexOf( '/' ) ) ) ? e.name.substr( 0, e.name.lastIndexOf( '/' ) ) : '/';
 								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 							});
 							self.search.data = data;
