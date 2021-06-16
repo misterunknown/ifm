@@ -1330,10 +1330,14 @@ function IFM(params) {
 	 */
 	this.showMessage = function(m, t) {
 		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
-		let element = ( self.config.inline ) ? self.rootElement : "body";
+		let offsetY = ( document.activeElement.tagName == "BODY" ) ? 15 : 70;
 		$.notify(
 			{ message: m },
-			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+			{ type: msgType, delay: 3000, mouse_over: 'pause', 	offset: { x: 0, y: offsetY }, placement: {
+				from: "bottom",
+				align: "right"
+			},
+			element: document.activeElement }
 		);
 	};
 
