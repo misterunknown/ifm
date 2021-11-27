@@ -1907,9 +1907,9 @@ function IFM(params) {
 			success: function(d) {
 				if (d.status == "ERROR") {
 					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true});
-
 					var form = document.forms.loginForm;
 					form.addEventListener('click', function(e) {
+						e.preventDefault();
 						if (e.target.id == "buttonLogin") {
 							$.ajax({
 								url: self.api,
@@ -1925,7 +1925,10 @@ function IFM(params) {
 									self.initApplication();
 								},
 								error: function(e) {
-									self.showMessage("Authentication failed", "e");
+									var errorlogin = document.getElementsByClassName('alert')[0];
+									errorlogin.classList.remove("d-none");
+									errorlogin.innerHTML = "Authentication failed"
+									//self.showMessage("Authentication failed", "e");
 								}
 							});
 						}
@@ -1933,10 +1936,11 @@ function IFM(params) {
 				} else {
 					self.initApplication();
 				}
-			},
-			error: function(resp) {
-				throw new Error("Not authenticated");
 			}
+			// },
+			// error: function(resp) {
+			// 	throw new Error("Not authenticated");
+			// }
 		});
 	};
 	

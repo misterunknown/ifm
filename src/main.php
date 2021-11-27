@@ -1017,15 +1017,16 @@ f00bar;
 				}
 				break;
 			case "ldap":
-				$authenticated = false;
+ 				$authenticated = false;
 				$ldapopts = explode(";", $srcopt);
-				if (count($ldapopts) === 3) {
-					list($ldap_server, $rootdn, $ufilter) = explode(";", $srcopt);
+				if (count($ldapopts) === 4) {
+					list($ldap_server, $basedn, $uuid, $ufilter) = explode(";", $srcopt);
 				} else {
-					list($ldap_server, $rootdn) = explode(";", $srcopt);
+					list($ldap_server, $basedn) = explode(";", $srcopt);
 					$ufilter = false;
+					$uuid = "uid";
 				}
-				$u = "uid=" . $user . "," . $rootdn;
+				$u = $uuid . "=" . $user . "," . $basedn;
 				if (!$ds = ldap_connect($ldap_server)) {
 					trigger_error("Could not reach the ldap server.", E_USER_ERROR);
 					return false;
@@ -1035,7 +1036,7 @@ f00bar;
 					$ldbind = @ldap_bind($ds, $u, $pass);
 					if ($ldbind) {
 						if ($ufilter) {
-							if (ldap_count_entries($ds, ldap_search($ds, $rootdn, $ufilter)) > 0) {
+							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) > 0) {
 								$authenticated = true;
 							} else {
 								trigger_error("User not allowed.", E_USER_ERROR);
