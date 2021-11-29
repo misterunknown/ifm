@@ -1036,7 +1036,7 @@ f00bar;
 					$ldbind = @ldap_bind($ds, $u, $pass);
 					if ($ldbind) {
 						if ($ufilter) {
-							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) > 0) {
+							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) == 1) {
 								$authenticated = true;
 							} else {
 								trigger_error("User not allowed.", E_USER_ERROR);
