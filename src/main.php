@@ -686,17 +686,22 @@ f00bar;
 			$restoreIFM = true;
 		}
 
-		if (substr(strtolower($d['filename']), -4) == ".zip") {
+		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION) == "zip")) {
 			if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
 				return ["status" => "OK","message" => $this->l('extract_success')];
-		} else {
+		} elseif (
+			(strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "tar")
+			|| (strtolower(pathinfo(pathinfo($d['filename'], PATHINFO_FILENAME), PATHINFO_EXTENSION)) == "tar")
+		) {
 			if (!IFMArchive::extractTar($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
 				return ["status" => "OK","message" => $this->l('extract_success')];
-		} 
+		} else {
+			throw new IFMException($this->l('archive_invalid_format'));
+		}
 
 		if ($restoreIFM) {
 			if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
@@ -891,8 +896,15 @@ f00bar;
 					throw new IFMException($this->l('archive_create_error'));
 				break;
 			case "tar":
+				$d['archivename'] = pathinfo($d['archivename'], PATHINFO_FILENAME);
+				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
+					return ["status" => "OK", "message" => $this->l('archive_create_success')];
+				else
+					throw new IFMException($this->l('archive_create_error'));
+				break;
 			case "tar.gz":
 			case "tar.bz2":
+				$d['archivename'] = pathinfo(pathinfo($d['archivename'], PATHINFO_FILENAME), PATHINFO_FILENAME);
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else

@@ -50,22 +50,22 @@ class IFMArchive {
 	/**
 	 * Create a zip file
 	 */
-	public static function createZip($src, $out, $exclude_callback=null) {
+	public static function createZip($filenames, $archivename, $exclude_callback=null) {
 		$a = new ZipArchive();
-		$a->open($out, ZIPARCHIVE::CREATE);
+		$a->open($archivename, ZIPARCHIVE::CREATE);
 
-		if (!is_array($src))
-			$src = array($src);
+		if (!is_array($filenames))
+			$filenames = array($filenames);
 
-		foreach ($src as $s)
-			if (is_dir($s))
+		foreach ($filenames as $f)
+			if (is_dir($f))
 				if (is_callable($exclude_callback))
-					self::addFolder( $a, $s, null, $exclude_callback );
+					self::addFolder( $a, $f, null, $exclude_callback );
 				else
-					self::addFolder( $a, $s );
-			elseif (is_file($s))
-				if (!is_callable($exclude_callback) || $exclude_callback($s))
-					$a->addFile($s, substr($s, strlen(dirname($s)) + 1));
+					self::addFolder( $a, $f );
+			elseif (is_file($f))
+				if (!is_callable($exclude_callback) || $exclude_callback($f))
+					$a->addFile($f, pathinfo($f, PATHINFO_BASENAME));
 
 		try {
 			return $a->close();
@@ -93,28 +93,28 @@ class IFMArchive {
 	/**
 	 * Creates a tar archive
 	 */
-	public static function createTar($src, $out, $t) {
-		$tmpf = substr($out, 0, strlen($out) - strlen($t)) . "tar";
+	public static function createTar($filenames, $archivename, $format) {
+		$tmpf = $archivename . ".tar";
 		$a = new PharData($tmpf);
 
-		try { 
-			if (!is_array($src))
-				$src = array($src);
+		try {
+			if (!is_array($filenames))
+				$filenames = array($filenames);
 
-			foreach ($src as $s)
-				if (is_dir($s))
-					self::addFolder($a, $s);
-				elseif (is_file($s))
-					$a->addFile($s, substr($s, strlen(dirname($s)) +1)); 
-			switch ($t) {
-			case "tar.gz":
-				$a->compress(Phar::GZ);
-				@unlink($tmpf);
-				break;
-			case "tar.bz2":
-				$a->compress(Phar::BZ2);
-				@unlink($tmpf);
-				break;
+			foreach ($filenames as $f)
+				if (is_dir($f))
+					self::addFolder($a, $f);
+				elseif (is_file($f))
+					$a->addFile($f, pathinfo($f, PATHINFO_BASENAME));
+			switch ($format) {
+				case "tar.gz":
+					$a->compress(Phar::GZ);
+					@unlink($tmpf);
+					break;
+				case "tar.bz2":
+					$a->compress(Phar::BZ2);
+					@unlink($tmpf);
+					break;
 			}
 			return true;
 		} catch (Exception $e) {
