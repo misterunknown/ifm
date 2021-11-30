@@ -1921,14 +1921,20 @@ function IFM(params) {
 								},
 								dataType: "json",
 								success: function(e) {
-									self.hideModal();
-									self.initApplication();
+									if (e.status != "ERROR") {
+										self.hideModal();
+										self.initApplication();
+									} else {
+										var errorlogin = document.getElementsByClassName('alert')[0];
+										errorlogin.classList.remove("d-none");
+										errorlogin.innerHTML = e.message;
+									}
+
 								},
 								error: function(e) {
 									var errorlogin = document.getElementsByClassName('alert')[0];
 									errorlogin.classList.remove("d-none");
-									errorlogin.innerHTML = "Authentication failed"
-									//self.showMessage("Authentication failed", "e");
+									errorlogin.innerHTML = "Authentication failed";
 								}
 							});
 						}
@@ -1937,10 +1943,6 @@ function IFM(params) {
 					self.initApplication();
 				}
 			}
-			// },
-			// error: function(resp) {
-			// 	throw new Error("Not authenticated");
-			// }
 		});
 	};
 	

@@ -1028,7 +1028,8 @@ f00bar;
 				}
 				$u = $uuid . "=" . $user . "," . $basedn;
 				if (!$ds = ldap_connect($ldap_server)) {
-					trigger_error("Could not reach the ldap server.", E_USER_ERROR);
+					throw new IFMException("Could not reach the ldap server." , true);
+					//trigger_error("Could not reach the ldap server.", E_USER_ERROR);
 					return false;
 				}
 				ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -1036,16 +1037,18 @@ f00bar;
 					$ldbind = @ldap_bind($ds, $u, $pass);
 					if ($ldbind) {
 						if ($ufilter) {
-							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) > 0) {
+							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) == 1) {
 								$authenticated = true;
 							} else {
-								trigger_error("User not allowed.", E_USER_ERROR);
+								throw new IFMException("User not allowed." , true);
+								//trigger_error("User not allowed.", E_USER_ERROR);
 								$authenticated = false;
 							}
 						} else
 							$authenticated = true;
 					} else {
-						trigger_error(ldap_error($ds), E_USER_ERROR);
+						throw new IFMException(ldap_error($ds) , true);
+						//trigger_error(ldap_error($ds), E_USER_ERROR);
 						$authenticated = false;
 					}
 					ldap_unbind($ds);
