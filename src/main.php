@@ -185,7 +185,9 @@ f00bar;
 			case "getI18N":
 				return $this->getI18N($_REQUEST);
 			case "logout":
-				session_start();
+				$session_name = basename($this->config['root_dir']);
+				session_set_cookie_params(0, "/{$session_name}/");
+				session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
 				unset($_SESSION);
 				session_destroy();
 				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
@@ -571,7 +573,13 @@ f00bar;
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
-				$content = get_magic_quotes_gpc() == 1 ? stripslashes($d['content']) : $d['content'];
+				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()) 
+					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
+						$content = stripslashes($d['content']);
+				} else {
+						$content = $d['content'];
+				}
+
 				if (@file_put_contents($d['filename'], $content) !== false)
 					return ["status" => "OK", "message" => $this->l('file_save_success')];
 				else
@@ -985,8 +993,11 @@ f00bar;
 				return true;
 		}
 
-		if (session_status() !== PHP_SESSION_ACTIVE)
-			session_start();
+		if (session_status() !== PHP_SESSION_ACTIVE) {
+			$session_name = basename($this->config['root_dir']);
+			session_set_cookie_params(0, "/{$session_name}/");
+			session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
+		}
 
 		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] == true)
 			return true;
@@ -1029,7 +1040,7 @@ f00bar;
 				}
 				break;
 			case "ldap":
- 				$authenticated = false;
+				$authenticated = false;
 				$ldapopts = explode(";", $srcopt);
 				if (count($ldapopts) === 4) {
 					list($ldap_server, $basedn, $uuid, $ufilter) = explode(";", $srcopt);
