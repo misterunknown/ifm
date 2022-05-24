@@ -988,7 +988,7 @@ f00bar;
 
 		$credentials_header = $_SERVER['HTTP_X_IFM_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? false;
 		if ($credentials_header && !$this->config['auth_ignore_basic']) {
-			$cred = explode(":", base64_decode(str_replace("Basic ", "", $credentials_header)));
+			$cred = explode(":", base64_decode(str_replace("Basic ", "", $credentials_header)), 2);
 			if (count($cred) == 2 && $this->checkCredentials($cred[0], $cred[1]))
 				return true;
 		}
