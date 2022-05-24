@@ -340,8 +340,8 @@ f00bar;
 			}
 			closedir($handle);
 		}
-		usort($dirs, [$this, "sortByName"]);
-		usort($files, [$this, "sortByName"]);
+		array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $dirs);
+		array_multisort(array_column($files, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $files);
 
 		return array_merge($dirs, $files);
 	}
@@ -1281,13 +1281,6 @@ f00bar;
 			return false;
 		else
 			return true;
-	}
-
-	// sorting function for file and dir arrays
-	private function sortByName($a, $b) {
-		if (strtolower($a['name']) == strtolower($b['name']))
-			return 0;
-		return (strtolower($a['name']) < strtolower($b['name'])) ? -1 : 1;
 	}
 
 	// is cURL extention avaliable?
