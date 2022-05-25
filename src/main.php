@@ -185,7 +185,9 @@ f00bar;
 			case "getI18N":
 				return $this->getI18N($_REQUEST);
 			case "logout":
-				session_start();
+				$session_name = basename($this->config['root_dir']);
+				session_set_cookie_params(0, "/{$session_name}/");
+				session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
 				unset($_SESSION);
 				session_destroy();
 				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
@@ -338,8 +340,8 @@ f00bar;
 			}
 			closedir($handle);
 		}
-		usort($dirs, [$this, "sortByName"]);
-		usort($files, [$this, "sortByName"]);
+		array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $dirs);
+		array_multisort(array_column($files, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $files);
 
 		return array_merge($dirs, $files);
 	}
@@ -571,7 +573,13 @@ f00bar;
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
-				$content = get_magic_quotes_gpc() == 1 ? stripslashes($d['content']) : $d['content'];
+				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()) 
+					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
+						$content = stripslashes($d['content']);
+				} else {
+						$content = $d['content'];
+				}
+
 				if (@file_put_contents($d['filename'], $content) !== false)
 					return ["status" => "OK", "message" => $this->l('file_save_success')];
 				else
@@ -686,17 +694,22 @@ f00bar;
 			$restoreIFM = true;
 		}
 
-		if (substr(strtolower($d['filename']), -4) == ".zip") {
+		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION) == "zip")) {
 			if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
 				return ["status" => "OK","message" => $this->l('extract_success')];
-		} else {
+		} elseif (
+			(strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "tar")
+			|| (strtolower(pathinfo(pathinfo($d['filename'], PATHINFO_FILENAME), PATHINFO_EXTENSION)) == "tar")
+		) {
 			if (!IFMArchive::extractTar($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
 				return ["status" => "OK","message" => $this->l('extract_success')];
-		} 
+		} else {
+			throw new IFMException($this->l('archive_invalid_format'));
+		}
 
 		if ($restoreIFM) {
 			if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
@@ -891,8 +904,15 @@ f00bar;
 					throw new IFMException($this->l('archive_create_error'));
 				break;
 			case "tar":
+				$d['archivename'] = pathinfo($d['archivename'], PATHINFO_FILENAME);
+				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
+					return ["status" => "OK", "message" => $this->l('archive_create_success')];
+				else
+					throw new IFMException($this->l('archive_create_error'));
+				break;
 			case "tar.gz":
 			case "tar.bz2":
+				$d['archivename'] = pathinfo(pathinfo($d['archivename'], PATHINFO_FILENAME), PATHINFO_FILENAME);
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
@@ -968,13 +988,16 @@ f00bar;
 
 		$credentials_header = $_SERVER['HTTP_X_IFM_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? false;
 		if ($credentials_header && !$this->config['auth_ignore_basic']) {
-			$cred = explode(":", base64_decode(str_replace("Basic ", "", $credentials_header)));
+			$cred = explode(":", base64_decode(str_replace("Basic ", "", $credentials_header)), 2);
 			if (count($cred) == 2 && $this->checkCredentials($cred[0], $cred[1]))
 				return true;
 		}
 
-		if (session_status() !== PHP_SESSION_ACTIVE)
-			session_start();
+		if (session_status() !== PHP_SESSION_ACTIVE) {
+			$session_name = basename($this->config['root_dir']);
+			session_set_cookie_params(0, "/{$session_name}/");
+			session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
+		}
 
 		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] == true)
 			return true;
@@ -1019,15 +1042,17 @@ f00bar;
 			case "ldap":
 				$authenticated = false;
 				$ldapopts = explode(";", $srcopt);
-				if (count($ldapopts) === 3) {
-					list($ldap_server, $rootdn, $ufilter) = explode(";", $srcopt);
+				if (count($ldapopts) === 4) {
+					list($ldap_server, $basedn, $uuid, $ufilter) = explode(";", $srcopt);
 				} else {
-					list($ldap_server, $rootdn) = explode(";", $srcopt);
+					list($ldap_server, $basedn) = explode(";", $srcopt);
 					$ufilter = false;
+					$uuid = "uid";
 				}
-				$u = "uid=" . $user . "," . $rootdn;
+				$u = $uuid . "=" . $user . "," . $basedn;
 				if (!$ds = ldap_connect($ldap_server)) {
-					trigger_error("Could not reach the ldap server.", E_USER_ERROR);
+					throw new IFMException("Could not reach the ldap server." , true);
+					//trigger_error("Could not reach the ldap server.", E_USER_ERROR);
 					return false;
 				}
 				ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -1035,16 +1060,18 @@ f00bar;
 					$ldbind = @ldap_bind($ds, $u, $pass);
 					if ($ldbind) {
 						if ($ufilter) {
-							if (ldap_count_entries($ds, ldap_search($ds, $rootdn, $ufilter)) > 0) {
+							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) == 1) {
 								$authenticated = true;
 							} else {
-								trigger_error("User not allowed.", E_USER_ERROR);
+								throw new IFMException("User not allowed." , true);
+								//trigger_error("User not allowed.", E_USER_ERROR);
 								$authenticated = false;
 							}
 						} else
 							$authenticated = true;
 					} else {
-						trigger_error(ldap_error($ds), E_USER_ERROR);
+						throw new IFMException(ldap_error($ds) , true);
+						//trigger_error(ldap_error($ds), E_USER_ERROR);
 						$authenticated = false;
 					}
 					ldap_unbind($ds);
@@ -1254,13 +1281,6 @@ f00bar;
 			return false;
 		else
 			return true;
-	}
-
-	// sorting function for file and dir arrays
-	private function sortByName($a, $b) {
-		if (strtolower($a['name']) == strtolower($b['name']))
-			return 0;
-		return (strtolower($a['name']) < strtolower($b['name'])) ? -1 : 1;
 	}
 
 	// is cURL extention avaliable?

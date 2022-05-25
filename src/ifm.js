@@ -275,13 +275,21 @@ function IFM(params) {
 				}
 			}
 		});
+
+		// as we cannot specify the rows for datatable responsive plugin, and it intercepts all the clicks, we ignore all browser actions and change directory manually
+		$('#filetable tbody tr.isDir td a.ifmitem').on('click', function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
+		});
+
 		// has to be jquery, since this is a bootstrap feature
 		$( 'a[data-toggle="popover"]' ).popover({
 			content: function() {
 				let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
 				let popover = document.createElement( 'img' );
 				if( self.config.isDocroot )
-					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( '#', '%23' ).replace( '?', '%3F' );
+					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( /#/g, '%23' ).replace( /\?/g, '%3F' );
 				else
 					popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
 				popover.classList.add( 'imgpreview' );
@@ -621,7 +629,7 @@ function IFM(params) {
 						if( data.status == "OK" ) {
 							self.showMessage( self.i18n.file_save_success, "s" );
 							self.refreshFileTable();
-						} else self.showMessage( self.i18n.file_save_error + data.message, "e" );
+						} else self.showMessage( data.message, "e" );
 					},
 			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
 		});
@@ -650,7 +658,7 @@ function IFM(params) {
 						else if( data.status == "OK" && data.data.content == null ) {
 							self.showMessage( self.i18n.file_load_error, "e" );
 						}
-						else self.showMessage( self.i18n.error +data.message, "e" );
+						else self.showMessage( data.message, "e" );
 					},
 			error: function() { self.showMessage( self.i18n.file_display_error, "e" ); }
 		});
@@ -700,7 +708,7 @@ function IFM(params) {
 						self.refreshFileTable();
 					}
 					else {
-						self.showMessage( self.i18n.folder_create_error +data.message, "e" );
+						self.showMessage( data.message, "e" );
 					}
 				},
 			error: function() { self.showMessage( self.i18n.general_error, "e" ); }
@@ -804,7 +812,7 @@ function IFM(params) {
 						if(data.status == "OK") {
 							ifm.showMessage( self.i18n.file_rename_success, "s");
 							ifm.refreshFileTable();
-						} else ifm.showMessage( self.i18n.file_rename_error +data.message, "e");
+						} else ifm.showMessage( data.message, "e");
 					},
 			error: function() { ifm.showMessage( self.i18n.general_error, "e"); }
 		});
@@ -828,9 +836,8 @@ function IFM(params) {
 				$( '#copyMoveTree' ).treeview({
 					data: data,
 					levels: 1,
-					expandIcon: "icon icon-folder-empty",
-					emptyIcon: "icon icon-folder-empty",
-					collapseIcon: "icon icon-folder-open-empty",
+					expandIcon: "icon icon-plus-squared",
+					collapseIcon: "icon icon-minus-squared-alt",
 					loadingIcon: "icon icon-spin5",
 					lazyLoad: function( n, cb ) {
 						$.ajax({
@@ -1146,7 +1153,7 @@ function IFM(params) {
 					self.showMessage( self.i18n.file_upload_success, "s" );
 					self.refreshFileTable();
 				} else
-					self.showMessage( self.i18n.file_upload_error + data.message, "e" );
+					self.showMessage( data.message, "e" );
 			},
 			error: function() { self.showMessage( self.i18n.general_error, "e"); },
 			complete: function() { self.task_done(id); }
@@ -1236,7 +1243,7 @@ function IFM(params) {
 							self.showMessage( data.message, "e" );
 						} else {
 							data.forEach( function(e) {
-								e.folder = e.name.substr( 0, e.name.lastIndexOf( '/' ) );
+								e.folder = ( e.name.substr( 0, e.name.lastIndexOf( '/' ) ) ) ? e.name.substr( 0, e.name.lastIndexOf( '/' ) ) : '/';
 								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
 							});
 							self.search.data = data;
@@ -1331,10 +1338,16 @@ function IFM(params) {
 	 */
 	this.showMessage = function(m, t) {
 		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
-		let element = ( self.config.inline ) ? self.rootElement : "body";
+		let offsetY = ( document.activeElement.tagName == "BODY" ) ? 15 : 70;
 		$.notify(
 			{ message: m },
-			{ type: msgType, delay: 3000, mouse_over: 'pause', offset: { x: 15, y: 65 }, element: element }
+			{ type: msgType, delay: 3000, mouse_over: 'pause', 
+				offset: { x: 0, y: offsetY }, 
+				placement: {
+					from: "bottom",
+					align: "right"
+				},
+			element: document.activeElement }
 		);
 	};
 
@@ -1894,9 +1907,9 @@ function IFM(params) {
 			success: function(d) {
 				if (d.status == "ERROR") {
 					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true});
-
 					var form = document.forms.loginForm;
 					form.addEventListener('click', function(e) {
+						e.preventDefault();
 						if (e.target.id == "buttonLogin") {
 							$.ajax({
 								url: self.api,
@@ -1908,11 +1921,20 @@ function IFM(params) {
 								},
 								dataType: "json",
 								success: function(e) {
-									self.hideModal();
-									self.initApplication();
+									if (e.status != "ERROR") {
+										self.hideModal();
+										self.initApplication();
+									} else {
+										var errorlogin = document.getElementsByClassName('alert')[0];
+										errorlogin.classList.remove("d-none");
+										errorlogin.innerHTML = e.message;
+									}
+
 								},
 								error: function(e) {
-									self.showMessage("Authentication failed", "e");
+									var errorlogin = document.getElementsByClassName('alert')[0];
+									errorlogin.classList.remove("d-none");
+									errorlogin.innerHTML = "Authentication failed";
 								}
 							});
 						}
@@ -1920,9 +1942,6 @@ function IFM(params) {
 				} else {
 					self.initApplication();
 				}
-			},
-			error: function(resp) {
-				throw new Error("Not authenticated");
 			}
 		});
 	};
