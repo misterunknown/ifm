@@ -220,22 +220,22 @@ f00bar;
 
 		$this->chDirIfNecessary($_REQUEST['dir']);
 		switch ($_REQUEST["api"]) {
-			case "createDir":	return $this->createDir($_REQUEST); 
-			case "saveFile":	return $this->saveFile($_REQUEST); 
-			case "getContent":	return $this->getContent($_REQUEST); 
-			case "delete":		return $this->deleteFiles($_REQUEST); 
-			case "rename":		return $this->renameFile($_REQUEST); 
-			case "download":	return $this->downloadFile($_REQUEST); 
-			case "extract":		return $this->extractFile($_REQUEST); 
-			case "upload":		return $this->uploadFile($_REQUEST); 
-			case "copyMove":	return $this->copyMove($_REQUEST); 
-			case "changePermissions": return $this->changePermissions($_REQUEST); 
-			case "zipnload":	return $this->zipnload($_REQUEST); 
-			case "remoteUpload":	return $this->remoteUpload($_REQUEST); 
-			case "searchItems":	return $this->searchItems($_REQUEST); 
-			case "getFolderTree":	return $this->getFolderTree($_REQUEST); 
-			case "createArchive":	return $this->createArchive($_REQUEST); 
-			case "proxy":		return $this->downloadFile($_REQUEST, false); 
+			case "createDir":	return $this->createDir($_REQUEST);
+			case "saveFile":	return $this->saveFile($_REQUEST);
+			case "getContent":	return $this->getContent($_REQUEST);
+			case "delete":		return $this->deleteFiles($_REQUEST);
+			case "rename":		return $this->renameFile($_REQUEST);
+			case "download":	return $this->downloadFile($_REQUEST);
+			case "extract":		return $this->extractFile($_REQUEST);
+			case "upload":		return $this->uploadFile($_REQUEST);
+			case "copyMove":	return $this->copyMove($_REQUEST);
+			case "changePermissions": return $this->changePermissions($_REQUEST);
+			case "zipnload":	return $this->zipnload($_REQUEST);
+			case "remoteUpload":	return $this->remoteUpload($_REQUEST);
+			case "searchItems":	return $this->searchItems($_REQUEST);
+			case "getFolderTree":	return $this->getFolderTree($_REQUEST);
+			case "createArchive":	return $this->createArchive($_REQUEST);
+			case "proxy":		return $this->downloadFile($_REQUEST, false);
 			default:
 				throw new IFMException($this->l("invalid_action"));
 		}
@@ -353,7 +353,7 @@ f00bar;
 			$item["type"] = "dir";
 			if ($name == "..")
 				$item["icon"] = "icon icon-up-open";
-			else 
+			else
 				$item["icon"] = "icon icon-folder-empty";
 		} else {
 			$item["type"] = "file";
@@ -573,7 +573,7 @@ f00bar;
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
-				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()) 
+				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc())
 					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
 						$content = stripslashes($d['content']);
 				} else {
@@ -663,7 +663,7 @@ f00bar;
 
 		if (!is_file($d['filename']))
 			http_response_code(404);
-		else 
+		else
 			$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL]);
 	}
 
@@ -861,7 +861,7 @@ f00bar;
 							return ["status" => "OK", "message" => $this->l('file_upload_success')];
 						curl_close($ch);
 						fclose($fp);
-					} else 
+					} else
 						throw new IFMException($this->l('file_open_error'));
 				}
 			} else
@@ -893,7 +893,7 @@ f00bar;
 		foreach ($d['filenames'] as $file)
 			if (!$this->isFilenameValid($file))
 				throw new IFMException($this->l('invalid_filename'));
-			else 
+			else
 				array_push($filenames, realpath($file));
 
 		switch ($d['format']) {
