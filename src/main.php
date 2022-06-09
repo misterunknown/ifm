@@ -1153,6 +1153,8 @@ f00bar;
 			return false;
 		elseif ($rpDir == $rpConfig)
 			return true;
+		elseif (!file_exists($rpDir))
+			return false;
 		elseif (0 === strpos($rpDir, $rpConfig))
 			return true;
 		else
