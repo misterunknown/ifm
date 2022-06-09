@@ -1160,7 +1160,7 @@ f00bar;
 	}
 
 	private function chDirIfNecessary($d) {
-		if (substr(getcwd(), strlen($this->getScriptRoot())) != $this->getValidDir($d) && !empty($d))
+		if (substr(getcwd(), strlen($this->getRootDir())) != $this->getValidDir($d) && !empty($d))
 			chdir($d);
 	}
 
