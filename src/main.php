@@ -220,22 +220,22 @@ f00bar;
 
 		$this->chDirIfNecessary($_REQUEST['dir']);
 		switch ($_REQUEST["api"]) {
-			case "createDir":	return $this->createDir($_REQUEST); 
-			case "saveFile":	return $this->saveFile($_REQUEST); 
-			case "getContent":	return $this->getContent($_REQUEST); 
-			case "delete":		return $this->deleteFiles($_REQUEST); 
-			case "rename":		return $this->renameFile($_REQUEST); 
-			case "download":	return $this->downloadFile($_REQUEST); 
-			case "extract":		return $this->extractFile($_REQUEST); 
-			case "upload":		return $this->uploadFile($_REQUEST); 
-			case "copyMove":	return $this->copyMove($_REQUEST); 
-			case "changePermissions": return $this->changePermissions($_REQUEST); 
-			case "zipnload":	return $this->zipnload($_REQUEST); 
-			case "remoteUpload":	return $this->remoteUpload($_REQUEST); 
-			case "searchItems":	return $this->searchItems($_REQUEST); 
-			case "getFolderTree":	return $this->getFolderTree($_REQUEST); 
-			case "createArchive":	return $this->createArchive($_REQUEST); 
-			case "proxy":		return $this->downloadFile($_REQUEST, false); 
+			case "createDir":	return $this->createDir($_REQUEST);
+			case "saveFile":	return $this->saveFile($_REQUEST);
+			case "getContent":	return $this->getContent($_REQUEST);
+			case "delete":		return $this->deleteFiles($_REQUEST);
+			case "rename":		return $this->renameFile($_REQUEST);
+			case "download":	return $this->downloadFile($_REQUEST);
+			case "extract":		return $this->extractFile($_REQUEST);
+			case "upload":		return $this->uploadFile($_REQUEST);
+			case "copyMove":	return $this->copyMove($_REQUEST);
+			case "changePermissions": return $this->changePermissions($_REQUEST);
+			case "zipnload":	return $this->zipnload($_REQUEST);
+			case "remoteUpload":	return $this->remoteUpload($_REQUEST);
+			case "searchItems":	return $this->searchItems($_REQUEST);
+			case "getFolderTree":	return $this->getFolderTree($_REQUEST);
+			case "createArchive":	return $this->createArchive($_REQUEST);
+			case "proxy":		return $this->downloadFile($_REQUEST, false);
 			default:
 				throw new IFMException($this->l("invalid_action"));
 		}
@@ -353,7 +353,7 @@ f00bar;
 			$item["type"] = "dir";
 			if ($name == "..")
 				$item["icon"] = "icon icon-up-open";
-			else 
+			else
 				$item["icon"] = "icon icon-folder-empty";
 		} else {
 			$item["type"] = "file";
@@ -573,7 +573,7 @@ f00bar;
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
-				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()) 
+				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc())
 					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
 						$content = stripslashes($d['content']);
 				} else {
@@ -663,7 +663,7 @@ f00bar;
 
 		if (!is_file($d['filename']))
 			http_response_code(404);
-		else 
+		else
 			$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL]);
 	}
 
@@ -861,7 +861,7 @@ f00bar;
 							return ["status" => "OK", "message" => $this->l('file_upload_success')];
 						curl_close($ch);
 						fclose($fp);
-					} else 
+					} else
 						throw new IFMException($this->l('file_open_error'));
 				}
 			} else
@@ -893,7 +893,7 @@ f00bar;
 		foreach ($d['filenames'] as $file)
 			if (!$this->isFilenameValid($file))
 				throw new IFMException($this->l('invalid_filename'));
-			else 
+			else
 				array_push($filenames, realpath($file));
 
 		switch ($d['format']) {
@@ -1141,8 +1141,8 @@ f00bar;
 		$tmp_d = $dir;
 		$tmp_missing_parts = [];
 		while (realpath($tmp_d) === false) {
-			$tmp_i = pathinfo($tmp_d);
-			array_push($tmp_missing_parts, $tmp_i['filename']);
+			$tmp_i = pathinfo($tmp_d, PATHINFO_FILENAME);
+			array_push($tmp_missing_parts, $tmp_i);
 			$tmp_d = dirname($tmp_d);
 			if ($tmp_d == dirname($tmp_d))
 				break;
@@ -1153,6 +1153,8 @@ f00bar;
 			return false;
 		elseif ($rpDir == $rpConfig)
 			return true;
+		elseif (!file_exists($rpDir))
+			return false;
 		elseif (0 === strpos($rpDir, $rpConfig))
 			return true;
 		else
@@ -1160,7 +1162,7 @@ f00bar;
 	}
 
 	private function chDirIfNecessary($d) {
-		if (substr(getcwd(), strlen($this->getScriptRoot())) != $this->getValidDir($d) && !empty($d))
+		if (substr(getcwd(), strlen($this->getRootDir())) != $this->getValidDir($d) && !empty($d))
 			chdir($d);
 	}
 
@@ -1168,7 +1170,7 @@ f00bar;
 		$type = strtolower($type);
 		switch ($type) {
 			case "aac": case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
-			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": return 'icon icon-file-image'; break;
+			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": case "webp": return 'icon icon-file-image'; break;
 			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
 			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": case "json": return 'icon icon-file-code'; break;
 			case "doc": case "docx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
