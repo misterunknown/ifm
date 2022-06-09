@@ -1141,8 +1141,8 @@ f00bar;
 		$tmp_d = $dir;
 		$tmp_missing_parts = [];
 		while (realpath($tmp_d) === false) {
-			$tmp_i = pathinfo($tmp_d);
-			array_push($tmp_missing_parts, $tmp_i['filename']);
+			$tmp_i = pathinfo($tmp_d, PATHINFO_FILENAME);
+			array_push($tmp_missing_parts, $tmp_i);
 			$tmp_d = dirname($tmp_d);
 			if ($tmp_d == dirname($tmp_d))
 				break;
