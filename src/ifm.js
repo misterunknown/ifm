@@ -33,7 +33,7 @@ function IFM(params) {
 	 * @param {string} content - HTML content of the modal
 	 * @param {object} options - options for the modal ({ large: false })
 	 */
-	this.showModal = function( content, options ) {
+	this.showModal = function( content, options, modal_options ) {
 		options = options || {};
 		let modal = document.createElement( 'div' );
 		modal.classList.add( 'modal' );
@@ -66,6 +66,7 @@ function IFM(params) {
 					formElements.first().focus();
 				}
 			})
+			.modal(modal_options)
 			.modal('show');
 	};
 
@@ -1906,7 +1907,10 @@ function IFM(params) {
 			dataType: "json",
 			success: function(d) {
 				if (d.status == "ERROR") {
-					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true});
+					self.showModal(Mustache.render(self.templates.login, {i18n: self.i18n}), {large: true}, {
+						backdrop: 'static',
+						keyboard: false
+					});
 					var form = document.forms.loginForm;
 					form.addEventListener('click', function(e) {
 						e.preventDefault();

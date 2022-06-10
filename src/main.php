@@ -188,11 +188,8 @@ f00bar;
 			case "getI18N":
 				return $this->getI18N($_REQUEST);
 			case "logout":
-				$session_name = basename($this->config['root_dir']);
-				session_set_cookie_params(0, "/{$session_name}/");
-				session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
+				session_start();
 				unset($_SESSION);
-				session_destroy();
 				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
 				exit;
 		}
@@ -997,9 +994,9 @@ f00bar;
 		}
 
 		if (session_status() !== PHP_SESSION_ACTIVE) {
-			$session_name = basename($this->config['root_dir']);
-			session_set_cookie_params(0, "/{$session_name}/");
-			session_start(['cookie_path' => "/{$session_name}/",'name' => $session_name,]);
+			$cookie_path = dirname($_SERVER['REQUEST_URI']);
+			session_set_cookie_params(0, $cookie_path);
+			session_start(['cookie_path' => $cookie_path]);
 		}
 
 		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] == true)
