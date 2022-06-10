@@ -77,6 +77,9 @@ class IFM {
 	public $mode = "standalone";
 
 	public function __construct($config=[]) {
+		// store initial working directory
+		$this->initialWD = getcwd();
+
 		// load the default config
 		$this->config = $this->defaultconfig;
 
@@ -322,7 +325,7 @@ f00bar;
 
 		if ($handle = opendir(".")) {
 			while (false !== ($result = readdir($handle))) {
-				if ($result == basename($_SERVER['SCRIPT_NAME']) && $this->getScriptRoot() == getcwd())
+				if ($result == basename($_SERVER['SCRIPT_NAME']) && getcwd() == $this->initialWD)
 					continue;
 				elseif (($result == ".htaccess" || $result==".htpasswd") && $this->config['showhtdocs'] != 1)
 					continue;
@@ -409,7 +412,7 @@ f00bar;
 	private function getConfig() {
 		$ret = $this->config;
 		$ret['inline'] = ($this->mode == "inline") ? true : false;
-		$ret['isDocroot'] = ($this->getRootDir() == $this->getScriptRoot());
+		$ret['isDocroot'] = ($this->getRootDir() == $this->initialWD);
 
 		foreach (["auth_source", "root_dir"] as $field)
 			unset($ret[$field]);
@@ -433,7 +436,7 @@ f00bar;
 				]);
 			}
 			sort($ret);
-			if ($this->getScriptRoot() == realpath($d['dir']))
+			if (realpath($d['dir']) == $this->initialWD)
 				$ret = array_merge(
 					[
 						0 => [
@@ -687,7 +690,7 @@ f00bar;
 		if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0777, true))
 			throw new IFMException($this->l('folder_create_error'));
 
-		if (realpath($d['targetdir']) == substr($this->getScriptRoot(), 0, strlen(realpath($d['targetdir'])))) {
+		if (realpath($d['targetdir']) == substr($this->initialWD, 0, strlen(realpath($d['targetdir'])))) {
 			$tmpSelfContent = tmpfile();
 			fwrite($tmpSelfContent, file_get_contents(__FILE__));
 			$tmpSelfChecksum = hash_file("sha256", __FILE__);
@@ -809,12 +812,12 @@ f00bar;
 		if ($this->isAbsolutePath($this->config['tmp_dir']))
 			$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
 		else
-			$dfile = $this->pathCombine(__DIR__, $this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
+			$dfile = $this->pathCombine($this->initialWD, $this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
 
 		try {
 			IFMArchive::createZip(realpath($d['filename']), $dfile, [$this, 'isFilenameValid']);
 			if ($d['filename'] == ".") {
-				if (getcwd() == $this->getScriptRoot())
+				if (getcwd() == $this->getRootDir())
 					$d['filename'] = "root";
 				else
 					$d['filename'] = basename(getcwd());
@@ -1103,15 +1106,11 @@ f00bar;
 
 	private function getRootDir() {
 		if ($this->config['root_dir'] == "")
-			return realpath($this->getScriptRoot());
+			return $this->initialWD;
 		elseif ($this->isAbsolutePath($this->config['root_dir']))
 			return realpath($this->config['root_dir']);
 		else
-			return realpath($this->pathCombine($this->getScriptRoot(), $this->config['root_dir']));
-	}
-
-	private function getScriptRoot() {
-		return dirname(__FILE__);
+			return realpath($this->pathCombine($this->initialWD, $this->config['root_dir']));
 	}
 
 	private function getValidDir($dir) {
@@ -1279,7 +1278,7 @@ f00bar;
 			return false;
 		elseif ($this->config['showhiddenfiles'] != 1 && substr($f, 0, 1) == ".")
 			return false;
-		elseif ($this->config['selfoverwrite'] != 1 && getcwd() == $this->getScriptRoot() && $f == basename(__FILE__))
+		elseif ($this->config['selfoverwrite'] != 1 && getcwd() == $this->initialWD && $f == basename(__FILE__))
 			return false;
 		else
 			return true;
