@@ -35,6 +35,7 @@ class IFM {
 		"dateLocale" => "en-US",
 		"language" => "@@@vars:default_lang@@@",
 		"selfoverwrite" => 0,
+		"session_name" => false,
 
 		// api controls
 		"ajaxrequest" => 1,
@@ -101,6 +102,13 @@ class IFM {
 
 		if ($this->config['timezone'])
 			date_default_timezone_set($this->config['timezone']);
+
+		if ($this->config['session_name'])
+			session_name($this->config['session_name']);
+
+		// set cookie_path for SESSION to REQUEST_URI without QUERY_STRING
+		$cookie_path = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?') ?: strlen($_SERVER['REQUEST_URI']));
+		session_set_cookie_params(0, $cookie_path);
 	}
 
 	/**
@@ -189,7 +197,7 @@ f00bar;
 				return $this->getI18N($_REQUEST);
 			case "logout":
 				session_start();
-				unset($_SESSION);
+				session_unset();
 				header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
 				exit;
 		}
@@ -994,9 +1002,7 @@ f00bar;
 		}
 
 		if (session_status() !== PHP_SESSION_ACTIVE) {
-			$cookie_path = dirname($_SERVER['REQUEST_URI']);
-			session_set_cookie_params(0, $cookie_path);
-			session_start(['cookie_path' => $cookie_path]);
+			session_start();
 		}
 
 		if (isset($_SESSION['ifmauth']) && $_SESSION['ifmauth'] == true)
