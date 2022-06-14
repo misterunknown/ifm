@@ -1,4 +1,4 @@
-FROM php:7-cli-alpine
+FROM php:8-cli-alpine
 
 # only necessary environment variables
 ENV IFM_ROOT_DIR="/var/www"    \
@@ -6,10 +6,17 @@ ENV IFM_ROOT_DIR="/var/www"    \
     IFM_TMP_DIR="/tmp"
 
 # add missing extensions and dependencies
-RUN apk add --no-cache libbz2 libzip libcap openldap-dev sudo && \
-    apk add --no-cache --virtual .php-extension-build-deps bzip2 bzip2-dev libzip-dev && \
-    docker-php-ext-install bz2 zip ldap && \
-    apk del --no-cache --purge .php-extension-build-deps
+RUN apk add --no-cache \
+    libbz2 \
+    libzip \
+    libcap \
+    openldap-dev \
+    php8-bz2 \
+    php8-fileinfo \
+    php8-ldap \
+    php8-posix \
+    php8-zip \
+    sudo
 
 # allow php binary to bind ports <1000, even if $USER != root
 RUN /usr/sbin/setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/php

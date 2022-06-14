@@ -103,21 +103,22 @@ body {
 }
 </style>
 
-<form class="form-signin" method="POST" action>
-  <div class="text-center mb-4">
-  	<h1 class="h3 mb-3 font-weight-normal">IFM {{i18n.login}}</h1>
-  </div>
-  {{error}}
-  <div class="form-label-group">
-    <input type="text" name="inputLogin" id="inputLogin" class="form-control" placeholder="{{i18n.username}}" required="" autofocus="">
-    <label for="inputLogin">{{i18n.username}}</label>
-  </div>
-  <div class="form-label-group">
-    <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="{{i18n.password}}" required="">
-    <label for="inputPassword">{{i18n.password}}</label>
-  </div>
-  <div class="alert alert-danger d-none" role="alert"></div>
-   
-  <button class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
-  
-</form>
+<div class="modal-header">
+  <h3 class="modal-title text-center w-100">IFM {{i18n.login}}</h3>
+</div>
+<div class="modal-body">
+  <form id="loginForm" class="form-signin" method="post">
+    {{error}}
+    <div class="form-label-group">
+      <input type="text" name="inputLogin" id="inputLogin" class="form-control" placeholder="{{i18n.username}}" required="" autofocus="">
+      <label for="inputLogin">{{i18n.username}}</label>
+    </div>
+    <div class="form-label-group">
+      <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="{{i18n.password}}" required="">
+      <label for="inputPassword">{{i18n.password}}</label>
+    </div>
+    <div class="alert alert-danger d-none" role="alert"></div>
+
+    <button id="buttonLogin" class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
+  </form>
+</div>
