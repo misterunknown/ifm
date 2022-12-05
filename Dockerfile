@@ -7,16 +7,19 @@ ENV IFM_ROOT_DIR="/var/www"    \
 
 # add missing extensions and dependencies
 RUN apk add --no-cache \
-    libbz2 \
-    libzip \
-    libcap \
+    bzip2-dev \
+    libcap-dev \
+    libcap-utils \
+    libzip-dev \
     openldap-dev \
-    php8-bz2 \
-    php8-fileinfo \
-    php8-ldap \
-    php8-posix \
-    php8-zip \
     sudo
+
+RUN docker-php-ext-install \
+    bz2 \
+    fileinfo \
+    ldap \
+    posix \
+    zip
 
 # allow php binary to bind ports <1000, even if $USER != root
 RUN /usr/sbin/setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/php
