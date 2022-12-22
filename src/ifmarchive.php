@@ -24,8 +24,9 @@ class IFMArchive {
 	 * Add a folder to an archive
 	 */
 	private static function addFolder(&$archive, $folder, $offset=0, $exclude_callback=null) {
-		if ($offset == 0)
+		if ($offset == 0) {
 			$offset = strlen(dirname($folder)) + 1;
+		}
 		$archive->addEmptyDir(substr($folder, $offset));
 		$handle = opendir($folder);
 		while (false !== $f = readdir($handle)) {
@@ -33,13 +34,15 @@ class IFMArchive {
 				$filePath = $folder . '/' . $f;
 				if (file_exists($filePath) && is_readable($filePath)) {
 					if (is_file($filePath)) {
-						if (!is_callable($exclude_callback) || $exclude_callback($f))
-							$archive->addFile( $filePath, substr( $filePath, $offset ) );
+						if (!is_callable($exclude_callback) || $exclude_callback($f)) {
+							$archive->addFile($filePath, substr($filePath, $offset));
+						}
 					} elseif (is_dir($filePath)) {
-						if (is_callable($exclude_callback))
+						if (is_callable($exclude_callback)) {
 							self::addFolder($archive, $filePath, $offset, $exclude_callback);
-						else
+						} else {
 							self::addFolder($archive, $filePath, $offset);
+						}
 					}
 				}
 			}
@@ -54,18 +57,22 @@ class IFMArchive {
 		$a = new ZipArchive();
 		$a->open($archivename, ZIPARCHIVE::CREATE);
 
-		if (!is_array($filenames))
+		if (!is_array($filenames)) {
 			$filenames = array($filenames);
+		}
 
 		foreach ($filenames as $f)
-			if (is_dir($f))
-				if (is_callable($exclude_callback))
-					self::addFolder( $a, $f, null, $exclude_callback );
-				else
-					self::addFolder( $a, $f );
-			elseif (is_file($f))
-				if (!is_callable($exclude_callback) || $exclude_callback($f))
+			if (is_dir($f)) {
+				if (is_callable($exclude_callback)) {
+					self::addFolder($a, $f, null, $exclude_callback);
+				} else {
+					self::addFolder($a, $f);
+				}
+			} elseif (is_file($f)) {
+				if (!is_callable($exclude_callback) || $exclude_callback($f)) {
 					$a->addFile($f, pathinfo($f, PATHINFO_BASENAME));
+				}
+			}
 
 		try {
 			return $a->close();
@@ -78,16 +85,18 @@ class IFMArchive {
 	 * Unzip a zip file
 	 */
 	public static function extractZip($file, $destination="./") {
-		if (!file_exists($file))
+		if (!file_exists($file)) {
 			return false;
+		}
 		$zip = new ZipArchive;
 		$res = $zip->open($file);
 		if ($res === true) {
 			$zip->extractTo($destination);
 			$zip->close();
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -98,14 +107,17 @@ class IFMArchive {
 		$a = new PharData($tmpf);
 
 		try {
-			if (!is_array($filenames))
+			if (!is_array($filenames)) {
 				$filenames = array($filenames);
+			}
 
-			foreach ($filenames as $f)
-				if (is_dir($f))
+			foreach ($filenames as $f) {
+				if (is_dir($f)) {
 					self::addFolder($a, $f);
-				elseif (is_file($f))
+				} elseif (is_file($f)) {
 					$a->addFile($f, pathinfo($f, PATHINFO_BASENAME));
+				}
+			}
 			switch ($format) {
 				case "tar.gz":
 					$a->compress(Phar::GZ);
@@ -127,8 +139,9 @@ class IFMArchive {
 	 * Extracts a tar archive
 	 */
 	public static function extractTar($file, $destination="./") {
-		if (!file_exists($file))
+		if (!file_exists($file)) {
 			return false;
+		}
 		$tar = new PharData($file);
 		try {
 			$tar->extractTo($destination, null, true);

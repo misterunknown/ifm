@@ -1399,7 +1399,7 @@ function IFM(params) {
 	 * @returns {boolean}
 	 */
 	this.inArray = function(needle, haystack) {
-		for( let i = 0; i < haystack.length; i++ )
+		for ( let i = 0; i < haystack.length; i++ )
 			if( haystack[i] == needle )
 				return true;
 		return false;
@@ -1575,7 +1575,7 @@ function IFM(params) {
 	this.generateGuid = function() {
 		let result, i, j;
 		result = '';
-		for( j = 0; j < 20; j++ ) {
+		for ( j = 0; j < 20; j++ ) {
 			i = Math.floor( Math.random() * 16 ).toString( 16 ).toUpperCase();
 			result = result + i;
 		}
