@@ -221,7 +221,7 @@ f00bar;
 			case "getFolders":
 				return $this->getFolders($_REQUEST);
 		}
-		
+
 		// checking working directory
 		if (!isset($_REQUEST["dir"]) || !$this->isPathValid($_REQUEST["dir"]))
 			throw new IFMException($this->l("invalid_dir"));
