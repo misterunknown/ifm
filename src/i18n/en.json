@@ -107,6 +107,7 @@
     "upload_overwrite_hint": "The following files will be overwritten:",
     "upload_remote": "Remote Upload",
     "upload_remote_url": "Remote Upload URL",
+    "url_not_allowed": "This URL is not allowed.",
     "username": "Username",
     "word_wrap": "Word Wrap"
 }

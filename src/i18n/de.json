@@ -105,6 +105,7 @@
     "upload_overwrite_hint": "Die folgenden Dateien würden überschrieben:",
     "upload_remote": "Hochladen von außerhalb",
     "upload_remote_url": "Entfernte URL zum Hochladen",
+    "url_not_allowed": "Diese URL ist nicht erlaubt.",
     "username": "Benutzername",
     "word_wrap": "Zeilenumbruch"
 }

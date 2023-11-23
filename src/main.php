@@ -47,6 +47,7 @@ class IFM {
 		"extract" => 1,
 		"upload" => 1,
 		"remoteupload" => 1,
+		"remoteupload_disable_ssrf_check" => 0,
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
@@ -842,17 +843,19 @@ f00bar;
 		if (!isset($d['method']) || !in_array($d['method'], ["curl", "file"]))
 			throw new IFMException($this->l('invalid_params'));
 
+		if ($this->config['remoteupload_disable_ssrf_check'] != 1)
+			if (!$this->checkUrlSsrf($d['url']))
+				throw new IFMException($this->l('url_not_allowed'));
+
 		if ($d['method'] == "curl" && $this->checkCurl() == false)
 			throw new IFMException($this->l('error')." cURL extention not installed.");
 
-		if ($d['method'] == "curl" && $this->checkCurl() == true) {
+		if ($d['method'] == "curl") {
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
 			$ch = curl_init();
 			if ($ch) {
 				if ($this->isFilenameValid($filename) == false)
 					throw new IFMException($this->l('invalid_filename'));
-				elseif (filter_var($d['url'], FILTER_VALIDATE_URL) === false)
-					throw new IFMException($this->l('invalid_url'));
 				else {
 					$fp = fopen($filename, "w");
 					if ($fp) {
@@ -1295,6 +1298,54 @@ f00bar;
 			return false;
 		else
 			return true;
+	}
+
+	/**
+	 * This function checks the URL for potential SSRF attacks. Allowed is only
+	 * http/ftp and only global IP addresses. You can disable the SSRF check in
+	 * the configuration.
+	 */
+	public function checkUrlSsrf($url) {
+		if (!filter_var($url, FILTER_VALIDATE_URL))
+			return false;
+
+		$parts = parse_url($url);
+
+		if (!$parts)
+			return false;
+
+		// no host is not acceptable
+		if (!isset($parts['host']))
+			return false;
+
+		// other protocols than http(s) or ftp are not allowed (curl assumes http per default)
+		if (isset($parts['scheme']) && !in_array(strtolower($parts['scheme']), ['http', 'https', 'ftp']))
+			return false;
+
+		// if the host is no IP, resolve the hostname
+		$ips = [];
+		if (filter_var($parts['host'], FILTER_VALIDATE_IP))
+			array_push($ips, $parts['host']);
+		else
+			$ips = array_merge($ips, array_map(fn($i) => $i['ip'] ?? $i['ipv6'], dns_get_record($parts['host'], DNS_A + DNS_AAAA)));
+
+		if (empty($ips))
+			return false;
+
+		// check if any of the IPs is not global, if so then fail
+		foreach ($ips as $ip) {
+			if (version_compare(PHP_VERSION, '8.2.0') >= 0) {
+				if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE)) {
+					return false;
+				}
+			} else {
+				if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE + FILTER_FLAG_NO_RES_RANGE)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	private function fileDownload(array $options) {
