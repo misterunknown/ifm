@@ -1,8 +1,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/css/bootstrap.min.css" integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.11.3/r-2.2.9/datatables.min.css"/>
 <style type="text/css">
-@@@file:src/includes/bootstrap-treeview.min.css@@@
-@@@file:src/includes/fontello-embedded.css@@@
-@@@file:src/includes/animation.css@@@
-@@@file:src/style.css@@@
+###file:src/includes/bootstrap-treeview.min.css###
+###file:src/includes/fontello-embedded.css###
+###file:src/includes/animation.css###
+###file:src/style.css###
 </style>

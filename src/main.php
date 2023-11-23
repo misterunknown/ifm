@@ -32,7 +32,7 @@ class IFM {
 		"timezone" => "",
 		"forbiddenChars" => [],
 		"dateLocale" => "en-US",
-		"language" => "@@@vars:default_lang@@@",
+		"language" => "###vars:default_lang###",
 		"selfoverwrite" => 0,
 		"session_name" => false,
 
@@ -96,7 +96,7 @@ class IFM {
 		$this->config = array_merge($this->config, $config);
 
 		$i18n = [];
-		@@@vars:languageincludes@@@
+		###vars:languageincludes###
 		$this->i18n = $i18n;
 
 		if ($this->config['timezone'])
@@ -129,13 +129,13 @@ class IFM {
 
 	public function getCSS() {
 		echo <<<'f00bar'
-			@@@ASSETS_CSS@@@
+			###ASSETS_CSS###
 f00bar;
 	}
 
 	public function getJS() {
 		echo <<<'f00bar'
-			@@@ASSETS_JS@@@
+			###ASSETS_JS###
 f00bar;
 	}
 
@@ -263,61 +263,61 @@ f00bar;
 		// templates
 		$templates = [];
 		$templates['app'] = <<<'f00bar'
-@@@file:src/templates/app.html@@@
+###file:src/templates/app.html###
 f00bar;
 		$templates['login'] = <<<'f00bar'
-@@@file:src/templates/login.html@@@
+###file:src/templates/login.html###
 f00bar;
 		$templates['filetable'] = <<<'f00bar'
-@@@file:src/templates/filetable.html@@@
+###file:src/templates/filetable.html###
 f00bar;
 		$templates['footer'] = <<<'f00bar'
-@@@file:src/templates/footer.html@@@
+###file:src/templates/footer.html###
 f00bar;
 		$templates['task'] = <<<'f00bar'
-@@@file:src/templates/task.html@@@
+###file:src/templates/task.html###
 f00bar;
 		$templates['ajaxrequest'] = <<<'f00bar'
-@@@file:src/templates/modal.ajaxrequest.html@@@
+###file:src/templates/modal.ajaxrequest.html###
 f00bar;
 		$templates['copymove'] = <<<'f00bar'
-@@@file:src/templates/modal.copymove.html@@@
+###file:src/templates/modal.copymove.html###
 f00bar;
 		$templates['createdir'] = <<<'f00bar'
-@@@file:src/templates/modal.createdir.html@@@
+###file:src/templates/modal.createdir.html###
 f00bar;
 		$templates['createarchive'] = <<<'f00bar'
-@@@file:src/templates/modal.createarchive.html@@@
+###file:src/templates/modal.createarchive.html###
 f00bar;
 		$templates['deletefile'] = <<<'f00bar'
-@@@file:src/templates/modal.deletefile.html@@@
+###file:src/templates/modal.deletefile.html###
 f00bar;
 		$templates['extractfile'] = <<<'f00bar'
-@@@file:src/templates/modal.extractfile.html@@@
+###file:src/templates/modal.extractfile.html###
 f00bar;
 		$templates['file'] = <<<'f00bar'
-@@@file:src/templates/modal.file.html@@@
+###file:src/templates/modal.file.html###
 f00bar;
 		$templates['file_editoroptions'] = <<<'f00bar'
-@@@file:src/templates/modal.file_editoroptions.html@@@
+###file:src/templates/modal.file_editoroptions.html###
 f00bar;
 		$templates['remoteupload'] = <<<'f00bar'
-@@@file:src/templates/modal.remoteupload.html@@@
+###file:src/templates/modal.remoteupload.html###
 f00bar;
 		$templates['renamefile'] = <<<'f00bar'
-@@@file:src/templates/modal.renamefile.html@@@
+###file:src/templates/modal.renamefile.html###
 f00bar;
 		$templates['search'] = <<<'f00bar'
-@@@file:src/templates/modal.search.html@@@
+###file:src/templates/modal.search.html###
 f00bar;
 		$templates['searchresults'] = <<<'f00bar'
-@@@file:src/templates/modal.searchresults.html@@@
+###file:src/templates/modal.searchresults.html###
 f00bar;
 		$templates['uploadfile'] = <<<'f00bar'
-@@@file:src/templates/modal.uploadfile.html@@@
+###file:src/templates/modal.uploadfile.html###
 f00bar;
 		$templates['uploadconfirmoverwrite'] = <<<'f00bar'
-@@@file:src/templates/modal.uploadconfirmoverwrite.html@@@
+###file:src/templates/modal.uploadconfirmoverwrite.html###
 f00bar;
 		return $templates;
 	}

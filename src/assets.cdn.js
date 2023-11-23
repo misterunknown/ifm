@@ -9,7 +9,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer>
-@@@file:src/includes/bootstrap-treeview.min.js@@@
-@@@file:src/includes/BootstrapMenu.min.js@@@
-@@@file:src/ifm.js@@@
+###file:src/includes/bootstrap-treeview.min.js###
+###file:src/includes/BootstrapMenu.min.js###
+###file:src/ifm.js###
 </script>
