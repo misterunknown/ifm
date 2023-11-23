@@ -1,14 +1,13 @@
 <?php
 
-/* =======================================================================
+/**
+ * =======================================================================
  * Improved File Manager
  * ---------------------
  * License: This project is provided under the terms of the MIT LICENSE
  * http://github.com/misterunknown/ifm/blob/master/LICENSE
  * =======================================================================
- *
- * main
-*/
+ */
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -932,8 +931,8 @@ f00bar;
 		}
 	}
 
-	/*
-	   help functions
+	/**
+	 * help functions
 	 */
 
 	private function l($str) {

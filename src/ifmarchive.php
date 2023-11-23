@@ -16,7 +16,7 @@
  * 	* tar
  * 	* tar.gz
  * 	* tar.bz2
-*/
+ */
 
 class IFMArchive {
 
