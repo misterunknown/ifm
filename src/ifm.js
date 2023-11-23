@@ -1413,7 +1413,7 @@ function IFM(params) {
 	this.formatDate = function( timestamp ) {
 		let d = new Date( timestamp * 1000 );
 
-		return d.toLocaleString(self.config.dateLocale);
+		return d.toLocaleString(navigator.language || "en-US");
 	};
 
 	this.getClipboardLink = function( relpath ) {

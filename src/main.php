@@ -31,7 +31,6 @@ class IFM {
 		"tmp_dir" => "",
 		"timezone" => "",
 		"forbiddenChars" => [],
-		"dateLocale" => "en-US",
 		"language" => "###vars:default_lang###",
 		"selfoverwrite" => 0,
 		"session_name" => false,
