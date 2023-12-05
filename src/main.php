@@ -1327,7 +1327,7 @@ f00bar;
 		if (filter_var($parts['host'], FILTER_VALIDATE_IP))
 			array_push($ips, $parts['host']);
 		else
-			$ips = array_merge($ips, array_map(fn($i) => $i['ip'] ?? $i['ipv6'], dns_get_record($parts['host'], DNS_A + DNS_AAAA)));
+			$ips = array_merge($ips, array_map(function($i) { return $i['ip'] ?? $i['ipv6']; }, dns_get_record($parts['host'], DNS_A + DNS_AAAA)));
 
 		if (empty($ips))
 			return false;
