@@ -220,7 +220,7 @@ f00bar;
 			case "getFolders":
 				return $this->getFolders($_REQUEST);
 		}
-		
+
 		// checking working directory
 		if (!isset($_REQUEST["dir"]) || !$this->isPathValid($_REQUEST["dir"]))
 			throw new IFMException($this->l("invalid_dir"));
@@ -580,7 +580,7 @@ f00bar;
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
 				// work around magic quotes
-				if((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc())
+				if ((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc())
 					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
 						$content = stripslashes($d['content']);
 				} else {
@@ -1025,7 +1025,7 @@ f00bar;
 			if ($login_failed === true)
 				throw new IFMException("Authentication failed: Wrong credentials", true);
 			else
-				throw new IFMException("Not authenticated" , true);
+				throw new IFMException("Not authenticated", true);
 		}
 	}
 
@@ -1058,7 +1058,7 @@ f00bar;
 				}
 				$u = $uuid . "=" . $user . "," . $basedn;
 				if (!$ds = ldap_connect($ldap_server)) {
-					throw new IFMException("Could not reach the ldap server." , true);
+					throw new IFMException("Could not reach the ldap server.", true);
 					//trigger_error("Could not reach the ldap server.", E_USER_ERROR);
 					return false;
 				}
@@ -1070,14 +1070,14 @@ f00bar;
 							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) == 1) {
 								$authenticated = true;
 							} else {
-								throw new IFMException("User not allowed." , true);
+								throw new IFMException("User not allowed.", true);
 								//trigger_error("User not allowed.", E_USER_ERROR);
 								$authenticated = false;
 							}
 						} else
 							$authenticated = true;
 					} else {
-						throw new IFMException(ldap_error($ds) , true);
+						throw new IFMException(ldap_error($ds), true);
 						//trigger_error(ldap_error($ds), E_USER_ERROR);
 						$authenticated = false;
 					}
@@ -1105,7 +1105,7 @@ f00bar;
 	private function isAbsolutePath($path) {
 		if ($path === null || $path === '')
 			return false;
-		return $path[0] === DIRECTORY_SEPARATOR || preg_match('~^[A-Z]:(?![^/\\\\])~i',$path) > 0;
+		return $path[0] === DIRECTORY_SEPARATOR || preg_match('~^[A-Z]:(?![^/\\\\])~i', $path) > 0;
 	}
 
 	private function getRootDir() {
@@ -1247,7 +1247,7 @@ f00bar;
 		$ret = "";
 		foreach ($parts as $part)
 			if (trim($part) != "")
-				$ret .= (empty($ret) ? rtrim($part,"/") : trim($part, '/'))."/";
+				$ret .= (empty($ret) ? rtrim($part, "/") : trim($part, '/'))."/";
 		return rtrim($ret, "/");
 	}
 
