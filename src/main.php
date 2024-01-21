@@ -72,9 +72,9 @@ class IFM {
 	];
 
 	private $config = [];
-	private $templates = [];
 	private $i18n = [];
 	public $mode = "standalone";
+	private $initialWD;
 
 	public function __construct($config=[]) {
 		// store initial working directory
