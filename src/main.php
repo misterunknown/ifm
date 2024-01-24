@@ -522,24 +522,17 @@ f00bar;
 		if (!in_array($d['action'], ['copy', 'move']))
 			throw new IFMException($this->l('invalid_action'));
 
-		$err = []; $errFlag = -1; // -1 -> all errors; 0 -> at least some errors; 1 -> no errors
+		$err = [];
 		foreach ($d['filenames'] as $file) {
 			if (!file_exists($file) || $file == ".." || !$this->isFilenameValid($file)) {
 				array_push($err, $file);
 			}
 			if ($d['action'] == "copy") {
-				if ($this->xcopy($file, $d['destination']))
-					$errFlag = 0;
-				else
-					array_push($err, $file);
+				$this->xcopy($file, $d['destination']) or array_push($err, $file);
 			} elseif ($d['action'] == "move") {
-				if (rename($file, $this->pathCombine($d['destination'], basename($file))))
-					$errFlag = 0;
-				else
-					array_push($err, $file);
+				rename($file, $this->pathCombine($d['destination'], basename($file))) or array_push($err, $file);
 			}
 		}
-		$action = ($d['action'] == "copy") ? "copied" : "moved";
 		if (empty($err)) {
 			return [
 				"status" => "OK",
@@ -605,8 +598,7 @@ f00bar;
 
 		if (isset($d['filename']) && $this->isFilenameAllowed($d['filename']) && file_exists($d['filename']) && is_readable($d['filename'])) {
 			$content = @file_get_contents($d['filename']);
-			if (function_exists("mb_check_encoding") && !mb_check_encoding($content, "UTF-8"))
-				$content = utf8_encode($content);
+			$this->convertToUTF8($content);
 			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]];
 		} else
 			throw new IFMException($this->l('file_not_found'));
@@ -617,20 +609,16 @@ f00bar;
 		if ($this->config['delete'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 
-		$err = []; $errFLAG = -1; // -1 -> no files deleted; 0 -> at least some files deleted; 1 -> all files deleted
+		$err = [];
 		foreach ($d['filenames'] as $file) {
 			if ($this->isFilenameAllowed($file)) {
 				if (is_dir($file)) {
 					$res = $this->rec_rmdir($file);
-					if ($res != 0)
+					if ($res != 0) {
 						array_push($err, $file);
-					else
-						$errFLAG = 0;
+					}
 				} else {
-					if (@unlink($file))
-						$errFLAG = 0;
-					else
-						array_push($err, $file);
+					@unlink($file) or array_push($err, $file);
 				}
 			} else {
 				array_push($err, $file);
@@ -790,7 +778,7 @@ f00bar;
 			try {
 				chmod($d["filename"], (int)octdec($chmod));
 				return ["status" => "OK", "message" => $this->l('permission_change_success')];
-			} catch (Exception $e) {
+			} catch (Exception) {
 				throw new IFMException($this->l('permission_change_error'));
 			}
 		} else
@@ -953,28 +941,29 @@ f00bar;
 	private function jsonResponse($array) {
 		$this->convertToUTF8($array);
 		$json = json_encode($array);
+		$err = "";
 		if ($json === false) {
 			switch (json_last_error()) {
 				case JSON_ERROR_NONE:
-					echo ' - No errors';
+					$err = ' - No errors';
 					break;
 				case JSON_ERROR_DEPTH:
-					echo ' - Maximum stack depth exceeded';
+					$err = ' - Maximum stack depth exceeded';
 					break;
 				case JSON_ERROR_STATE_MISMATCH:
-					echo ' - Underflow or the modes mismatch';
+					$err = ' - Underflow or the modes mismatch';
 					break;
 				case JSON_ERROR_CTRL_CHAR:
-					echo ' - Unexpected control character found';
+					$err = ' - Unexpected control character found';
 					break;
 				case JSON_ERROR_SYNTAX:
-					echo ' - Syntax error, malformed JSON';
+					$err = ' - Syntax error, malformed JSON';
 					break;
 				case JSON_ERROR_UTF8:
-					echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+					$err = ' - Malformed UTF-8 characters, possibly incorrectly encoded';
 					break;
 				default:
-					echo ' - Unknown error';
+					$err = ' - Unknown error';
 					break;
 			}
 
@@ -984,11 +973,13 @@ f00bar;
 	}
 
 	private function convertToUTF8(&$item) {
-		if (is_array($item))
+		if (is_array($item)) {
 			array_walk($item, [$this, 'convertToUTF8']);
-		else
-			if (function_exists("mb_check_encoding") && !mb_check_encoding($item, "UTF-8"))
-				$item = utf8_encode($item);
+		} else {
+			if (function_exists("mb_check_encoding") && !mb_check_encoding($item, "UTF-8")) {
+				$item = mb_convert_encoding($item, "UTF-8", mb_detect_encoding($item));
+			}
+		}
 	}
 
 	private function checkAuth() {
