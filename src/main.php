@@ -572,15 +572,7 @@ f00bar;
 
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename'])) {
 			if (isset($d['content'])) {
-				// work around magic quotes
-				if ((function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc())
-					|| (ini_get('magic_quotes_sybase') && (strtolower(ini_get('magic_quotes_sybase'))!="off")) ) {
-						$content = stripslashes($d['content']);
-				} else {
-						$content = $d['content'];
-				}
-
-				if (@file_put_contents($d['filename'], $content) !== false)
+				if (@file_put_contents($d['filename'], $d['content']) !== false)
 					return ["status" => "OK", "message" => $this->l('file_save_success')];
 				else
 					throw new Exception($this->l('file_save_error'));
