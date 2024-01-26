@@ -47,7 +47,8 @@ class IFM {
 		"extract" => 1,
 		"upload" => 1,
 		"remoteupload" => 1,
-		"remoteupload_disable_ssrf_check" => 0,
+		"remoteupload_disable_ssrf_check" => 0,     // security default
+		"remoteupload_enable_follow_location" => 0, // security default
 		"rename" => 1,
 		"zipnload" => 1,
 		"createarchive" => 1,
@@ -834,41 +835,51 @@ f00bar;
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
 			$ch = curl_init();
 			if ($ch) {
-				if ($this->isFilenameValid($filename) == false)
+				if ($this->isFilenameValid($filename) == false) {
 					throw new IFMException($this->l('invalid_filename'));
-				else {
+				} else {
 					$fp = fopen($filename, "w");
 					if ($fp) {
 						if (
 							!curl_setopt($ch, CURLOPT_URL, urldecode($d['url']))
 							|| !curl_setopt($ch, CURLOPT_FILE, $fp)
 							|| !curl_setopt($ch, CURLOPT_HEADER, 0)
+							|| !curl_setopt($ch, CURLOPT_FOLLOWLOCATION, !!$this->config['remoteupload_enable_follow_location'])
 							|| !curl_exec($ch)
-						)
+						) {
 							throw new IFMException($this->l('error')." ".curl_error($ch));
-						else
+						} else {
 							return ["status" => "OK", "message" => $this->l('file_upload_success')];
+						}
 						curl_close($ch);
 						fclose($fp);
-					} else
+					} else {
 						throw new IFMException($this->l('file_open_error'));
+					}
 				}
-			} else
+			} else {
 				throw new IFMException($this->l('error')." curl init");
+			}
 		} elseif ($d['method'] == 'file') {
 			$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "curl_".uniqid();
-			if ($this->isFilenameValid($filename) == false)
+			if ($this->isFilenameValid($filename) == false) {
 				throw new IFMException($this->l('invalid_filename'));
-			else {
+			} else {
 				try {
-					file_put_contents($filename, file_get_contents($d['url']));
+					$stream_context = stream_context_create([
+						'http' => [
+							'follow_location' => !!$this->config['remoteupload_enable_follow_location']
+						]
+					]);
+					file_put_contents($filename, file_get_contents($d['url'], false, $stream_context));
 					return ["status" => "OK", "message" => $this->l('file_upload_success')];
 				} catch (Exception $e) {
 					throw new IFMException($this->l('error') . " " . $e->getMessage());
 				}
 			}
-		} else
+		} else {
 			throw new IFMException($this->l('invalid_params'));
+		}
 	}
 
 	private function createArchive($d) {
