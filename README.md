@@ -44,7 +44,7 @@ The IFM uses the following resources:
   + HTML5 and CSS3 compatible browser
   + activated javascript
 * Server
-  + PHP >= 5.6
+  + PHP >= 7.0
   + extensions
     - bz2
     - curl (for remote upload)
