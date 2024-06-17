@@ -771,7 +771,7 @@ f00bar;
 			try {
 				chmod($d["filename"], (int)octdec($chmod));
 				return ["status" => "OK", "message" => $this->l('permission_change_success')];
-			} catch (Exception) {
+			} catch (Exception $e) {
 				throw new IFMException($this->l('permission_change_error'));
 			}
 		} else
