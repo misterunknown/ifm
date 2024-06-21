@@ -25,8 +25,7 @@ RUN docker-php-ext-install \
 RUN /usr/sbin/setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/php
 
 # remove unnecessary users
-RUN deluser xfs && \
-    deluser www-data
+RUN getent passwd www-data >/dev/null 2>&1 && deluser www-data || true
 
 # sudo: workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1773148
 RUN echo "Set disable_coredump false" > /etc/sudo.conf
