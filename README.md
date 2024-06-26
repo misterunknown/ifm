@@ -139,7 +139,7 @@ The scripts configuration can be changed by adjusting the corresponding environm
 ```bash
 docker run --rm -i -p "8080:80" -v /var/www:/var/www \
   -e IFM_AUTH=1 -e IFM_AUTH \
-  -e IFM_AUTH_SOURCE="admin:$2y$05$LPdE7u/5da/TCE8ZhqQ1o.acuV50HqB3OrHhNwxbXYeWmmZKdQxrC" \
+  -e IFM_AUTH_SOURCE="inline;admin:$2y$05$LPdE7u/5da/TCE8ZhqQ1o.acuV50HqB3OrHhNwxbXYeWmmZKdQxrC" \
   ifm
 ```
 
