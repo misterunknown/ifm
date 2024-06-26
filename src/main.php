@@ -89,7 +89,7 @@ class IFM {
 			if (($value = getenv('IFM_' . strtoupper($key))) !== false) {
 				if (is_numeric($value))
 					$value = intval($value);
-				$this->config[$key] = $value;
+				$this->config[$key] = trim($value, implode(['"', "'"])); // remove quotes from env vars
 			}
 		}
 
