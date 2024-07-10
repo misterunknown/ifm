@@ -87,11 +87,11 @@ class IFM {
 		// load config from environment variables
 		foreach (array_keys($this->config) as $key) {
 			if (($value = getenv('IFM_' . strtoupper($key))) !== false) {
-					if (is_numeric($value)) {
-							$this->config[$key] = intval($value);
-					} else {
-							$this->config[$key] = trim($value, implode(['"', "'"])); // remove quotes from env vars
-					}
+				if (is_numeric($value)) {
+					$this->config[$key] = intval($value);
+				} else {
+					$this->config[$key] = trim($value, implode(['"', "'"])); // remove quotes from env vars
+				}
 			}
 		}
 
