@@ -557,11 +557,8 @@ function IFM(params) {
 						aceSession.setOption( 'useSoftTabs', e.srcElement.checked );
 					});
 				if( el = content.querySelector("#editor-tabsize" )) {
-					el.addEventListener( 'keydown', function( e ) {
-						if( e.key == 'Enter' ) {
-							e.preventDefault();
-							aceSession.setOption( 'tabSize', e.srcElement.value );
-						}
+					el.addEventListener( 'change', function( e ) {
+						aceSession.setOption( 'tabSize', e.srcElement.value );
 					});
 				}
 				if( el = content.querySelector("#editor-syntax" ))
