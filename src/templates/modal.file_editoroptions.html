@@ -9,6 +9,14 @@
 			<label class="form-check-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
 		</div>
 		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="editor-invisible-chars"
+				{{#invischars}}
+				checked="checked"
+				{{/invischars}}
+			>
+			<label class="form-check-label" for="editor-invisible-chars">{{i18n.invis_chars}}</label>
+		</div>
+		<div class="form-check">
 			<input class="form-check-input" type="checkbox" id="editor-softtabs"
 				{{#softtabs}}
 				checked="checked"

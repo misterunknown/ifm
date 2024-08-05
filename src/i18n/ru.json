@@ -62,6 +62,7 @@
     "invalid_filename": "Неверное имя файла.",
     "invalid_params": "Неверный параметр.",
     "invalid_url": "Неверный URL.",
+    "invis_chars": "Невидимые символы",
     "json_encode_error": "Не удалось представить ответ в виде JSON:",
     "last_modified": "Изменено",
     "load_config_error": "Ошибка загрузки конфигурации.",
