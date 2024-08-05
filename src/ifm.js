@@ -531,12 +531,14 @@ function IFM(params) {
 				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
 				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
 
-				let aceSession = self.editor.getSession();
+				let aceEditor = self.editor;
+				let aceSession = aceEditor.getSession();
 				let content = self.getNodeFromString(
 					Mustache.render(
 						self.templates.file_editoroptions,
 						{
 							wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
+							invischars: aceEditor.getOption( 'showInvisibles' ),
 							softtabs: aceSession.getOption( 'useSoftTabs' ),
 							tabsize: aceSession.getOption( 'tabSize' ),
 							ace_includes: self.ace,
@@ -552,6 +554,11 @@ function IFM(params) {
 						aceSession.setOption( 'wrap', e.srcElement.checked );
 					});
 				}
+				if( el = content.querySelector("#editor-invisible-chars")) {
+					el.addEventListener( 'change', function( e ) {
+						aceEditor.setOption( 'showInvisibles', e.srcElement.checked );
+					});
+				}
 				if( el = content.querySelector("#editor-softtabs" ))
 					el.addEventListener( 'change', function( e ) {
 						aceSession.setOption( 'useSoftTabs', e.srcElement.checked );
@@ -561,10 +568,11 @@ function IFM(params) {
 						aceSession.setOption( 'tabSize', e.srcElement.value );
 					});
 				}
-				if( el = content.querySelector("#editor-syntax" ))
+				if( el = content.querySelector("#editor-syntax" )) {
 					el.addEventListener( 'change', function( e ) {
 						aceSession.getSession().setMode( e.target.value );
 					});
+				}
 				return content;
 
 			}
