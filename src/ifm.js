@@ -538,7 +538,7 @@ function IFM(params) {
 						self.templates.file_editoroptions,
 						{
 							wordwrap: ( aceSession.getOption( 'wrap' ) == 'off' ? false : true ),
-							invischars: aceEditor.getOption( 'showInvisibles' ),
+							invisible_chars: aceEditor.getOption( 'showInvisibles' ),
 							softtabs: aceSession.getOption( 'useSoftTabs' ),
 							tabsize: aceSession.getOption( 'tabSize' ),
 							ace_includes: self.ace,

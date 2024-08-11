@@ -62,7 +62,7 @@
     "invalid_filename": "Invalid filename given.",
     "invalid_params": "Invalid parameter given.",
     "invalid_url": "Invalid URL given.",
-    "invis_chars": "Invisible chars",
+    "invisible_chars": "Invisible chars",
     "json_encode_error": "Could not format the response as JSON:",
     "last_modified": "Last Modified",
     "load_config_error": "Could not load configuration.",
