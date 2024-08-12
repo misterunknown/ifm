@@ -49,5 +49,5 @@ jobs:
         run: php ./compiler.php
 
       - name: Run PHPMD
-        run: phpmd ./src github --exclude './src/includes/*'
+        run: phpmd ./src github cleancode,design,unusedcode --exclude './src/includes/*'
         continue-on-error: true
