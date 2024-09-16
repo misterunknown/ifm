@@ -52,9 +52,9 @@ class Htpasswd {
 			$apr1 = new APR1_MD5();
 			return $apr1->check($pass, $hash);
 		} elseif (substr($hash, 0, 5) == '{SHA}') {
-			return base64_encode(sha1($pass, true)) == substr($hash, 5);
+			return hash_equals(substr($hash, 5), base64_encode(sha1($pass, true)));
 		} else { // assume CRYPT
-			return crypt($pass, $hash) == $hash;
+			return hash_equals($hash, crypt($pass, $hash));
 		}
 	}
 }
@@ -133,6 +133,6 @@ class APR1_MD5 {
 
 	public static function check($plain, $hash) {
 		$parts = explode('$', $hash);
-		return self::hash($plain, $parts[2]) === $hash;
+		return hash_equals($hash, self::hash($plain, $parts[2]));
 	}
 }
