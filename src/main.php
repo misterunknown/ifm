@@ -1361,7 +1361,10 @@ f00bar;
 		$file_stream = fopen($options['file'], 'rb');
 		$stdout_stream = fopen('php://output', 'wb');
 
-		stream_copy_to_stream($file_stream, $stdout_stream);
+		$buffer_size = 64 * 1024 * 1024; // 64K should be decent for a network stream
+		while (!feof($file_stream)) {
+			fwrite($stdout_stream, fread($file_stream, $buffer_size));
+		}
 
 		fclose($file_stream);
 		fclose($stdout_stream);
