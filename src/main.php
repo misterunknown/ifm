@@ -973,8 +973,10 @@ f00bar;
 			}
 
 			throw new IFMException($this->l('json_encode_error')." ".$err);
-		} else
+		} else {
+			header("Content-Type: application/json");
 			echo $json;
+		}
 	}
 
 	private function convertToUTF8(&$item) {
