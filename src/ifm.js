@@ -1387,6 +1387,33 @@ function IFM(params) {
 	};
 
 	/**
+	 * Formats a date like strftime
+	 *
+	 * @param {Date} date - Date object
+	 * @param {string} format - strftime compatible format string
+	 * @returns {string} - formatted date
+	 */
+	this.customStrftime = function(date, format) {
+		const pad = (num, size = 2) => String(num).padStart(size, '0');
+
+		const replacements = {
+			'%Y': date.getFullYear(),
+			'%m': pad(date.getMonth() + 1),
+			'%d': pad(date.getDate()),
+			'%H': pad(date.getHours()),
+			'%M': pad(date.getMinutes()),
+			'%S': pad(date.getSeconds()),
+			'%y': String(date.getFullYear()).slice(-2),
+			'%b': date.toLocaleString('default', { month: 'short' }),
+			'%B': date.toLocaleString('default', { month: 'long' }),
+			'%a': date.toLocaleString('default', { weekday: 'short' }),
+			'%A': date.toLocaleString('default', { weekday: 'long' }),
+		};
+
+		return format.replace(/%[a-zA-Z]/g, match => replacements[match] || match);
+	};
+
+	/**
 	 * Prevents a user to submit a form via clicking enter
 	 *
 	 * @param object e - click event
@@ -1415,10 +1442,14 @@ function IFM(params) {
 	 *
 	 * @param {integer} timestamp - UNIX timestamp
 	 */
-	this.formatDate = function( timestamp ) {
-		let d = new Date( timestamp * 1000 );
+	this.formatDate = function(timestamp) {
+		let d = new Date(timestamp * 1000)
 
-		return d.toLocaleString(navigator.language || "en-US");
+		if (self.config.customDateFormat) {
+			return self.customStrftime(d, self.config.customDateFormat)
+		} else {
+			return d.toLocaleString(navigator.language || "en-US");
+		}
 	};
 
 	this.getClipboardLink = function( relpath ) {

@@ -69,7 +69,8 @@ class IFM {
 		"disable_mime_detection" => 0,
 		"showrefresh" => 1,
 		"forceproxy" => 0,
-		"confirmoverwrite" => 1
+		"confirmoverwrite" => 1,
+		"customDateFormat" => false
 	];
 
 	private $config = [];
