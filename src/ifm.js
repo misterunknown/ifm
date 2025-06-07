@@ -230,7 +230,26 @@ function IFM(params) {
 				"search": self.i18n.filter
 			},
 			stateSave: true,
-			responsive: true
+			responsive: true,
+			drawCallback: function() {
+				// has to be jquery, since this is a bootstrap feature
+				$( 'a[data-toggle="popover"]' ).popover({
+					content: function() {
+						let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
+						let popover = document.createElement( 'img' );
+						if( self.config.isDocroot )
+							popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( /#/g, '%23' ).replace( /\?/g, '%3F' );
+						else
+							popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
+						popover.classList.add( 'imgpreview' );
+						return popover;
+					},
+					animated: 'fade',
+					placement: 'bottom',
+					trigger: 'hover',
+					html: true
+				});
+			}
 		});
 
 
@@ -282,24 +301,6 @@ function IFM(params) {
 			e.stopPropagation();
 			e.preventDefault();
 			self.changeDirectory( e.target.parentElement.parentElement.dataset.filename );
-		});
-
-		// has to be jquery, since this is a bootstrap feature
-		$( 'a[data-toggle="popover"]' ).popover({
-			content: function() {
-				let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
-				let popover = document.createElement( 'img' );
-				if( self.config.isDocroot )
-					popover.src = encodeURI( self.pathCombine( self.currentDir, item.name ) ).replace( /#/g, '%23' ).replace( /\?/g, '%3F' );
-				else
-					popover.src = self.api + "?api=proxy&dir=" + encodeURIComponent( self.currentDir ) + "&filename=" + encodeURIComponent( item.name );
-				popover.classList.add( 'imgpreview' );
-				return popover;
-			},
-			animated: 'fade',
-			placement: 'bottom',
-			trigger: 'hover',
-			html: true
 		});
 
 		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
