@@ -2,16 +2,16 @@
 
 ## Contents
 
- * [about](#about)
- * [features](#features)
- * [requirements](#requirements)
- * [installation](#installation)
- * [security information](#security-information)
- * [keybindings](#keybindings)
- * [configuration](#configuration)
- * [docker](#docker)
- * [screenshots](#screenshots)
- * [issues](#issues)
+* [about](#about)
+* [features](#features)
+* [requirements](#requirements)
+* [installation](#installation)
+* [security information](#security-information)
+* [keybindings](#keybindings)
+* [configuration](#configuration)
+* [docker](#docker)
+* [screenshots](#screenshots)
+* [issues](#issues)
 
 ## About
 
@@ -68,8 +68,9 @@ The minified versions (`*.min.php`) are zipped via gzip. These versions are not 
 
 The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
-By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active
-configuration. [See also](https://github.com/misterunknown/ifm/wiki/Configuration).
+By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration.
+> [!TIP]
+> [See also configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
 ## Keybindings
 
@@ -101,8 +102,7 @@ See [authentication](https://github.com/misterunknown/ifm/wiki/Authentication).
 
 ## Docker
 
-The docker image is based on the official php docker images (alpine version)
-and exposes port 80.
+The docker image is based on the official php docker images (alpine version) and exposes port 80.
 
 ### Quickstart
 
@@ -143,7 +143,8 @@ docker run --rm -i -p "8080:80" -v /var/www:/var/www \
   ifm
 ```
 
-You can get a complete list of environment variables [here](https://github.com/misterunknown/ifm/wiki/Configuration#configuration-options).
+> [!TIP]
+> You can get a complete list of environment variables [here](https://github.com/misterunknown/ifm/wiki/Configuration#configuration-options).
 
 ## Screenshots
 

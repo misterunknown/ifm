@@ -13,7 +13,7 @@ a {
 }
 
 a.ifmitem:focus {
-	outline: 0
+	outline: 0;
 }
 
 img.imgpreview {
@@ -47,98 +47,6 @@ div#content { /* is for the ACE editor */
 	.icon { font-size: 12pt; }
 	#filetable tr th.buttons { min-width: 85px !important; }
 }
-
-/*
- * Filetable related settings
- */
-#filetable th {
-	border-top: 0;
-}
-#filetable td:nth-child(5), #filetable th:nth-child(5) {
-	text-align: center;
-}
-#filetable td:nth-child(6), #filetable th:nth-child(6) {
-	text-align: center;
-}
-#filetable tr td:last-child {
-	text-align: right;
-}
-#filetable td:last-child a:hover {
-	text-decoration: none;
-}
-.td-permissions { width: 1px; }
-
-input[name=newpermissions] {
-	padding: 6px 8px;
-	width: 6.5rem;
-}
-
-#filetable tr th.buttons { min-width: 95px; }
-#filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
-#filetable tbody tr.highlightedItem td:first-child a { outline: none; }
-#filetable tbody tr.selectedItem { background-color: #337ab7; color: #FFF; }
-#filetable tbody tr.selectedItem * a { color: #FFF; }
-#filetable tbody tr td { vertical-align: inherit; }
-
-div.ifminfo { color: #adadad; font-size: 10pt; }
-div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align:  center; }
-
-/*
- * Footer / Task-Queue settings
- */
-footer {
-	position: fixed;
-	padding-top: 1em;
-	border-top: 1px;
-	background-color: #EEE;
-	bottom: 0;
-	width: 100%;
-	overflow: hidden;
-}
-
-#waitqueue {
-	max-height: 6rem;
-}
-
-#waitqueue .progress {
-	position: relative;
-	margin-bottom: 0;
-}
-#waitqueue .progbarlabel {
-	position:absolute;
-	top: 0;
-	left: 10px;
-	font-weight: bold;
-}
-
-/*
- * File drop overlay
- */
-#filedropoverlay {
-	display: none;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	text-align: center;
-	color: #FFF;
-	background-color: lightblue;
-	filter: alpha(opacity=70);
-	-moz-opacity: 0.7;
-	opacity: 0.7;
-	z-index: 1000;
-}
-
-#filedropoverlay h1 {
-	border-radius: 5px;
-	color: #000;
-	position:relative;
-	top:50%;
-	font-size: 6em;
-	pointer-events: none;
-}
-
 
 /*
  * Datatables related settings
@@ -182,13 +90,103 @@ table.dataTable thead th.sorting_desc:after {
 }
 
 /*
+ * Filetable related settings
+ */
+#filetable th {
+	border-top: 0;
+}
+#filetable td:nth-child(5), #filetable th:nth-child(5) {
+	text-align: center;
+}
+#filetable td:nth-child(6), #filetable th:nth-child(6) {
+	text-align: center;
+}
+#filetable tr td:last-child {
+	text-align: right;
+}
+#filetable td:last-child a:hover {
+	text-decoration: none;
+}
+.td-permissions { width: 1px; }
+
+input[name="newpermissions"] {
+	padding: 6px 8px;
+	width: 6.5rem;
+}
+
+#filetable tr th.buttons { min-width: 95px; }
+#filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
+#filetable tbody tr.highlightedItem td:first-child a { outline: none; }
+#filetable tbody tr.selectedItem { background-color: #337ab7; color: #fff; }
+#filetable tbody tr.selectedItem * a { color: #fff; }
+#filetable tbody tr td { vertical-align: inherit; }
+
+div.ifminfo { color: #adadad; font-size: 10pt; }
+div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align: center; }
+
+/*
+ * Footer / Task-Queue settings
+ */
+footer {
+	position: fixed;
+	padding-top: 1em;
+	border-top: 1px;
+	background-color: #eee;
+	bottom: 0;
+	width: 100%;
+	overflow: hidden;
+}
+
+#waitqueue {
+	max-height: 6rem;
+}
+
+#waitqueue .progress {
+	position: relative;
+	margin-bottom: 0;
+}
+#waitqueue .progbarlabel {
+	position: absolute;
+	top: 0;
+	left: 10px;
+	font-weight: bold;
+}
+
+/*
+ * File drop overlay
+ */
+#filedropoverlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	color: #fff;
+	background-color: lightblue;
+	filter: alpha(opacity=70);
+	-moz-opacity: 0.7;
+	opacity: 0.7;
+	z-index: 1000;
+}
+
+#filedropoverlay h1 {
+	border-radius: 5px;
+	color: #000;
+	position:relative;
+	top: 50%;
+	font-size: 6em;
+	pointer-events: none;
+}
+
+/*
  * Modal related settings
  */
 #copyMoveTree {
 	max-height: 80vh;
 	overflow: auto;
 }
-
 
 @media (min-width: 576px) {
 	.modal-dialog {

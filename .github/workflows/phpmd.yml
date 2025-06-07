@@ -36,11 +36,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@aa1fe473f9c687b6fb896056d771232c0bc41161
+        uses: shivammathur/setup-php@v2
         with:
+          php-version: '8.0'
           coverage: none
           tools: phpmd
 
@@ -48,11 +49,5 @@ jobs:
         run: php ./compiler.php
 
       - name: Run PHPMD
-        run: phpmd ./dist sarif codesize --reportfile phpmd-results.sarif
+        run: phpmd ./src github cleancode,design,unusedcode --exclude './src/includes/*' --ignore-violations-on-exit
         continue-on-error: true
-
-      - name: Upload analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: phpmd-results.sarif
-          wait-for-processing: true

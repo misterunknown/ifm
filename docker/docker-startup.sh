@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-if [ ! -z $IFM_DOCKER_UID ]; then
+if [ -n $IFM_DOCKER_UID ]; then
 	# check if UID/GID are numeric
 	if ! echo "$IFM_DOCKER_UID$IFM_DOCKER_GID" | grep -E "^[0-9]+$" >/dev/null 2>&1; then
 		echo "FATAL: IFM_DOCKER_UID or IFM_DOCKER_GID are not numeric (UID: $IFM_DOCKER_UID, GID: $IFM_DOCKER_GID)"
