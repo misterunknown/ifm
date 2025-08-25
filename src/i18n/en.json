@@ -40,6 +40,7 @@
     "file_save_confirm": "Do you want to save the following file:",
     "file_save_error": "Could not save file.",
     "file_save_success": "File saved.",
+    "file_overwrite_confirm": "File already exists. Overwrite?",
     "file_upload_error": "Could not upload file.",
     "file_upload_success": "File uploaded.",
     "filename": "Filename",
