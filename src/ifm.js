@@ -1,3 +1,13 @@
+// Shows the download dialogue
+window.confirmDownload = function(event, el) {
+	event.preventDefault();
+	var filename = el.getAttribute('data-filename') || '';
+	var msg = filename ? 'Are you sure to download "' + filename + '"?' : 'Start download?';
+	if (window.confirm(msg)) {
+		window.location.href = el.getAttribute('href');
+	}
+	return false;
+}
 /**
  * IFM constructor
  *
@@ -511,9 +521,19 @@ function IFM(params) {
 		form.addEventListener( 'click', function( e ) {
 			if( e.target.id == "buttonSave" ) {
 				e.preventDefault();
-				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
-				self.isModalClosedByButton = true;
-				self.hideModal();
+				let filename = document.querySelector( '#formFile input[name=filename]' ).value;
+				let exists = self.fileCache.map(x => x.name).indexOf(filename) !== -1;
+				if (exists) {
+					if (window.confirm(self.i18n.file_overwrite_confirm || 'Die Datei existiert bereits. Überschreiben?')) {
+						self.saveFile(filename, self.editor.getValue());
+						self.isModalClosedByButton = true;
+						self.hideModal();
+					}
+				} else {
+					self.saveFile(filename, self.editor.getValue());
+					self.isModalClosedByButton = true;
+					self.hideModal();
+				}
 			} else if( e.target.id == "buttonSaveNotClose" ) {
 				e.preventDefault();
 				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );

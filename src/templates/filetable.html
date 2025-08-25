@@ -14,7 +14,14 @@
 	</td>
 	{{#config.download}}
 	<td>
-		<a href="{{download.link}}"><span class="{{download.icon}}"></span></a>
+		{{#type}}
+			{{#isDir}}
+				<a href="{{download.link}}" class="download-link" data-filename="{{download.name}}" onclick="return confirmDownload(event, this)"><span class="{{download.icon}}"></span></a>
+			{{/isDir}}
+			{{^isDir}}
+				<a href="{{download.link}}" class="download-link" data-filename="{{download.name}}"><span class="{{download.icon}}"></span></a>
+			{{/isDir}}
+		{{/type}}
 	</td>
 	{{/config.download}}
 	{{#config.showlastmodified}}
