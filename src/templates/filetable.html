@@ -14,7 +14,7 @@
 	</td>
 	{{#config.download}}
 	<td>
-		<a href="{{download.link}}"><span class="{{download.icon}}"></span></a>
+		<a href="{{download.link}}" class="download-link" data-filename="{{download.name}}" onclick="return confirmDownload(event, this)"><span class="{{download.icon}}"></span></a>
 	</td>
 	{{/config.download}}
 	{{#config.showlastmodified}}

@@ -1,3 +1,13 @@
+// Shows the download dialogue
+window.confirmDownload = function(event, el) {
+	event.preventDefault();
+	var filename = el.getAttribute('data-filename') || '';
+	var msg = filename ? 'Are you sure to download "' + filename + '"?' : 'Start download?';
+	if (window.confirm(msg)) {
+		window.location.href = el.getAttribute('href');
+	}
+	return false;
+}
 /**
  * IFM constructor
  *
