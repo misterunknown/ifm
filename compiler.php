@@ -132,7 +132,7 @@ $ifm->run();
 // build compressed ifm
 file_put_contents(
 	IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE_GZ,
-	'<?php eval(gzdecode(file_get_contents(__FILE__, false, null, 85))); exit(0); ?>'
+	'<?php eval(gzdecode(file_get_contents(__FILE__, false, null, 79))); exit(0); ?>'
 	. gzencode(file_get_contents(IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, false, null, 5))
 );
 // build lib
