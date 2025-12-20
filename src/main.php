@@ -14,7 +14,7 @@ ini_set('display_errors', 0);
 
 class IFMException extends Exception {
 	public $forUser = true;
-	public function __construct($message, $forUser = true, $code = 0, Exception $previous) {
+	public function __construct($message, $forUser = true, $code = 0, ?Exception $previous = null) {
 		$this->forUser = $forUser;
 		parent::__construct($message, $code, $previous);
 	}
