@@ -77,6 +77,11 @@ class IFM {
 	private $i18n = [];
 	public $mode = "standalone";
 	private $initialWD;
+	private $rootDirCache = null;
+	private $currentLang = null;
+	private $uidCache = [];
+	private $gidCache = [];
+	private $mimeCache = [];
 
 	public function __construct($config=[]) {
 		// store initial working directory
@@ -329,30 +334,33 @@ f00bar;
 	private function getFiles($dir) {
 		$this->chDirIfNecessary($dir);
 
-		unset($files); unset($dirs); $files = []; $dirs = [];
+		$files = []; $dirs = [];
+		$scriptName = basename($_SERVER['SCRIPT_NAME']);
+		$isInitialWD = (getcwd() == $this->initialWD);
+		$showHtdocs = ($this->config['showhtdocs'] == 1);
+		$showHidden = ($this->config['showhiddenfiles'] == 1);
 
 		if ($handle = opendir(".")) {
 			while (false !== ($result = readdir($handle))) {
-				if ($result == basename($_SERVER['SCRIPT_NAME']) && getcwd() == $this->initialWD)
+				if ($result == "." )
 					continue;
-				elseif (($result == ".htaccess" || $result==".htpasswd") && $this->config['showhtdocs'] != 1)
+				if ($result == $scriptName && $isInitialWD)
 					continue;
-				elseif ($result == ".")
+				if (!$showHtdocs && ($result == ".htaccess" || $result == ".htpasswd"))
 					continue;
-				elseif ($result != ".." && substr($result, 0, 1) == "." && $this->config['showhiddenfiles'] != 1)
+				if (!$showHidden && $result != ".." && $result[0] == ".")
 					continue;
-				else {
-					$item = $this->getItemInformation($result);
-					if ($item['type'] == "dir")
-						$dirs[] = $item;
-					else
-						$files[] = $item;
-				}
+				$item = $this->getItemInformation($result);
+				if ($item['type'] == "dir")
+					$dirs[] = $item;
+				else
+					$files[] = $item;
 			}
 			closedir($handle);
 		}
-		array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $dirs);
-		array_multisort(array_column($files, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $files);
+		$cmp = function($a, $b) { return strnatcasecmp($a['name'], $b['name']); };
+		usort($dirs, $cmp);
+		usort($files, $cmp);
 
 		return array_merge($dirs, $files);
 	}
@@ -381,10 +389,18 @@ f00bar;
 			if ($type === "unknown") {
 				$type = pathinfo($name, PATHINFO_EXTENSION);
 			}
+
 			$item["icon"] = $this->getTypeIcon($type);
 			$item["ext"] = strtolower($type);
-			if (!$this->config['disable_mime_detection'])
-				$item["mime_type"] = mime_content_type($name);
+			if (!$this->config['disable_mime_detection']) {
+				$extKey = $item["ext"];
+				if ($extKey !== "") {
+					if (!array_key_exists($extKey, $this->mimeCache))
+						$this->mimeCache[$extKey] = mime_content_type($name);
+					$item["mime_type"] = $this->mimeCache[$extKey];
+				} else
+					$item["mime_type"] = mime_content_type($name);
+			}
 		}
 		if ($this->config['showlastmodified'] == 1)
 			$item["lastmodified"] = filemtime($name);
@@ -411,15 +427,23 @@ f00bar;
 			$item["filepermmode"] = ($this->config['showpermissions'] == 1) ? "short" : "long";
 		}
 		if ($this->config['showowner'] == 1) {
-			if (function_exists("posix_getpwuid") && fileowner($name) !== false) {
-				$ownerarr = posix_getpwuid(fileowner($name));
-				$item["owner"] = $ownerarr['name'];
+			$uid = fileowner($name);
+			if (function_exists("posix_getpwuid") && $uid !== false) {
+				if (!array_key_exists($uid, $this->uidCache)) {
+					$ownerarr = posix_getpwuid($uid);
+					$this->uidCache[$uid] = $ownerarr ? $ownerarr['name'] : false;
+				}
+				$item["owner"] = $this->uidCache[$uid];
 			} else $item["owner"] = false;
 		}
 		if ($this->config['showgroup'] == 1) {
-			if (function_exists("posix_getgrgid") && filegroup($name) !== false) {
-				$grouparr = posix_getgrgid(filegroup($name));
-				$item["group"] = $grouparr['name'];
+			$gid = filegroup($name);
+			if (function_exists("posix_getgrgid") && $gid !== false) {
+				if (!array_key_exists($gid, $this->gidCache)) {
+					$grouparr = posix_getgrgid($gid);
+					$this->gidCache[$gid] = $grouparr ? $grouparr['name'] : false;
+				}
+				$item["group"] = $this->gidCache[$gid];
 			} else $item["group"] = false;
 		}
 		return $item;
@@ -479,13 +503,14 @@ f00bar;
 
 	private function searchItemsRecursive($pattern, $dir="") {
 		$items = [];
-		$dir = $dir ?? '.';
+		if ($dir === "") $dir = '.';
 
 		foreach (glob($this->pathCombine($dir, $pattern)) as $result)
-			array_push($items, $this->getItemInformation($result));
+			$items[] = $this->getItemInformation($result);
 
 		foreach (glob($this->pathCombine($dir, '*'), GLOB_ONLYDIR) as $subdir)
-			$items = array_merge($items, $this->searchItemsRecursive($pattern, $subdir));
+			foreach ($this->searchItemsRecursive($pattern, $subdir) as $it)
+				$items[] = $it;
 
 		return $items;
 	}
@@ -1116,12 +1141,15 @@ f00bar;
 	}
 
 	private function getRootDir() {
+		if ($this->rootDirCache !== null)
+			return $this->rootDirCache;
 		if ($this->config['root_dir'] == "")
-			return $this->initialWD;
+			$this->rootDirCache = $this->initialWD;
 		elseif ($this->isAbsolutePath($this->config['root_dir']))
-			return realpath($this->config['root_dir']);
+			$this->rootDirCache = realpath($this->config['root_dir']);
 		else
-			return realpath($this->pathCombine($this->initialWD, $this->config['root_dir']));
+			$this->rootDirCache = realpath($this->pathCombine($this->initialWD, $this->config['root_dir']));
+		return $this->rootDirCache;
 	}
 
 	private function getValidDir($dir) {
@@ -1379,15 +1407,8 @@ f00bar;
 		header('Pragma: public');
 		header('Content-Length: '.filesize($options['file']));
 
-		$file_stream = fopen($options['file'], 'rb');
-		$stdout_stream = fopen('php://output', 'wb');
-
-		$buffer_size = 64 * 1024 * 1024; // 64K should be decent for a network stream
-		while (!feof($file_stream)) {
-			fwrite($stdout_stream, fread($file_stream, $buffer_size));
-		}
-
-		fclose($file_stream);
-		fclose($stdout_stream);
+		while (ob_get_level() > 0)
+			ob_end_clean();
+		readfile($options['file']);
 	}
 }
