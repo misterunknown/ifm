@@ -149,8 +149,9 @@ f00bar;
 	}
 
 	public function getHTMLHeader() {
+		$lang = htmlspecialchars($this->getCurrentLang(), ENT_QUOTES);
 		print '<!DOCTYPE HTML>
-		<html>
+		<html lang="'.$lang.'">
 			<head>
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
@@ -718,7 +719,7 @@ f00bar;
 			$restoreIFM = true;
 		}
 
-		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION) == "zip")) {
+		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "zip") {
 			if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
@@ -829,7 +830,6 @@ f00bar;
 		if ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
 			throw new IFMException($this->l('invalid_filename'));
 
-		unset($zip);
 		if ($this->isAbsolutePath($this->config['tmp_dir']))
 			$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
 		else
@@ -964,13 +964,23 @@ f00bar;
 	 * help functions
 	 */
 
-	private function l($str) {
-		if (isset($_REQUEST['lang'])
-			&& in_array($_REQUEST['lang'], array_keys($this->i18n))
-			&& isset($this->i18n[$_REQUEST['lang']][$str]))
-			return $this->i18n[$_REQUEST['lang']][$str];
+	private function getCurrentLang() {
+		if ($this->currentLang !== null)
+			return $this->currentLang;
+		if (isset($_REQUEST['lang']) && isset($this->i18n[$_REQUEST['lang']]))
+			$this->currentLang = $_REQUEST['lang'];
+		elseif (isset($this->i18n[$this->config['language']]))
+			$this->currentLang = $this->config['language'];
 		else
-			return $this->i18n['en'][$str];
+			$this->currentLang = 'en';
+		return $this->currentLang;
+	}
+
+	private function l($str) {
+		$lang = $this->getCurrentLang();
+		if (isset($this->i18n[$lang][$str]))
+			return $this->i18n[$lang][$str];
+		return isset($this->i18n['en'][$str]) ? $this->i18n['en'][$str] : $str;
 	}
 
 	private function log($d) {
@@ -1272,19 +1282,29 @@ f00bar;
 	}
 
 	private function xcopy($source, $dest) {
-		$isDir = is_dir($source);
-		if ($isDir)
-			$dest = $this->pathCombine($dest, basename($source));
-		if (!is_dir($dest))
-			mkdir($dest, 0777, true);
-		if (is_file($source))
+		if (is_file($source)) {
+			if (!is_dir($dest) && !mkdir($dest, 0777, true))
+				return false;
 			return copy($source, $this->pathCombine($dest, basename($source)));
+		}
+		if (!is_dir($source))
+			return false;
 
-		chdir($source);
-		foreach (glob('*') as $item)
-			$this->xcopy($item, $dest);
-		chdir('..');
-		return true;
+		$dest = $this->pathCombine($dest, basename($source));
+		if (!is_dir($dest) && !mkdir($dest, 0777, true))
+			return false;
+
+		$handle = opendir($source);
+		if ($handle === false)
+			return false;
+		$ok = true;
+		while (false !== ($entry = readdir($handle))) {
+			if ($entry == '.' || $entry == '..')
+				continue;
+			$ok = $this->xcopy($this->pathCombine($source, $entry), $dest) && $ok;
+		}
+		closedir($handle);
+		return $ok;
 	}
 
 	// combines two parts to a valid path
