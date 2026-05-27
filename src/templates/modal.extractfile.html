@@ -1,37 +1,37 @@
 <form id="formExtractFile">
-<div class="modal-body">
-	<fieldset>
-		<div class="form-group">
-			<label>{{i18n.extract_filename}} {{filename}}:</label>
-			<div class="input-group">
-				<div class="input-group-prepend">
-					<div class="input-group-text">
-						<input type="radio" name="extractTargetLocation" value="./" checked="checked">
+	<div class="modal-body">
+		<fieldset>
+			<div class="form-group">
+				<label>{{i18n.extract_filename}} {{filename}}:</label>
+				<div class="input-group ifm-extract-option">
+					<div class="input-group-prepend">
+						<div class="input-group-text">
+							<input type="radio" name="extractTargetLocation" value="./" checked="checked">
+						</div>
 					</div>
+					<input class="form-control ifm-extract-location-input" type="text" data-radio-value="./" placeholder="Current directory" readonly>
 				</div>
-				<input class="form-control" type="text" placeholder="Current directory" readonly>
-			</div>
-			<div class="input-group">
-				<div class="input-group-prepend">
-					<div class="input-group-text">
-						<input type="radio" name="extractTargetLocation" value="./{{destination}}">
+				<div class="input-group ifm-extract-option">
+					<div class="input-group-prepend">
+						<div class="input-group-text">
+							<input type="radio" name="extractTargetLocation" value="./{{destination}}">
+						</div>
 					</div>
+					<input class="form-control ifm-extract-location-input" type="text" data-radio-value="./{{destination}}" placeholder="{{destination}}" readonly>
 				</div>
-				<input class="form-control" type="text" placeholder="{{destination}}" readonly>
-			</div>
-			<div class="input-group">
-				<div class="input-group-prepend">
-					<div class="input-group-text">
-						<input type="radio" name="extractTargetLocation" value="custom">
+				<div class="input-group ifm-extract-option">
+					<div class="input-group-prepend">
+						<div class="input-group-text">
+							<input type="radio" name="extractTargetLocation" value="custom">
+						</div>
 					</div>
+					<input id="extractCustomLocation" type="text" class="form-control" placeholder="Custom location" value="">
 				</div>
-				<input id="extractCustomLocation" type="text" class="form-control" placeholder="Custom location" value="">
 			</div>
-		</div>
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" class="btn btn-primary" id="buttonExtract">{{i18n.extract}}</button>
-	<button type="button" class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
-</div>
+		</fieldset>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-primary" id="buttonExtract">{{i18n.extract}}</button>
+		<button type="button" class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
+	</div>
 </form>

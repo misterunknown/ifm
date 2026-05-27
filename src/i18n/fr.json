@@ -72,6 +72,7 @@
     "move": "Déplacer",
     "move_error": "Les fichiers suivants n'ont pu être déplacés :",
     "move_success": "Fichiers déplacés.",
+    "name_already_exists": "Ce nom est déjà utilisé.",
     "nopermissions": "Vous n'avez pas les autorisations pour faire cela.",
     "options": "Options",
     "owner": "Propriétaire",

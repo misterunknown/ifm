@@ -363,9 +363,9 @@ f00bar;
 		if (is_dir($name)) {
 			$item["type"] = "dir";
 			if ($name == "..")
-				$item["icon"] = "icon icon-up-open";
+				$item["icon"] = "icon fa fa-angle-up";
 			else
-				$item["icon"] = "icon icon-folder-empty";
+				$item["icon"] = "icon fa fa-folder-o";
 		} else {
 			$item["type"] = "file";
 			$type = "unknown";
@@ -397,6 +397,7 @@ f00bar;
 				if ($item["size_raw"] > 1073741824) $item["size"] = round(($item["size_raw"]/1073741824 ), 2) . " GB";
 				elseif($item["size_raw"]>1048576)$item["size"] = round(($item["size_raw"]/1048576), 2) . " MB";
 				elseif($item["size_raw"]>1024)$item["size"] = round(($item["size_raw"]/1024), 2) . " KB";
+				elseif($item["size_raw"]>1)$item["size"] = $item["size_raw"] . " Bytes";
 				else $item["size"] = $item["size_raw"] . " Byte";
 			}
 		}
@@ -1176,17 +1177,27 @@ f00bar;
 	private function getTypeIcon($type) {
 		$type = strtolower($type);
 		switch ($type) {
-			case "aac": case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
-			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": case "webp": return 'icon icon-file-image'; break;
-			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
-			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": case "json": return 'icon icon-file-code'; break;
-			case "doc": case "docx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
-			case "txt": case "log": return 'icon icon-doc-text'; break;
-			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
-			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
-			case "pdf": return 'icon icon-file-pdf'; break;
-			case "tgz": case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
-			default: return 'icon icon-doc';
+			case "aac": case "aiff": case "flac": case "m4a": case "mid": case "mp3": case "ogg": case "wav":
+				return 'icon fa fa-file-audio-o'; break;
+			case "ai": case "avif": case "bmp": case "eps": case "gif": case "ico": case "jpeg": case "jpg": case "png": case "psd": case "svg": case "tiff": case "webp":
+				return 'icon fa fa-file-image-o'; break;
+			case "avi": case "flv": case "m4v": case "mkv": case "mov": case "mp4": case "mpeg": case "mpg": case "ogv": case "webm": case "wmv":
+				return 'icon fa fa-file-video-o'; break;
+			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "json": case "less": case "mjs": case "php": case "py": case "sass": case "scss": case "sh": case "sql": case "ts": case "xml": case "yaml": case "yml":
+				return 'icon fa fa-file-code-o'; break;
+			case "doc": case "docx": case "odf": case "odt": case "rtf":
+				return 'icon fa fa-file-word-o'; break;
+			case "conf": case "csv": case "ini": case "log": case "md": case "tsv": case "txt":
+				return 'icon fa fa-file-text-o'; break;
+			case "ods": case "xls": case "xlsx":
+				return 'icon fa fa-file-excel-o'; break;
+			case "odp": case "ppt": case "pptx":
+				return 'icon fa fa-file-powerpoint-o'; break;
+			case "pdf":
+				return 'icon fa fa-file-pdf-o'; break;
+			case "7z": case "br": case "bz2": case "gz": case "iso": case "rar": case "tar": case "tar.bz2": case "tar.gz": case "tar.xz": case "tgz": case "xz": case "zip":
+				return 'icon fa fa-file-archive-o';
+			default: return 'icon fa fa-file-o';
 		}
 	}
 

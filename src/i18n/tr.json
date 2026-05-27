@@ -67,6 +67,7 @@
     "permission_change_error": "İzinler değiştirilemedi:",
     "pattern_error_slashes": "Örüntü bölü işareti içeremez.",
     "path_content": "İçeriği",
+    "name_already_exists": "This name is already taken.",
     "nopermissions": "Bu işlemi yapmaya yetkiniz yok.",
     "move_success": "Dosyalar taşındı.",
     "move_error": "Şu dosyalar taşınamadı:",

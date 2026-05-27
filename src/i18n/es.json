@@ -72,6 +72,7 @@
     "move": "Mover",
     "move_error": "No se pudieron mover los archivos siguientes:",
     "move_success": "Archivos movidos.",
+    "name_already_exists": "Este nombre ya está en uso.",
     "nopermissions": "No cuenta con los permisos para hacerlo.",
     "options": "Opciones",
     "owner": "Propietario",

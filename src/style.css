@@ -107,9 +107,14 @@ table.dataTable thead th.sorting_desc:after {
 #filetable td:last-child a:hover {
 	text-decoration: none;
 }
-.td-permissions { width: 1px; }
+#filetable th.th-permissions,
+#filetable td.td-permissions {
+	width: 1%;
+	white-space: nowrap;
+}
 
 input[name="newpermissions"] {
+	display: inline-block;
 	padding: 6px 8px;
 	width: 6.5rem;
 }
@@ -183,6 +188,15 @@ footer {
 /*
  * Modal related settings
  */
+.ifm-extract-option + .ifm-extract-option {
+	margin-top: .5rem;
+}
+
+.ifm-extract-option:has(input[type="radio"]:checked) {
+	outline: 2px solid #007bff;
+	border-radius: .25rem;
+}
+
 #copyMoveTree {
 	max-height: 80vh;
 	overflow: auto;
@@ -199,4 +213,140 @@ footer {
 	.modal-lg, .modal-xl {
 		max-width: 800px;
 	}
+}
+
+/*
+ * Navbar icon sizing - reduce by 20%
+ */
+.nav-link {
+	padding-top: 0.4rem !important;
+	padding-bottom: 0.2rem !important;
+}
+
+.nav-link .fa-2x {
+	font-size: 1.6em !important;
+}
+
+.nav-link .fa-stack {
+	transform: scale(0.8);
+	transform-origin: top center;
+}
+
+/*
+ * Login page
+ */
+.form-signin {
+  width: 100%;
+  max-width: 420px;
+  padding: 15px;
+  margin: auto;
+}
+
+.form-label-group {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.form-label-group > input,
+.form-label-group > label {
+  height: 3.125rem;
+  padding: .75rem;
+}
+
+.form-label-group > input {
+  padding-left: 2.75rem;
+}
+
+.form-label-group .input-icon {
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.form-label-group > label {
+  position: absolute;
+  top: 0;
+  left: 2rem;
+  display: block;
+  width: calc(100% - 2rem);
+  margin-bottom: 0;
+  line-height: 1.5;
+  color: #495057;
+  pointer-events: none;
+  cursor: text;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  transition: all .1s ease-in-out;
+}
+
+.form-label-group input::-webkit-input-placeholder { color: transparent; }
+.form-label-group input:-ms-input-placeholder { color: transparent; }
+.form-label-group input::-ms-input-placeholder { color: transparent; }
+.form-label-group input::-moz-placeholder { color: transparent; }
+.form-label-group input::placeholder { color: transparent; }
+
+.form-label-group input:not(:placeholder-shown) {
+  padding-top: 1.25rem;
+  padding-bottom: .25rem;
+}
+
+.form-label-group input:not(:placeholder-shown) ~ label {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  font-size: 12px;
+  color: #777;
+}
+
+@supports (-ms-ime-align: auto) {
+  .form-label-group > label { display: none; }
+  .form-label-group input::-ms-input-placeholder { color: #777; }
+}
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .form-label-group > label { display: none; }
+  .form-label-group input:-ms-input-placeholder { color: #777; }
+}
+
+/*
+ * App info footer
+ */
+.ifminfo-footer-text {
+  float: left;
+  padding-left: 10px;
+}
+
+.ifminfo-github-link {
+  float: right;
+  padding-right: 10px;
+}
+
+/*
+ * Upload file list
+ */
+#uploadFileList {
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+/*
+ * Search results
+ */
+.search-results-container {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.search-folder-path {
+  color: #999;
+}
+
+/*
+ * Task progress bar
+ */
+.task-progress-bar {
+  width: 100%;
 }

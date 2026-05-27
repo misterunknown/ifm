@@ -61,10 +61,9 @@ function IFM(params) {
 					$(this).remove();
 			})
 			.on( 'shown.bs.modal', function( e ) {
-				let formElements = $(this).find('input, button');
-				if( formElements.length > 0 ) {
-					formElements.first().focus();
-				}
+				let target = $(this).find('[autofocus]').first();
+				if( !target.length ) target = $(this).find('input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]), button').first();
+				if( target.length ) target.focus();
 			})
 			.modal(modal_options)
 			.modal('show');
@@ -129,13 +128,13 @@ function IFM(params) {
 			if( item.type == "dir" ) {
 				if( self.config.download && self.config.zipnload ) {
 					item.download.action = "zipnload";
-					item.download.icon = "icon icon-download-cloud";
+					item.download.icon = "icon fa fa-fw fa-cloud-download";
 				}
 				item.rowclasses = "isDir";
 			} else {
 				if( self.config.download ) {
 					item.download.action = "download";
-					item.download.icon = "icon icon-download";
+					item.download.icon = "icon fa fa-fw fa-download";
 				}
 				if ((item.icon.indexOf( 'file-image' ) !== -1) && (ISMOBILE == false)) {
 					item.popover = 'data-toggle="popover"';
@@ -144,7 +143,7 @@ function IFM(params) {
 					item.eaction = "extract";
 					item.button.push({
 						action: "extract",
-						icon: "icon icon-archive",
+						icon: "icon fa fa-fw fa-file-archive-o",
 						title: "extract"
 					});
 				} else if(
@@ -164,7 +163,7 @@ function IFM(params) {
 					item.eaction = "edit";
 					item.button.push({
 						action: "edit",
-						icon: "icon icon-pencil",
+						icon: "icon fa fa-fw fa-pencil",
 						title: "edit"
 					});
 				}
@@ -187,19 +186,19 @@ function IFM(params) {
 				if( self.config.copymove )
 					item.button.push({
 						action: "copymove",
-						icon: "icon icon-folder-open-empty",
+						icon: "icon fa fa-fw fa-files-o",
 						title: "copy/move"
 					});
 				if( self.config.rename )
 					item.button.push({
 						action: "rename",
-						icon: "icon icon-terminal",
+						icon: "icon fa fa-fw fa-terminal",
 						title: "rename"
 					});
 				if( self.config.delete )
 					item.button.push({
 						action: "delete",
-						icon: "icon icon-trash",
+						icon: "icon fa fa-fw fa-trash",
 						title: "delete"
 					});
 			}
@@ -324,7 +323,7 @@ function IFM(params) {
 						onClick: function( data ) {
 							self.editFile( data.clicked.name );
 						},
-						iconClass: "icon icon-pencil",
+						iconClass: "icon fa fa-fw fa-pencil",
 						isShown: function( data ) {
 							return !!( self.config.edit && data.clicked.eaction == "edit" && !data.selected.length );
 						}
@@ -334,7 +333,7 @@ function IFM(params) {
 						onClick: function( data ) {
 							self.showExtractFileDialog( data.clicked.name );
 						},
-						iconClass: "icon icon-archive",
+						iconClass: "icon fa fa-fw fa-file-archive-o",
 						isShown: function( data ) {
 							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
 						}
@@ -344,40 +343,7 @@ function IFM(params) {
 						onClick: function( data ) {
 							self.showRenameFileDialog( data.clicked.name );
 						},
-						iconClass: "icon icon-terminal",
-						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
-					},
-					copylink: {
-						name: self.i18n.copylink,
-						onClick: function( data ) {
-							if( data.clicked.link.toLowerCase().substr(0,4) == "http" )
-								self.copyToClipboard( data.clicked.link );
-							else {
-								let pathname = window.location.pathname.replace( /^\/*/g, '' ).split( '/' );
-								pathname.pop();
-								let link = self.pathCombine( window.location.origin, data.clicked.link )
-								if( pathname.length > 0 )
-									link = self.pathCombine( window.location.origin, pathname.join( '/' ), data.clicked.link )
-								self.copyToClipboard( link );
-							}
-						},
-					},
-					extract: {
-						name: self.i18n.extract,
-						onClick: function( data ) {
-							self.showExtractFileDialog( data.clicked.name );
-						},
-						iconClass: "icon icon-archive",
-						isShown: function( data ) {
-							return !!( self.config.extract && data.clicked.eaction == "extract" && !data.selected.length );
-						}
-					},
-					rename: {
-						name: self.i18n.rename,
-						onClick: function( data ) {
-							self.showRenameFileDialog( data.clicked.name );
-						},
-						iconClass: "icon icon-terminal",
+						iconClass: "icon fa fa-fw fa-terminal",
 						isShown: function( data ) { return !!( self.config.rename && !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copylink: {
@@ -394,7 +360,7 @@ function IFM(params) {
 								self.copyToClipboard( link );
 							}
 						},
-						iconClass: "icon icon-link-ext",
+						iconClass: "icon fa fa-fw fa-external-link",
 						isShown: function( data ) { return !!( !data.selected.length && data.clicked.name != ".." ); }
 					},
 					copymove: {
@@ -410,7 +376,7 @@ function IFM(params) {
 							else
 								self.showCopyMoveDialog( data.clicked );
 						},
-						iconClass: "icon icon-folder-empty",
+						iconClass: "icon fa fa-fw fa-files-o",
 						isShown: function( data ) { return !!( self.config.copymove && data.clicked.name != ".." ); }
 					},
 					download: {
@@ -426,7 +392,7 @@ function IFM(params) {
 							else
 								window.location = data.clicked.download.link;
 						},
-						iconClass: "icon icon-download",
+						iconClass: "icon fa fa-fw fa-download",
 						isShown: function() { return !!self.config.download; }
 					},
 					createarchive: {
@@ -442,10 +408,10 @@ function IFM(params) {
 							else
 								self.showCreateArchiveDialog( data.clicked );
 						},
-						iconClass: "icon icon-archive",
+						iconClass: "icon fa fa-fw fa-file-archive-o",
 						isShown: function( data ) { return !!( self.config.createarchive && data.clicked.name != ".." ); }
 					},
-					'delete': {
+					delete: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
 								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
@@ -458,7 +424,7 @@ function IFM(params) {
 							else
 								self.showDeleteDialog( data.clicked );
 						},
-						iconClass: "icon icon-trash",
+						iconClass: "icon fa fa-fw fa-trash",
 						isShown: function( data ) { return !!( self.config.delete && data.clicked.name != ".." ); }
 					}
 				}
@@ -503,25 +469,46 @@ function IFM(params) {
 		let content = arguments.length > 1 ? arguments[1] : "";
 		self.showModal( Mustache.render( self.templates.file, { filename: filename, i18n: self.i18n } ), { large: true } );
 
+		let isNewFile = arguments.length === 0;
+		let originalFilename = filename;
 		let form = document.getElementById( 'formFile' );
+		let filenameInput = form.querySelector( 'input[name=filename]' );
+
+		let checkFilename = function( value ) {
+			let taken = ( isNewFile || value !== originalFilename ) && self.fileCache.some( x => x.name === value );
+			filenameInput.classList.toggle( 'is-invalid', taken );
+			document.getElementById( 'filenameError' ).textContent = taken ? self.i18n.name_already_exists : '';
+			return !taken;
+		};
+
+		filenameInput.addEventListener( 'input', function() {
+			if( filenameInput.classList.contains( 'is-invalid' ) ) checkFilename( filenameInput.value );
+		});
+
 		form.addEventListener( 'keypress', function( e ) {
 			if( e.target.name == 'filename' && e.key == 'Enter' )
 				e.preventDefault();
 		});
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == "buttonSave" ) {
-				e.preventDefault();
-				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
-				self.isModalClosedByButton = true;
-				self.hideModal();
-			} else if( e.target.id == "buttonSaveNotClose" ) {
-				e.preventDefault();
-				self.saveFile( document.querySelector( '#formFile input[name=filename]' ).value, self.editor.getValue() );
-			} else if( e.target.id == "buttonClose" ) {
-				e.preventDefault();
-				self.isModalClosedByButton = true;
-				self.hideModal();
-			}
+			switch (e.target.id) {
+				case 'buttonSave':
+					e.preventDefault();
+					if( !checkFilename( filenameInput.value ) ) return;
+					self.saveFile( filenameInput.value, self.editor.getValue() );
+					self.isModalClosedByButton = true;
+					self.hideModal();
+					break;
+				case 'buttonSaveNotClose':
+					e.preventDefault();
+					if( !checkFilename( filenameInput.value ) ) return;
+					self.saveFile( filenameInput.value, self.editor.getValue() );
+					break;
+				case 'buttonClose':
+					e.preventDefault();
+					self.isModalClosedByButton = true;
+					self.hideModal();
+					break;
+				}
 		});
 
 		$('#editoroptions').popover({
@@ -677,21 +664,41 @@ function IFM(params) {
 	this.showCreateDirDialog = function() {
 		self.showModal( Mustache.render( self.templates.createdir, { i18n: self.i18n } ) );
 		let form = document.forms.formCreateDir;
-		form.elements.dirname.addEventListener( 'keypress', function( e ) {
-			if(e.key == 'Enter' ) {
+		let input = form.elements.dirname;
+
+		let checkDirname = function( value ) {
+			let taken = self.fileCache.some( x => x.name === value );
+			input.classList.toggle( 'is-invalid', taken );
+			document.getElementById( 'dirnameError' ).textContent = taken ? self.i18n.name_already_exists : '';
+			return !taken;
+		};
+
+		input.addEventListener( 'input', function() {
+			if( input.classList.contains( 'is-invalid' ) ) checkDirname( input.value );
+		});
+
+		input.addEventListener( 'keypress', function( e ) {
+			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				self.createDir( e.target.value );
-				self.hideModal();
+				if( checkDirname( input.value ) ) {
+					self.createDir( input.value );
+					self.hideModal();
+				}
 			}
 		});
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonSave' ) {
-				e.preventDefault();
-				self.createDir( form.elements.dirname.value );
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonSave':
+					e.preventDefault();
+					if( checkDirname( form.elements.dirname.value ) ) {
+						self.createDir( form.elements.dirname.value );
+						self.hideModal();
+					}
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		}, false );
 	};
@@ -734,13 +741,16 @@ function IFM(params) {
 		}));
 		let form = document.forms.formDeleteFiles;
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonYes' ) {
-				e.preventDefault();
-				self.deleteFiles( items );
-				self.hideModal();
-			} else if( e.target.id == 'buttonNo' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonYes':
+					e.preventDefault();
+					self.deleteFiles( items );
+					self.hideModal();
+					break;
+				case 'buttonNo':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -788,13 +798,16 @@ function IFM(params) {
 			}
 		});
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonRename' ) {
-				e.preventDefault();
-				self.renameFile( filename, form.elements.newname.value );
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonRename':
+					e.preventDefault();
+					self.renameFile( filename, form.elements.newname.value );
+					self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -843,9 +856,9 @@ function IFM(params) {
 				$( '#copyMoveTree' ).treeview({
 					data: data,
 					levels: 1,
-					expandIcon: "icon icon-plus-squared",
-					collapseIcon: "icon icon-minus-squared-alt",
-					loadingIcon: "icon icon-spin5",
+					expandIcon: "icon fa fa-plus-square",
+					collapseIcon: "icon fa fa-minus-square-o",
+					loadingIcon: "icon fa fa-spinner fa-spin",
 					lazyLoad: function( n, cb ) {
 						$.ajax({
 							url: self.api,
@@ -864,17 +877,21 @@ function IFM(params) {
 		});
 		let form = document.forms.formCopyMove;
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'copyButton' ) {
-				e.preventDefault();
-				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
-				self.hideModal();
-			} else if( e.target.id == 'moveButton' ) {
-				e.preventDefault();
-				self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
-				self.hideModal();
-			} else if( e.target.id == 'cancelButton' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'copyButton':
+					e.preventDefault();
+					self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
+					self.hideModal();
+					break;
+				case 'moveButton':
+					e.preventDefault();
+					self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
+					self.hideModal();
+					break;
+				case 'cancelButton':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -929,14 +946,17 @@ function IFM(params) {
 		self.showModal( Mustache.render( self.templates.extractfile, { filename: filename, destination: targetDirSuggestion, i18n: self.i18n } ) );
 		let form = document.forms.formExtractFile;
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonExtract' ) {
-				e.preventDefault();
-				let loc = form.elements.extractTargetLocation.value;
-				self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonExtract':
+					e.preventDefault();
+					let loc = form.elements.extractTargetLocation.value;
+					self.extractFile( filename, ( loc == "custom" ? form.elements.extractCustomLocation.value : loc ) ); 
+					self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 		form.elements.extractCustomLocation.addEventListener( 'keypress', function( e ) {
@@ -949,6 +969,11 @@ function IFM(params) {
 		});
 		form.elements.extractCustomLocation.addEventListener( 'focus', function( e ) {
 			form.elements.extractTargetLocation.value = 'custom';
+		});
+		form.querySelectorAll( '.ifm-extract-location-input' ).forEach( function( input ) {
+			input.addEventListener( 'click', function() {
+				form.elements.extractTargetLocation.value = input.dataset.radioValue;
+			});
 		});
 	};
 
@@ -988,38 +1013,123 @@ function IFM(params) {
 	this.showUploadFileDialog = function() {
 		self.showModal( Mustache.render( self.templates.uploadfile, { i18n: self.i18n } ) );
 		let form = document.forms.formUploadFile;
+		let pendingFiles = [];
+		let fileListEl = document.getElementById( 'uploadFileList' );
+		let fileLabel = form.querySelector( '.custom-file-label' );
+
+		let fileFingerprint = function( f ) {
+			return f.name + '\0' + f.size + '\0' + f.lastModified;
+		};
+
+		let syncFileInputFromPending = function() {
+			let input = form.elements.files;
+			let dt = new DataTransfer();
+			pendingFiles.forEach( function( f ) { dt.items.add( f ); } );
+			input.files = dt.files;
+		};
+
+		let refreshUploadFileList = function() {
+			fileListEl.innerHTML = '';
+			pendingFiles.forEach( function( file, index ) {
+				let li = document.createElement( 'li' );
+				li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
+				let nameSpan = document.createElement( 'span' );
+				nameSpan.className = 'text-truncate mr-2';
+				nameSpan.textContent = file.name;
+				nameSpan.title = file.name;
+				let btn = document.createElement( 'button' );
+				btn.type = 'button';
+				btn.className = 'btn btn-sm btn-link text-danger p-0 flex-shrink-0';
+				btn.setAttribute( 'data-upload-remove', String( index ) );
+				btn.setAttribute( 'title', self.i18n.delete );
+				btn.innerHTML = '<span class="icon fa fa-trash"></span>';
+				li.appendChild( nameSpan );
+				li.appendChild( btn );
+				fileListEl.appendChild( li );
+			} );
+			switch (pendingFiles.length) {
+				case 0:
+					fileLabel.textContent = self.i18n.upload_file;
+					break;
+				case 1:
+					fileLabel.textContent = pendingFiles[0].name;
+					break;
+				default:
+					fileLabel.textContent = self.i18n.upload_file + ' (' + pendingFiles.length + ')';
+					break;
+			}
+			syncFileInputFromPending();
+
+			// Update visibility based on file count
+			let fileListContainer = document.getElementById( 'uploadFileListContainer' );
+			let filenameContainer = document.getElementById( 'filenameContainer' );
+
+			// 2nd group: show only when 1+ files
+			fileListContainer.hidden = pendingFiles.length < 1;
+
+			// 3rd group: show only when exactly 1 file
+			filenameContainer.hidden = pendingFiles.length !== 1;
+		};
+
 		form.elements.files.addEventListener( 'change', function( e ) {
-			if( e.target.files.length > 1 )
-				form.elements.newfilename.readOnly = true;
-			else 
-				form.elements.newfilename.readOnly = false;
-		});
-		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonUpload' ) {
-				e.preventDefault();
-				let newfilename = form.elements.newfilename.value;
-				let files = Array.prototype.slice.call( form.elements.files.files );
-				let existing_files;
-				if (files.length > 1)
-					existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
-				else if (newfilename)
-					existing_files = self.fileCache.map(x => x.name).indexOf(newfilename) !== -1 ? [newfilename] : [];
-				else 
-					existing_files = self.fileCache.map(x => x.name).indexOf(files[0].name) !== -1 ? [files[0].name] : [];
-				if (existing_files.length > 0 && self.config.confirmoverwrite)
-					self.showUploadConfirmOverwrite(files, existing_files, newfilename);
-				else {
-					if (files.length == 1)
-						self.uploadFile(files[0], newfilename);
-					else
-						files.forEach( function( file ) {
-							self.uploadFile( file );
-						});
+			let added = Array.prototype.slice.call( e.target.files );
+			let seen = {};
+			pendingFiles.forEach( function( f ) { seen[fileFingerprint( f )] = true; } );
+			added.forEach( function( f ) {
+				let fp = fileFingerprint( f );
+				if( ! seen[fp] ) {
+					seen[fp] = true;
+					pendingFiles.push( f );
 				}
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			} );
+			e.target.value = '';
+			refreshUploadFileList();
+		} );
+
+		fileListEl.addEventListener( 'click', function( e ) {
+			let btn = e.target.closest( '[data-upload-remove]' );
+			if( ! btn ) return;
+			e.preventDefault();
+			let i = parseInt( btn.getAttribute( 'data-upload-remove' ), 10 );
+			if( i >= 0 && i < pendingFiles.length ) {
+				pendingFiles.splice( i, 1 );
+				refreshUploadFileList();
+			}
+		} );
+
+		form.addEventListener( 'click', function( e ) {
+			switch (e.target.id) {
+				case 'buttonUpload':
+					e.preventDefault();
+					let newfilename = form.elements.newfilename.value;
+					let files = pendingFiles.slice();
+					if( files.length === 0 ) {
+						self.showMessage( self.i18n.upload_no_file, 'e' );
+						return;
+					}
+					let existing_files;
+					if (files.length > 1)
+						existing_files = files.map(x => x.name).filter(item => self.fileCache.map(x => x.name).includes(item));
+					else if (newfilename)
+						existing_files = self.fileCache.map(x => x.name).indexOf(newfilename) !== -1 ? [newfilename] : [];
+					else 
+						existing_files = self.fileCache.map(x => x.name).indexOf(files[0].name) !== -1 ? [files[0].name] : [];
+					if (existing_files.length > 0 && self.config.confirmoverwrite)
+						self.showUploadConfirmOverwrite(files, existing_files, newfilename);
+					else {
+						if (files.length == 1)
+							self.uploadFile(files[0], newfilename);
+						else
+							files.forEach( function( file ) {
+								self.uploadFile( file );
+							});
+					}
+					self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -1028,18 +1138,21 @@ function IFM(params) {
 		self.showModal(Mustache.render(self.templates.uploadconfirmoverwrite, {files: existing_files, i18n: self.i18n}));
 		let form = document.forms.formUploadConfirmOverwrite;
 		form.addEventListener('click', function(e) {
-			if (e.target.id == "buttonConfirm") {
-				e.preventDefault();
-				if (files.length == 1 && newfilename)
-					self.uploadFile(files[0], newfilename);
-				else
-					files.forEach(function(file) {
-						self.uploadFile(file);
-					});
-				self.hideModal();
-			} else if (e.target.id == 'buttonCancel') {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonConfirm':
+					e.preventDefault();
+					if (files.length == 1 && newfilename)
+						self.uploadFile(files[0], newfilename);
+					else
+						files.forEach(function(file) {
+							self.uploadFile(file);
+						});
+					self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -1117,7 +1230,19 @@ function IFM(params) {
 		self.showModal( Mustache.render( self.templates.remoteupload, { i18n: self.i18n } ) );
 		let form = document.forms.formRemoteUpload;
 		let urlChangeHandler = function( e ) {
-			form.elements.filename.value = e.target.value.substr( e.target.value.lastIndexOf( '/' ) + 1 );
+			let basename = e.target.value.split( '/' ).pop().split( '?' )[0].split( '#' )[0];
+			if( !basename ) return;
+			let existingNames = self.fileCache.map( x => x.name );
+			let finalName = basename;
+			let counter = 1;
+			let dotIdx = basename.lastIndexOf( '.' );
+			while( existingNames.includes( finalName ) ) {
+				finalName = dotIdx > 0
+					? basename.substr( 0, dotIdx ) + ' (' + counter + ')' + basename.substr( dotIdx )
+					: basename + ' (' + counter + ')';
+				counter++;
+			}
+			form.elements.filename.value = finalName;
 		};
 		form.elements.url.addEventListener( 'keypress', self.preventEnter );
 		form.elements.url.addEventListener( 'change', urlChangeHandler );
@@ -1128,13 +1253,16 @@ function IFM(params) {
 			form.elements.url.removeEventListener( 'keyup', urlChangeHandler );
 		});
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonUpload' ) {
-				e.preventDefault();
-				self.remoteUpload( form.elements.url.value, form.elements.filename.value, form.elements.method.value );
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonUpload':
+					e.preventDefault();
+					self.remoteUpload( form.elements.url.value, form.elements.filename.value, form.elements.method.value );
+					self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -1174,14 +1302,28 @@ function IFM(params) {
 	this.showAjaxRequestDialog = function() {
 		self.showModal( Mustache.render( self.templates.ajaxrequest, { i18n: self.i18n } ) );
 		let form = document.forms.formAjaxRequest;
+		let dataContainer = document.getElementById( 'ajaxDataContainer' );
+
+		let updateDataVisibility = function() {
+			dataContainer.hidden = form.elements.arMethod.value !== 'POST';
+		};
+		Array.from( form.elements.arMethod ).forEach( function( r ) {
+			r.addEventListener( 'change', updateDataVisibility );
+		});
+		updateDataVisibility();
+
 		form.elements.ajaxurl.addEventListener( 'keypress', self.preventEnter );
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonRequest' ) {
-				e.preventDefault();
-				self.ajaxRequest( form.elements.ajaxurl.value, form.elements.ajaxdata.value.replace( /\n/g, '&' ), form.elements.arMethod.value );
-			} else if( e.target.id == 'buttonClose' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonRequest':
+					e.preventDefault();
+					let data = form.elements.arMethod.value === 'POST' ? form.elements.ajaxdata.value.replace( /\n/g, '&' ) : '';
+					self.ajaxRequest( form.elements.ajaxurl.value, data, form.elements.arMethod.value );
+					break;
+				case 'buttonClose':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		});
 	};
@@ -1195,8 +1337,21 @@ function IFM(params) {
 			cache	: false,
 			data	: data,
 			type    : method,
-			success	: function( response ) { document.getElementById( 'ajaxresponse' ).innerText = response; },
-			error	: function(e) { self.showMessage("Error: "+e, "e"); self.log(e); }
+			success	: function( response, textStatus, jqXHR ) {
+				document.getElementById( 'ajaxresponse' ).innerText = response;
+				let statusEl = document.getElementById( 'ajaxStatusCode' );
+				statusEl.textContent = jqXHR.status;
+				statusEl.className = 'badge badge-success';
+				statusEl.hidden = false;
+			},
+			error	: function( jqXHR ) {
+				document.getElementById( 'ajaxresponse' ).innerText = jqXHR.responseText || '';
+				let statusEl = document.getElementById( 'ajaxStatusCode' );
+				statusEl.textContent = jqXHR.status;
+				statusEl.className = 'badge badge-danger';
+				statusEl.hidden = false;
+				self.log( jqXHR );
+			}
 		});
 	};
 
@@ -1229,37 +1384,45 @@ function IFM(params) {
 
 		updateResults( self.search.data );
 
+		let performSearch = function( pattern ) {
+			if( !pattern || pattern.trim() === '' ) return;
+			document.getElementById( 'searchResults' ).tBodies[0].innerHTML = '<tr><td style="text-align:center;"><span class="icon fa fa-spinner fa-spin"></span></td></tr>';
+			self.search.lastSearch = pattern;
+			$.ajax({
+				url: self.api,
+				type: "POST",
+				data: {
+					api: "searchItems",
+					dir: self.currentDir,
+					pattern: pattern
+				},
+				dataType: "json",
+				success: function( data ) {
+					if( data.status == 'ERROR' ) {
+						self.hideModal();
+						self.showMessage( data.message, "e" );
+					} else {
+						data.forEach( function(e) {
+							e.folder = ( e.name.substr( 0, e.name.lastIndexOf( '/' ) ) ) ? e.name.substr( 0, e.name.lastIndexOf( '/' ) ) : '/';
+							e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
+						});
+						self.search.data = data;
+						if( self.search.data ) self.search.data.currentDir = self.currentDir;
+						updateResults( data );
+					}
+				}
+			});
+		};
+
 		document.getElementById( 'searchPattern' ).addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				if( e.target.value.trim() === '' ) return;
-				document.getElementById( 'searchResults' ).tBodies[0].innerHTML = '<tr><td style="text-align:center;"><span class="icon icon-spin5 animate-spin"></span></td></tr>';
-				self.search.lastSearch = e.target.value;
-				$.ajax({
-					url: self.api,
-					type: "POST",
-					data: {
-						api: "searchItems",
-						dir: self.currentDir,
-						pattern: e.target.value
-					},
-					dataType: "json",
-					success: function( data ) {
-						if( data.status == 'ERROR' ) {
-							self.hideModal();
-							self.showMessage( data.message, "e" );
-						} else {
-							data.forEach( function(e) {
-								e.folder = ( e.name.substr( 0, e.name.lastIndexOf( '/' ) ) ) ? e.name.substr( 0, e.name.lastIndexOf( '/' ) ) : '/';
-								e.linkname = e.name.substr( e.name.lastIndexOf( '/' ) + 1 );
-							});
-							self.search.data = data;
-							if( self.search.data ) self.search.data.currentDir = self.currentDir;
-							updateResults( data );
-						}
-					}
-				});
+				performSearch( e.target.value );
 			}
+		});
+
+		document.getElementById( 'buttonSearch' ).addEventListener( 'click', function() {
+			performSearch( document.getElementById( 'searchPattern' ).value );
 		});
 	};
 
@@ -1273,18 +1436,21 @@ function IFM(params) {
 		form.elements.archivename.addEventListener( 'keypress', function( e ) {
 			if( e.key == 'Enter' ) {
 				e.preventDefault();
-				self.createArchive( items, e.target.value );
-				self.hideModal();
+				if( self.createArchive( items, e.target.value ) )
+					self.hideModal();
 			}
 		});
 		form.addEventListener( 'click', function( e ) {
-			if( e.target.id == 'buttonSave' ) {
-				e.preventDefault();
-				self.createArchive( items, form.elements.archivename.value );
-				self.hideModal();
-			} else if( e.target.id == 'buttonCancel' ) {
-				e.preventDefault();
-				self.hideModal();
+			switch (e.target.id) {
+				case 'buttonSave':
+					e.preventDefault();
+					if( self.createArchive( items, form.elements.archivename.value ) )
+						self.hideModal();
+					break;
+				case 'buttonCancel':
+					e.preventDefault();
+					self.hideModal();
+					break;
 			}
 		}, false );
 	};
@@ -1297,6 +1463,7 @@ function IFM(params) {
 			self.showMessage( self.i18n.invalid_archive_format, "e" );
 			return;
 		}
+
 		let id = self.generateGuid();
 		self.task_add( { id: id, name: self.i18n.create_archive+" "+archivename } );
 
@@ -2076,7 +2243,7 @@ function IFM(params) {
 				let dragImage = document.createElement( 'div' );
 				dragImage.style.display = 'inline';
 				dragImage.style.padding = '10px';
-				dragImage.innerHTML = '<span class="icon icon-folder-open-empty"></span> '+self.i18n.move+' '+( data.length || data.name );
+				dragImage.innerHTML = '<span class="icon fa fa-folder-open-o"></span> '+self.i18n.move+' '+( data.length || data.name );
 				document.body.appendChild( dragImage );
 				setTimeout(function() {
 					dragImage.remove();

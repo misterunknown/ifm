@@ -72,6 +72,7 @@
     "move": "Verschieben",
     "move_error": "Folgende Dateien konnten nicht verschoben werden:",
     "move_success": "Dateien verschoben.",
+    "name_already_exists": "Dieser Name ist bereits vergeben.",
     "nopermissions": "Ihnen fehlt die nötige Berechtigung dafür.",
     "options": "Optionen",
     "owner": "Besitzer",
