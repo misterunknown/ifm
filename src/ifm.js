@@ -1290,16 +1290,10 @@ function IFM(params) {
 	};
 
 	this.createArchive = function( items, archivename ) {
-		let type = "";
-		if( archivename.substr( -3 ).toLowerCase() == "zip" )
-			type = "zip";
-		else if( archivename.substr( -3 ).toLowerCase() == "tar" )
-			type = "tar";
-		else if( archivename.substr( -6 ).toLowerCase() == "tar.gz" )
-			type = "tar.gz";
-		else if( archivename.substr( -7 ).toLowerCase() == "tar.bz2" )
-			type = "tar.bz2";
-		else {
+		const formats = ['.tar.bz2', '.tar.gz', '.zip', '.tar'];
+
+		const type = formats.find(ext => archivename.toLowerCase().endsWith(ext));
+		if (!type) {
 			self.showMessage( self.i18n.invalid_archive_format, "e" );
 			return;
 		}
@@ -1317,7 +1311,7 @@ function IFM(params) {
 				dir: self.currentDir,
 				archivename: archivename,
 				filenames: items.map( function( e ) { return e.name; } ),
-				format: type
+				format: type.slice(1)
 			},
 			dataType: "json",
 			success: function( data ) {

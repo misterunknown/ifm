@@ -368,12 +368,19 @@ f00bar;
 				$item["icon"] = "icon icon-folder-empty";
 		} else {
 			$item["type"] = "file";
-			if (in_array(substr($name, -7), [".tar.gz", ".tar.xz"]))
-				$type = substr($name, -6);
-			elseif (substr($name, -8) == ".tar.bz2")
-				$type = "tar.bz2";
-			else
-				$type = substr(strrchr($name, "."), 1);
+			$type = "unknown";
+			$complex_extensions = [".tar.bz2", ".tar.gz", ".tar.xz"];
+
+			foreach ($complex_extensions as $ext) {
+				if (substr($name, -strlen($ext)) === $ext) {
+					$type = ltrim($ext, '.');
+					break;
+				}
+			}
+
+			if ($type === "unknown") {
+				$type = pathinfo($name, PATHINFO_EXTENSION);
+			}
 			$item["icon"] = $this->getTypeIcon($type);
 			$item["ext"] = strtolower($type);
 			if (!$this->config['disable_mime_detection'])
