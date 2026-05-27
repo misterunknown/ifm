@@ -2,3 +2,4 @@
 !compiler.php
 !src
 !docker
+!composer.json

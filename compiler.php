@@ -8,6 +8,18 @@
 
 chdir(realpath(dirname(__FILE__)));
 
+require_once 'vendor/autoload.php';
+
+function minify_file(string $path): string {
+    $content = file_get_contents($path);
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $is_already_minified = strpos(basename($path), '.min.') !== false;
+    if ($is_already_minified) return $content;
+    if ($ext === 'css') return (new MatthiasMullie\Minify\CSS($content))->minify();
+    if ($ext === 'js')  return (new MatthiasMullie\Minify\JS($content))->minify();
+    return $content;
+}
+
 // output files and common attrs
 define( "IFM_VERSION",       "v4.1.1" );
 define( "IFM_RELEASE_DIR",   "dist/");
@@ -23,7 +35,7 @@ $IFM_SRC_PHP = [
 ];
 
 // get options
-$options = getopt(null, ["language::", "languages::", "lang::", "cdn"]);
+$options = getopt("", ["language::", "languages::", "lang::", "cdn"]);
 
 // build CDN version?
 if (isset($options['cdn'])) {
@@ -60,14 +72,23 @@ if (in_array("all", $langs))
 
 $vars['languageincludes'] = "";
 foreach ($langs as $l) {
-	if (file_exists("src/i18n/".$l.".json")) {
+	$langPath = "src/i18n/".$l.".json";
+	if (file_exists($langPath)) {
+		$raw = file_get_contents($langPath);
+		$decoded = json_decode($raw, true);
+		if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+			print "WARNING: ".$langPath." is invalid JSON (".json_last_error_msg()."), embedding as-is.\n";
+			$content = $raw;
+		} else {
+			$content = json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		}
 		$vars['languageincludes'] .=
 			'$i18n["'.$l.'"] = <<<\'f00bar\'' . "\n"
-			. file_get_contents( "src/i18n/".$l.".json" ) . "\n"
+			. $content . "\n"
 			. 'f00bar;' . "\n"
 			. '$i18n["'.$l.'"] = json_decode( $i18n["'.$l.'"], true );' . "\n" ;
 	} else {
-		print "WARNING: Language file src/i18n/".$l.".json not found.\n";
+		print "WARNING: Language file ".$langPath." not found.\n";
 	}
 }
 
@@ -88,7 +109,7 @@ $compiled = str_replace("###ASSETS_JS###", file_get_contents("src/assets".(IFM_C
 $includes = NULL;
 preg_match_all("/\#\#\#file:([^\#]+)\#\#\#/", $compiled, $includes, PREG_SET_ORDER);
 foreach ($includes as $file) {
-	$compiled = str_replace($file[0], file_get_contents($file[1]), $compiled);
+	$compiled = str_replace($file[0], minify_file($file[1]), $compiled);
 }
 
 // Process ace includes

@@ -36,17 +36,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
+          php-version: '8.3'
           coverage: none
           tools: phpmd
-
-      - name: Build IFM
-        run: php ./compiler.php
 
       - name: Run PHPMD
         run: phpmd ./src github cleancode,design,unusedcode --exclude './src/includes/*' --ignore-violations-on-exit
