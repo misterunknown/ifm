@@ -1,20 +1,24 @@
 <form id="formUploadFile">
-<div class="modal-body">
-	<fieldset>
-		<div class="form-group">
-			<div class="custom-file">
-				<label class="custom-file-label" for="fileselect">{{i18n.upload_file}}</label>
-				<input class="custom-file-input" type="file" name="files" id="fileselect" multiple>
+	<div class="modal-body">
+		<fieldset>
+			<div class="form-group mb-3">
+				<div class="custom-file">
+					<label class="custom-file-label" for="fileselect">{{i18n.upload_file}}</label>
+					<input class="custom-file-input" type="file" name="files" id="fileselect" multiple>
+				</div>
 			</div>
-		</div>
-		<div class="form-group">
-			<label for="filename">{{i18n.filename_new}}</label>
-			<input class="form-control" type="text" name="newfilename" id="filename">
-		</div>
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button class="btn btn-primary" id="buttonUpload">{{i18n.upload}}</button>
-	<button class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
-</div>
+			<div class="form-group mb-3" id="uploadFileListContainer" hidden>
+				<ul id="uploadFileList" class="list-group list-group-flush border rounded"></ul>
+			</div>
+			<div class="form-group mb-0" id="filenameContainer" hidden>
+				<label class="sr-only" for="filename">{{i18n.filename_new}}</label>
+				<input class="form-control" type="text" name="newfilename" id="filename" placeholder="{{i18n.filename_new}}">
+			</div>
+		</fieldset>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-primary" id="buttonUpload">{{i18n.upload}}</button>
+		<button class="btn btn-danger" id="buttonCancel">{{i18n.cancel}}</button>
+	</div>
 </form>
+

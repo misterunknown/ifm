@@ -1,16 +1,17 @@
 <form id="formFile">
-<div class="modal-body">
-	<fieldset>
-		<div class="form-group">
-			<label for="filename">{{i18n.filename}}:</label>
-			<input type="text" class="form-control" name="filename" id="filename" value="{{filename}}">
-		</div>
-		<div class="form-group" id="content" name="content"></div>
-		<button type="button" class="btn btn-secondary" id="editoroptions">{{i18n.editor_options}}</button>
-	</fieldset>
-</div>
-<div class="modal-footer">
-	<button type="button" id="buttonSaveNotClose" class="btn btn-success">{{i18n.save}}</button>
-	<button type="button" id="buttonClose" class="btn btn-danger">{{i18n.close}}</button>
-</div>
+	<div class="modal-body">
+		<fieldset>
+			<div class="form-group">
+				<label for="filename">{{i18n.filename}}:</label>
+				<input type="text" class="form-control" name="filename" id="filename" value="{{filename}}">
+				<div class="invalid-feedback" id="filenameError"></div>
+			</div>
+			<div class="form-group" id="content" name="content"></div>
+			<button type="button" class="btn btn-secondary" id="editoroptions">{{i18n.editor_options}}</button>
+		</fieldset>
+	</div>
+	<div class="modal-footer">
+		<button type="button" id="buttonSaveNotClose" class="btn btn-success">{{i18n.save}}</button>
+		<button type="button" id="buttonClose" class="btn btn-danger">{{i18n.close}}</button>
+	</div>
 </form>

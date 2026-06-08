@@ -1,28 +1,28 @@
 <form>
 	<div class="form-group">
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" id="editor-wordwrap" 
+		<div class="custom-control custom-switch">
+			<input class="custom-control-input" type="checkbox" id="editor-wordwrap" 
 				{{#wordwrap}}
 				checked="checked"
 				{{/wordwrap}}
 			>
-			<label class="form-check-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
+			<label class="custom-control-label" for="editor-wordwrap">{{i18n.word_wrap}}</label>
 		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" id="editor-invisible-chars"
+		<div class="custom-control custom-switch">
+			<input class="custom-control-input" type="checkbox" id="editor-invisible-chars"
 				{{#invisible_chars}}
 				checked="checked"
 				{{/invisible_chars}}
 			>
-			<label class="form-check-label" for="editor-invisible-chars">{{i18n.invisible_chars}}</label>
+			<label class="custom-control-label" for="editor-invisible-chars">{{i18n.invisible_chars}}</label>
 		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" id="editor-softtabs"
+		<div class="custom-control custom-switch">
+			<input class="custom-control-input" type="checkbox" id="editor-softtabs"
 				{{#softtabs}}
 				checked="checked"
 				{{/softtabs}}
 			>
-			<label class="form-check-label" for="editor-softtabs">{{i18n.soft_tabs}}</label>
+			<label class="custom-control-label" for="editor-softtabs">{{i18n.soft_tabs}}</label>
 		</div>
 	</div>
 	<div class="input-group">

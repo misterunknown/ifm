@@ -77,6 +77,11 @@ class IFM {
 	private $i18n = [];
 	public $mode = "standalone";
 	private $initialWD;
+	private $rootDirCache = null;
+	private $currentLang = null;
+	private $uidCache = [];
+	private $gidCache = [];
+	private $mimeCache = [];
 
 	public function __construct($config=[]) {
 		// store initial working directory
@@ -144,8 +149,9 @@ f00bar;
 	}
 
 	public function getHTMLHeader() {
+		$lang = htmlspecialchars($this->getCurrentLang(), ENT_QUOTES);
 		print '<!DOCTYPE HTML>
-		<html>
+		<html lang="'.$lang.'">
 			<head>
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
@@ -329,30 +335,33 @@ f00bar;
 	private function getFiles($dir) {
 		$this->chDirIfNecessary($dir);
 
-		unset($files); unset($dirs); $files = []; $dirs = [];
+		$files = []; $dirs = [];
+		$scriptName = basename($_SERVER['SCRIPT_NAME']);
+		$isInitialWD = (getcwd() == $this->initialWD);
+		$showHtdocs = ($this->config['showhtdocs'] == 1);
+		$showHidden = ($this->config['showhiddenfiles'] == 1);
 
 		if ($handle = opendir(".")) {
 			while (false !== ($result = readdir($handle))) {
-				if ($result == basename($_SERVER['SCRIPT_NAME']) && getcwd() == $this->initialWD)
+				if ($result == "." )
 					continue;
-				elseif (($result == ".htaccess" || $result==".htpasswd") && $this->config['showhtdocs'] != 1)
+				if ($result == $scriptName && $isInitialWD)
 					continue;
-				elseif ($result == ".")
+				if (!$showHtdocs && ($result == ".htaccess" || $result == ".htpasswd"))
 					continue;
-				elseif ($result != ".." && substr($result, 0, 1) == "." && $this->config['showhiddenfiles'] != 1)
+				if (!$showHidden && $result != ".." && $result[0] == ".")
 					continue;
-				else {
-					$item = $this->getItemInformation($result);
-					if ($item['type'] == "dir")
-						$dirs[] = $item;
-					else
-						$files[] = $item;
-				}
+				$item = $this->getItemInformation($result);
+				if ($item['type'] == "dir")
+					$dirs[] = $item;
+				else
+					$files[] = $item;
 			}
 			closedir($handle);
 		}
-		array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $dirs);
-		array_multisort(array_column($files, 'name'), SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $files);
+		$cmp = function($a, $b) { return strnatcasecmp($a['name'], $b['name']); };
+		usort($dirs, $cmp);
+		usort($files, $cmp);
 
 		return array_merge($dirs, $files);
 	}
@@ -363,21 +372,36 @@ f00bar;
 		if (is_dir($name)) {
 			$item["type"] = "dir";
 			if ($name == "..")
-				$item["icon"] = "icon icon-up-open";
+				$item["icon"] = "icon fa fa-angle-up";
 			else
-				$item["icon"] = "icon icon-folder-empty";
+				$item["icon"] = "icon fa fa-folder-o";
 		} else {
 			$item["type"] = "file";
-			if (in_array(substr($name, -7), [".tar.gz", ".tar.xz"]))
-				$type = substr($name, -6);
-			elseif (substr($name, -8) == ".tar.bz2")
-				$type = "tar.bz2";
-			else
-				$type = substr(strrchr($name, "."), 1);
+			$type = "unknown";
+			$complex_extensions = [".tar.bz2", ".tar.gz", ".tar.xz"];
+
+			foreach ($complex_extensions as $ext) {
+				if (substr($name, -strlen($ext)) === $ext) {
+					$type = ltrim($ext, '.');
+					break;
+				}
+			}
+
+			if ($type === "unknown") {
+				$type = pathinfo($name, PATHINFO_EXTENSION);
+			}
+
 			$item["icon"] = $this->getTypeIcon($type);
 			$item["ext"] = strtolower($type);
-			if (!$this->config['disable_mime_detection'])
-				$item["mime_type"] = mime_content_type($name);
+			if (!$this->config['disable_mime_detection']) {
+				$extKey = $item["ext"];
+				if ($extKey !== "") {
+					if (!array_key_exists($extKey, $this->mimeCache))
+						$this->mimeCache[$extKey] = mime_content_type($name);
+					$item["mime_type"] = $this->mimeCache[$extKey];
+				} else
+					$item["mime_type"] = mime_content_type($name);
+			}
 		}
 		if ($this->config['showlastmodified'] == 1)
 			$item["lastmodified"] = filemtime($name);
@@ -390,6 +414,7 @@ f00bar;
 				if ($item["size_raw"] > 1073741824) $item["size"] = round(($item["size_raw"]/1073741824 ), 2) . " GB";
 				elseif($item["size_raw"]>1048576)$item["size"] = round(($item["size_raw"]/1048576), 2) . " MB";
 				elseif($item["size_raw"]>1024)$item["size"] = round(($item["size_raw"]/1024), 2) . " KB";
+				elseif($item["size_raw"]>1)$item["size"] = $item["size_raw"] . " Bytes";
 				else $item["size"] = $item["size_raw"] . " Byte";
 			}
 		}
@@ -403,15 +428,23 @@ f00bar;
 			$item["filepermmode"] = ($this->config['showpermissions'] == 1) ? "short" : "long";
 		}
 		if ($this->config['showowner'] == 1) {
-			if (function_exists("posix_getpwuid") && fileowner($name) !== false) {
-				$ownerarr = posix_getpwuid(fileowner($name));
-				$item["owner"] = $ownerarr['name'];
+			$uid = fileowner($name);
+			if (function_exists("posix_getpwuid") && $uid !== false) {
+				if (!array_key_exists($uid, $this->uidCache)) {
+					$ownerarr = posix_getpwuid($uid);
+					$this->uidCache[$uid] = $ownerarr ? $ownerarr['name'] : false;
+				}
+				$item["owner"] = $this->uidCache[$uid];
 			} else $item["owner"] = false;
 		}
 		if ($this->config['showgroup'] == 1) {
-			if (function_exists("posix_getgrgid") && filegroup($name) !== false) {
-				$grouparr = posix_getgrgid(filegroup($name));
-				$item["group"] = $grouparr['name'];
+			$gid = filegroup($name);
+			if (function_exists("posix_getgrgid") && $gid !== false) {
+				if (!array_key_exists($gid, $this->gidCache)) {
+					$grouparr = posix_getgrgid($gid);
+					$this->gidCache[$gid] = $grouparr ? $grouparr['name'] : false;
+				}
+				$item["group"] = $this->gidCache[$gid];
 			} else $item["group"] = false;
 		}
 		return $item;
@@ -471,13 +504,14 @@ f00bar;
 
 	private function searchItemsRecursive($pattern, $dir="") {
 		$items = [];
-		$dir = $dir ?? '.';
+		if ($dir === "") $dir = '.';
 
 		foreach (glob($this->pathCombine($dir, $pattern)) as $result)
-			array_push($items, $this->getItemInformation($result));
+			$items[] = $this->getItemInformation($result);
 
 		foreach (glob($this->pathCombine($dir, '*'), GLOB_ONLYDIR) as $subdir)
-			$items = array_merge($items, $this->searchItemsRecursive($pattern, $subdir));
+			foreach ($this->searchItemsRecursive($pattern, $subdir) as $it)
+				$items[] = $it;
 
 		return $items;
 	}
@@ -685,7 +719,7 @@ f00bar;
 			$restoreIFM = true;
 		}
 
-		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION) == "zip")) {
+		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "zip") {
 			if (!IFMArchive::extractZip($d['filename'], $d['targetdir']))
 				throw new IFMException($this->l('extract_error'));
 			else
@@ -796,7 +830,6 @@ f00bar;
 		if ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
 			throw new IFMException($this->l('invalid_filename'));
 
-		unset($zip);
 		if ($this->isAbsolutePath($this->config['tmp_dir']))
 			$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
 		else
@@ -931,13 +964,23 @@ f00bar;
 	 * help functions
 	 */
 
-	private function l($str) {
-		if (isset($_REQUEST['lang'])
-			&& in_array($_REQUEST['lang'], array_keys($this->i18n))
-			&& isset($this->i18n[$_REQUEST['lang']][$str]))
-			return $this->i18n[$_REQUEST['lang']][$str];
+	private function getCurrentLang() {
+		if ($this->currentLang !== null)
+			return $this->currentLang;
+		if (isset($_REQUEST['lang']) && isset($this->i18n[$_REQUEST['lang']]))
+			$this->currentLang = $_REQUEST['lang'];
+		elseif (isset($this->i18n[$this->config['language']]))
+			$this->currentLang = $this->config['language'];
 		else
-			return $this->i18n['en'][$str];
+			$this->currentLang = 'en';
+		return $this->currentLang;
+	}
+
+	private function l($str) {
+		$lang = $this->getCurrentLang();
+		if (isset($this->i18n[$lang][$str]))
+			return $this->i18n[$lang][$str];
+		return isset($this->i18n['en'][$str]) ? $this->i18n['en'][$str] : $str;
 	}
 
 	private function log($d) {
@@ -1108,12 +1151,15 @@ f00bar;
 	}
 
 	private function getRootDir() {
+		if ($this->rootDirCache !== null)
+			return $this->rootDirCache;
 		if ($this->config['root_dir'] == "")
-			return $this->initialWD;
+			$this->rootDirCache = $this->initialWD;
 		elseif ($this->isAbsolutePath($this->config['root_dir']))
-			return realpath($this->config['root_dir']);
+			$this->rootDirCache = realpath($this->config['root_dir']);
 		else
-			return realpath($this->pathCombine($this->initialWD, $this->config['root_dir']));
+			$this->rootDirCache = realpath($this->pathCombine($this->initialWD, $this->config['root_dir']));
+		return $this->rootDirCache;
 	}
 
 	private function getValidDir($dir) {
@@ -1169,17 +1215,27 @@ f00bar;
 	private function getTypeIcon($type) {
 		$type = strtolower($type);
 		switch ($type) {
-			case "aac": case "aiff": case "mid": case "mp3": case "wav": return 'icon icon-file-audio'; break;
-			case "ai": case "bmp": case "eps": case "tiff": case "gif": case "jpg": case "jpeg": case "png": case "psd": case "svg": case "webp": return 'icon icon-file-image'; break;
-			case "avi": case "flv": case "mp4": case "mpg": case "mkv": case "mpeg": case "webm": case "wmv": case "mov": return 'icon icon-file-video'; break;
-			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "php": case "py": case "sql": case "xml": case "yml": case "json": return 'icon icon-file-code'; break;
-			case "doc": case "docx": case "odf": case "odt": case "rtf": return 'icon icon-file-word'; break;
-			case "txt": case "log": return 'icon icon-doc-text'; break;
-			case "ods": case "xls": case "xlsx": return 'icon icon-file-excel'; break;
-			case "odp": case "ppt": case "pptx": return 'icon icon-file-powerpoint'; break;
-			case "pdf": return 'icon icon-file-pdf'; break;
-			case "tgz": case "zip": case "tar": case "tgz": case "tar.gz": case "tar.xz": case "tar.bz2": case "7z": case "rar": return 'icon icon-file-archive';
-			default: return 'icon icon-doc';
+			case "aac": case "aiff": case "flac": case "m4a": case "mid": case "mp3": case "ogg": case "wav":
+				return 'icon fa fa-file-audio-o'; break;
+			case "ai": case "avif": case "bmp": case "eps": case "gif": case "ico": case "jpeg": case "jpg": case "png": case "psd": case "svg": case "tiff": case "webp":
+				return 'icon fa fa-file-image-o'; break;
+			case "avi": case "flv": case "m4v": case "mkv": case "mov": case "mp4": case "mpeg": case "mpg": case "ogv": case "webm": case "wmv":
+				return 'icon fa fa-file-video-o'; break;
+			case "c": case "cpp": case "css": case "dat": case "h": case "html": case "java": case "js": case "json": case "less": case "mjs": case "php": case "py": case "sass": case "scss": case "sh": case "sql": case "ts": case "xml": case "yaml": case "yml":
+				return 'icon fa fa-file-code-o'; break;
+			case "doc": case "docx": case "odf": case "odt": case "rtf":
+				return 'icon fa fa-file-word-o'; break;
+			case "conf": case "csv": case "ini": case "log": case "md": case "tsv": case "txt":
+				return 'icon fa fa-file-text-o'; break;
+			case "ods": case "xls": case "xlsx":
+				return 'icon fa fa-file-excel-o'; break;
+			case "odp": case "ppt": case "pptx":
+				return 'icon fa fa-file-powerpoint-o'; break;
+			case "pdf":
+				return 'icon fa fa-file-pdf-o'; break;
+			case "7z": case "br": case "bz2": case "gz": case "iso": case "rar": case "tar": case "tar.bz2": case "tar.gz": case "tar.xz": case "tgz": case "xz": case "zip":
+				return 'icon fa fa-file-archive-o';
+			default: return 'icon fa fa-file-o';
 		}
 	}
 
@@ -1226,19 +1282,29 @@ f00bar;
 	}
 
 	private function xcopy($source, $dest) {
-		$isDir = is_dir($source);
-		if ($isDir)
-			$dest = $this->pathCombine($dest, basename($source));
-		if (!is_dir($dest))
-			mkdir($dest, 0777, true);
-		if (is_file($source))
+		if (is_file($source)) {
+			if (!is_dir($dest) && !mkdir($dest, 0777, true))
+				return false;
 			return copy($source, $this->pathCombine($dest, basename($source)));
+		}
+		if (!is_dir($source))
+			return false;
 
-		chdir($source);
-		foreach (glob('*') as $item)
-			$this->xcopy($item, $dest);
-		chdir('..');
-		return true;
+		$dest = $this->pathCombine($dest, basename($source));
+		if (!is_dir($dest) && !mkdir($dest, 0777, true))
+			return false;
+
+		$handle = opendir($source);
+		if ($handle === false)
+			return false;
+		$ok = true;
+		while (false !== ($entry = readdir($handle))) {
+			if ($entry == '.' || $entry == '..')
+				continue;
+			$ok = $this->xcopy($this->pathCombine($source, $entry), $dest) && $ok;
+		}
+		closedir($handle);
+		return $ok;
 	}
 
 	// combines two parts to a valid path
@@ -1361,15 +1427,8 @@ f00bar;
 		header('Pragma: public');
 		header('Content-Length: '.filesize($options['file']));
 
-		$file_stream = fopen($options['file'], 'rb');
-		$stdout_stream = fopen('php://output', 'wb');
-
-		$buffer_size = 64 * 1024 * 1024; // 64K should be decent for a network stream
-		while (!feof($file_stream)) {
-			fwrite($stdout_stream, fread($file_stream, $buffer_size));
-		}
-
-		fclose($file_stream);
-		fclose($stdout_stream);
+		while (ob_get_level() > 0)
+			ob_end_clean();
+		readfile($options['file']);
 	}
 }

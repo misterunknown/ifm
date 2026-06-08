@@ -1,0 +1,19 @@
+services:
+  ifm:
+    image: ifm:latest
+    container_name: ifm
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        CDN: ${CDN:-false}
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - IFM_DOCKER_UID=1000
+      - IFM_DOCKER_GID=1000
+      - IFM_AUTH=1
+      - IFM_AUTH_SOURCE="inline;admin:$$apr1$$mS.N6oQx$0wAz/05xVMNvEHPSL2TxS/" # password: admin
+    volumes:
+      - /tmp:/var/www

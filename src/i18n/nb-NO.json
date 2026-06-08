@@ -72,6 +72,7 @@
     "move": "Flytt",
     "move_error": "Følgende filer kunne ikke flyttes:",
     "move_success": "Filer flyttet.",
+    "name_already_exists": "This name is already taken.",
     "nopermissions": "Du mangler tilgangen til å gjøre dette.",
     "options": "Innstillinger",
     "owner": "Eier",

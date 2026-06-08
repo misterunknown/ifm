@@ -30,6 +30,7 @@
     "path_content": "Directory attuale",
     "owner": "Proprietario",
     "options": "Opzioni",
+    "name_already_exists": "Questo nome è già in uso.",
     "nopermissions": "Non hai i permessi per farlo.",
     "move_success": "File spostati.",
     "move_error": "Non è stato possibile spostare i seguenti file:",

@@ -16,14 +16,17 @@ class Htpasswd {
 	 * Load a new htpasswd file
 	 */
 	public function load($filename) {
-		unset($this->users);
+		$this->users = [];
 		if (file_exists($filename) && is_readable($filename)) {
-			$lines = file( $filename );
+			$lines = file($filename);
 			foreach ($lines as $line) {
-				list($user, $pass) = explode(":", $line);
-				$this->users[$user] = trim($pass);
+				$parts = explode(":", $line, 2);
+				if (count($parts) !== 2) continue;
+				$user = trim($parts[0]);
+				if ($user === '') continue;
+				$this->users[$user] = trim($parts[1]);
 			}
-			return true;
+			return !empty($this->users);
 		} else {
 			return false;
 		}
@@ -40,13 +43,23 @@ class Htpasswd {
 	public function verify($user, $pass) {
 		if (isset($this->users[$user])) {
 			return $this->verifyPassword($pass, $this->users[$user]);
-		} else {
-			return false;
 		}
+		// burn time against a dummy hash to mask username enumeration via timing
+		$this->verifyPassword($pass, $this->getDummyHash());
+		return false;
+	}
+
+	private function getDummyHash() {
+		static $dummy = null;
+		if ($dummy === null) {
+			$dummy = password_hash(random_bytes(16), PASSWORD_BCRYPT);
+		}
+		return $dummy;
 	}
 
 	public function verifyPassword($pass, $hash) {
-		if (substr($hash, 0, 4) == '$2y$') {
+		$info = password_get_info($hash);
+		if (!empty($info['algo'])) {
 			return password_verify($pass, $hash);
 		} elseif (substr($hash, 0, 6) == '$apr1$') {
 			$apr1 = new APR1_MD5();
