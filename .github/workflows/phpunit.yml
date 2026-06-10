@@ -43,7 +43,9 @@ jobs:
           restore-keys: composer-${{ runner.os }}-php${{ matrix.php }}-
 
       - name: Install dependencies
-        run: composer install --no-interaction --no-progress
+        # no lock file is committed; resolve a PHPUnit compatible with this
+        # runner's PHP (PU10 on 8.1, 11 on 8.2, 12 on 8.3, 13 on 8.4/8.5)
+        run: composer update --no-interaction --no-progress
 
       - name: Build dist artifacts
         run: php compiler.php

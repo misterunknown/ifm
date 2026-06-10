@@ -39,7 +39,7 @@ jobs:
           restore-keys: composer-${{ runner.os }}-
 
       - name: Install dependencies
-        run: composer install --no-interaction --no-progress
+        run: composer update --no-interaction --no-progress
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M

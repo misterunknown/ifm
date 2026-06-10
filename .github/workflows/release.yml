@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         # build needs matthiasmullie/minify, which lives in require-dev
-        run: composer install --no-interaction --no-progress
+        run: composer update --no-interaction --no-progress
 
       - name: Build artifacts
         env:
