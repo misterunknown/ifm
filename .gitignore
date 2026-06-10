@@ -6,3 +6,5 @@ sftp-config.json
 dist/*
 vendor
 composer.lock
+.phpunit.cache
+.phpunit.result.cache

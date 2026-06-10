@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keep dev dependencies (phpunit, guzzle, phpstan, minify) patched and
+  # surface security advisories. The GitHub Actions ecosystem is intentionally
+  # omitted: workflows use floating major tags (e.g. @v6), which already track
+  # upstream fixes, so an actions updater would only add redundant noise.
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"

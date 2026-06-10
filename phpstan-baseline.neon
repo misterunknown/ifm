@@ -1,0 +1,37 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/ifmarchive.php
+
+		-
+			message: '#^Variable \$noCompressExtensions in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/ifmarchive.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/main.php
+
+		-
+			message: '#^Method IFM\:\:log\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/main.php
+
+		-
+			message: '#^Parameter \#2 \$options of function curl_setopt_array expects array\{10002\: non\-empty\-string, 10001\: resource, 42\: bool, 52\: bool, 68\: int, 78\: int, 13\: int, 181\: int, \.\.\.\}, array\{10002\: non\-empty\-string, 10001\: resource, 42\: 0, 52\: bool, 68\: 5, 78\: 10, 13\: 300, 181\: 7, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/main.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 18
+			path: src/main.php

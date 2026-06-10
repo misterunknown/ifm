@@ -164,8 +164,9 @@ php composer.phar install
 
 This installs the build-time dependencies declared in `composer.json` into `./vendor`:
 
-* [`phpmd/phpmd`](https://phpmd.org/) — static analysis used by `make lint`
 * [`matthiasmullie/minify`](https://github.com/matthiasmullie/minify) — JS/CSS minifier used by the compiler
+* [`phpstan/phpstan`](https://phpstan.org/) — static analysis used by `make analyse`
+* [`phpunit/phpunit`](https://phpunit.de/) & [`guzzlehttp/guzzle`](https://github.com/guzzle/guzzle) — used by the test suite (`make test`)
 
 #### Makefile targets
 
@@ -174,8 +175,9 @@ The `Makefile` wraps the compiler and helper scripts. Run `make help` to see all
 | Target              | Description                                                |
 | ------------------- | ---------------------------------------------------------- |
 | `make help`         | List available targets                                     |
-| `make lint`         | Run PHPMD on `./src`                                       |
+| `make analyse`      | Run PHPStan static analysis on `./src`                     |
 | `make syntax-check` | Run `php -l` against every tracked `*.php` file            |
+| `make test`         | Build dist and run the full PHPUnit suite                  |
 | `make build`        | Compile the regular (bundled) dist files into `./dist`     |
 | `make build-cdn`    | Compile the CDN dist files into `./dist`                   |
 | `make build-all`    | Compile both bundled and CDN flavours                      |
