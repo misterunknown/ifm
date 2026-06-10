@@ -227,6 +227,35 @@ CDN=true docker compose up -d --build
 
 See [Installation → Docker Compose](#docker-compose) for how to run the resulting service.
 
+### Versioning and releasing
+
+IFM follows [Semantic Versioning](https://semver.org/) with a `v` prefix:
+`vMAJOR.MINOR.PATCH` (e.g. `v4.2.0`).
+
+**Git tags are the single source of truth for the version.** The version is no
+longer hard-coded; `compiler.php` resolves it at build time, in this order:
+
+1. the `IFM_VERSION` environment variable (used by the release workflow),
+2. a `VERSION` file next to `compiler.php` (for source tarballs without git),
+3. `git describe --tags --always --dirty` (normal development and tagged builds),
+4. `v0.0.0-dev` as a last-resort fallback.
+
+So local/dev builds embed a descriptive version such as
+`v4.1.1-9-gb86f1eb-dirty`, while a clean tagged build embeds exactly the tag.
+
+**To cut a release**, just create and push a tag:
+
+```bash
+git tag v4.2.0
+git push origin v4.2.0
+```
+
+The `Release` GitHub Actions workflow (`.github/workflows/release.yml`) then
+builds the artifacts with `IFM_VERSION` pinned to the tag, verifies the embedded
+version matches, and publishes a GitHub Release with auto-generated notes and
+these assets attached: `ifm.php`, `ifm.min.php`, `cdn.ifm.php`,
+`cdn.ifm.min.php`. No manual file edits or uploads are required.
+
 ## Security information
 
 The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
