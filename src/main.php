@@ -1138,6 +1138,12 @@ f00bar;
 				break;
 			case "ldap":
 				$authenticated = false;
+				// Reject empty username/password before binding: most LDAP
+				// servers treat a bind with an empty password as an
+				// anonymous/unauthenticated bind that SUCCEEDS, which would
+				// otherwise bypass authentication entirely.
+				if (!is_string($user) || $user === '' || !is_string($pass) || $pass === '')
+					return false;
 				$ldapopts = explode(";", $srcopt);
 				if (count($ldapopts) === 4) {
 					list($ldap_server, $basedn, $uuid, $ufilter) = explode(";", $srcopt);
