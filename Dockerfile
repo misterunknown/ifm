@@ -46,6 +46,7 @@ RUN docker-php-ext-install \
     bz2 \
     fileinfo \
     ldap \
+    opcache \
     posix \
     zip
 

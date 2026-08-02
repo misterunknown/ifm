@@ -689,7 +689,7 @@ f00bar;
 		if (!is_file($d['filename']))
 			http_response_code(404);
 		else
-			$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL]);
+			$this->fileDownload(["file" => $d['filename'], "forceDL" => $forceDL, "cache" => true]);
 	}
 
 	// extracts a zip-archive
@@ -1422,9 +1422,29 @@ f00bar;
 			$content_type = mime_content_type($options['file']);
 
 		header('Content-Type: '.$content_type);
-		header('Expires: 0');
-		header('Cache-Control: must-revalidate');
-		header('Pragma: public');
+
+		if (!empty($options['cache'])) {
+			// no-cache means "store, but revalidate before use": browsers keep a copy
+			// and get a bodyless 304 unless the file changed
+			$mtime = filemtime($options['file']);
+			$etag = sprintf('"%x-%x"', $mtime, filesize($options['file']));
+			header('ETag: '.$etag);
+			header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mtime).' GMT');
+			header('Cache-Control: private, no-cache');
+
+			// If-None-Match takes precedence over If-Modified-Since (RFC 9110 13.1.3)
+			$inm = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+			$ims = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) : false;
+			if ($inm !== '' ? in_array($etag, array_map('trim', explode(',', $inm)), true) : ($ims !== false && $ims >= $mtime)) {
+				http_response_code(304);
+				return;
+			}
+		} else {
+			header('Expires: 0');
+			header('Cache-Control: must-revalidate');
+			header('Pragma: public');
+		}
+
 		header('Content-Length: '.filesize($options['file']));
 
 		while (ob_get_level() > 0)
