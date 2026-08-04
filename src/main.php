@@ -626,7 +626,7 @@ f00bar;
 		if ($this->config['edit'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 
-		if (isset($d['filename']) && $this->isFilenameAllowed($d['filename']) && file_exists($d['filename']) && is_readable($d['filename'])) {
+		if (isset($d['filename']) && $this->isFilenameValid($d['filename']) && is_file($d['filename']) && is_readable($d['filename'])) {
 			$content = @file_get_contents($d['filename']);
 			$this->convertToUTF8($content);
 			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]];
@@ -641,7 +641,7 @@ f00bar;
 
 		$err = [];
 		foreach ($d['filenames'] as $file) {
-			if ($this->isFilenameAllowed($file)) {
+			if ($this->isFilenameValid($file)) {
 				if (is_dir($file)) {
 					$res = $this->rec_rmdir($file);
 					if ($res != 0) {
@@ -1201,7 +1201,8 @@ f00bar;
 			return false;
 		elseif ($rpDir == $rpConfig)
 			return true;
-		elseif (0 === strpos($rpDir, $rpConfig))
+		elseif (0 === strpos($rpDir, rtrim($rpConfig, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR))
+			// the trailing separator prevents prefix bypasses like /var/www-evil for root /var/www
 			return true;
 		else
 			return false;
@@ -1318,6 +1319,11 @@ f00bar;
 
 	// check if filename is allowed
 	public function isFilenameValid($f) {
+		// reject non-strings and the dot segments; neither contains a path
+		// separator, so the checks below would let them through
+		if (!is_string($f) || $f === "" || $f === "." || $f === "..")
+			return false;
+
 		if (!$this->isFilenameAllowed($f))
 			return false;
 
