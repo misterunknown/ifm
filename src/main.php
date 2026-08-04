@@ -81,6 +81,55 @@ class IFM {
 	private $currentLang = null;
 	private $uidCache = [];
 	private $gidCache = [];
+	// per-request memoization for mime_content_type() results of extensions that
+	// are not covered by self::MIME_MAP; reset with every new request
+	private $mimeCache = [];
+
+	// well-known extension => MIME type mappings; resolving from this table avoids
+	// the read() syscall mime_content_type() performs for every single file
+	private const MIME_MAP = [
+		// images
+		"avif" => "image/avif", "bmp" => "image/bmp", "gif" => "image/gif",
+		"ico" => "image/vnd.microsoft.icon", "jpeg" => "image/jpeg", "jpg" => "image/jpeg",
+		"png" => "image/png", "svg" => "image/svg+xml", "tif" => "image/tiff",
+		"tiff" => "image/tiff", "webp" => "image/webp",
+		// audio / video
+		"aac" => "audio/aac", "flac" => "audio/flac", "m4a" => "audio/mp4",
+		"mid" => "audio/midi", "mp3" => "audio/mpeg", "oga" => "audio/ogg",
+		"ogg" => "audio/ogg", "wav" => "audio/x-wav",
+		"avi" => "video/x-msvideo", "m4v" => "video/mp4", "mkv" => "video/x-matroska",
+		"mov" => "video/quicktime", "mp4" => "video/mp4", "mpeg" => "video/mpeg",
+		"mpg" => "video/mpeg", "ogv" => "video/ogg", "webm" => "video/webm",
+		"wmv" => "video/x-ms-wmv",
+		// documents
+		"doc" => "application/msword",
+		"docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"odp" => "application/vnd.oasis.opendocument.presentation",
+		"ods" => "application/vnd.oasis.opendocument.spreadsheet",
+		"odt" => "application/vnd.oasis.opendocument.text",
+		"pdf" => "application/pdf", "ppt" => "application/vnd.ms-powerpoint",
+		"pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		"rtf" => "application/rtf", "xls" => "application/vnd.ms-excel",
+		"xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		// archives
+		"7z" => "application/x-7z-compressed", "bz2" => "application/x-bzip2",
+		"gz" => "application/gzip", "iso" => "application/x-iso9660-image",
+		"rar" => "application/vnd.rar", "tar" => "application/x-tar",
+		"tar.bz2" => "application/x-bzip2", "tar.gz" => "application/gzip",
+		"tar.xz" => "application/x-xz", "tgz" => "application/gzip",
+		"xz" => "application/x-xz", "zip" => "application/zip",
+		// text / code -- these keep the frontend's "editable" detection working
+		"c" => "text/x-c", "conf" => "text/plain", "cpp" => "text/x-c++",
+		"css" => "text/css", "csv" => "text/csv", "h" => "text/x-c",
+		"htm" => "text/html", "html" => "text/html", "ini" => "text/plain",
+		"java" => "text/x-java", "js" => "text/javascript", "json" => "application/json",
+		"less" => "text/plain", "log" => "text/plain", "md" => "text/markdown",
+		"mjs" => "text/javascript", "php" => "text/x-php", "py" => "text/x-python",
+		"sass" => "text/plain", "scss" => "text/plain", "sh" => "text/x-shellscript",
+		"sql" => "text/plain", "ts" => "text/plain", "tsv" => "text/tab-separated-values",
+		"txt" => "text/plain", "xml" => "text/xml", "yaml" => "text/yaml",
+		"yml" => "text/yaml",
+	];
 	// set to true when the request was authenticated via the X-IFM-AUTH /
 	// Authorization header (stateless API access) rather than a cookie session
 	private $authViaHeader = false;
@@ -425,7 +474,7 @@ f00bar;
 			$item["icon"] = $this->getTypeIcon($type);
 			$item["ext"] = strtolower($type);
 			if (!$this->config['disable_mime_detection'])
-				$item["mime_type"] = mime_content_type($name);
+				$item["mime_type"] = $this->getMimeType($name, $item["ext"]);
 		}
 		if ($this->config['showlastmodified'] == 1)
 			$item["lastmodified"] = filemtime($name);
@@ -1270,6 +1319,30 @@ f00bar;
 			chdir($target);
 	}
 
+	// returns the MIME type of a file; well-known extensions are resolved from
+	// self::MIME_MAP without touching the file, everything else falls back to
+	// content sniffing (memoized per extension for the duration of the request)
+	private function getMimeType($name, $ext = null) {
+		if ($ext === null)
+			$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+		if (isset(self::MIME_MAP[$ext]))
+			return self::MIME_MAP[$ext];
+
+		// no extension => no meaningful cache key, always sniff
+		if ($ext === "") {
+			$mime = @mime_content_type($name);
+			return ($mime === false) ? "application/octet-stream" : $mime;
+		}
+
+		if (!array_key_exists($ext, $this->mimeCache)) {
+			$mime = @mime_content_type($name);
+			$this->mimeCache[$ext] = ($mime === false) ? "application/octet-stream" : $mime;
+		}
+
+		return $this->mimeCache[$ext];
+	}
+
 	private function getTypeIcon($type) {
 		$type = strtolower($type);
 		switch ($type) {
@@ -1479,7 +1552,7 @@ f00bar;
 			$fallback = preg_replace('/[^\x20-\x7e]/', '_', str_replace(['"', '\\'], '_', $name));
 			header('Content-Disposition: attachment; filename="' . $fallback . '"; filename*=UTF-8\'\'' . rawurlencode($name));
 		} else
-			$content_type = mime_content_type($options['file']);
+			$content_type = $this->getMimeType($options['file']);
 
 		header('Content-Type: '.$content_type);
 		header('Expires: 0');
