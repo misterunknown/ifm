@@ -21,7 +21,49 @@ function minify_file(string $path): string {
 }
 
 // output files and common attrs
-define( "IFM_VERSION",       "v4.1.2" );
+
+/**
+ * Resolve the IFM version without hand-editing this file.
+ *
+ * Order of precedence:
+ *   1. IFM_VERSION environment variable (set by CI / release builds)
+ *   2. a VERSION file next to this script (source tarballs without git)
+ *   3. `git describe` against the working tree (dev and tagged builds)
+ *   4. a hard fallback when none of the above is available
+ */
+function ifm_resolve_version(): string {
+	$env = getenv("IFM_VERSION");
+	if (is_string($env) && trim($env) !== "") {
+		return trim($env);
+	}
+
+	$versionFile = __DIR__ . "/VERSION";
+	if (is_file($versionFile)) {
+		$v = trim((string) file_get_contents($versionFile));
+		if ($v !== "") {
+			return $v;
+		}
+	}
+
+	// .git is a directory in a normal clone, but a file in worktrees/submodules
+	if (file_exists(__DIR__ . "/.git")) {
+		$out = @shell_exec(
+			"git -C " . escapeshellarg(__DIR__) . " describe --tags --always --dirty 2>/dev/null"
+		);
+		if (is_string($out) && trim($out) !== "") {
+			$v = trim($out);
+			// keep the leading "v" convention even if a tag omitted it
+			if (preg_match('/^[0-9]/', $v)) {
+				$v = "v" . $v;
+			}
+			return $v;
+		}
+	}
+
+	return "v0.0.0-dev";
+}
+
+define( "IFM_VERSION",       ifm_resolve_version() );
 define( "IFM_RELEASE_DIR",   "dist/");
 define( "IFM_STANDALONE",    "ifm.php" );
 define( "IFM_STANDALONE_GZ", "ifm.min.php" );

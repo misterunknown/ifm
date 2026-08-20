@@ -1,0 +1,17 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    phpVersion: 80100
+    paths:
+        - src
+    excludePaths:
+        - src/includes/*
+    # The app has no runtime autoloader (it is compiled into a single file by
+    # compiler.php). Scan src so PHPStan resolves the IFM / IFMArchive /
+    # Htpasswd classes that reference each other across files.
+    scanDirectories:
+        - src
+    bootstrapFiles: []
+    treatPhpDocTypesAsCertain: false

@@ -52,7 +52,10 @@ class Htpasswd {
 	private function getDummyHash() {
 		static $dummy = null;
 		if ($dummy === null) {
-			$dummy = password_hash(random_bytes(16), PASSWORD_BCRYPT);
+			// bin2hex keeps the input null-byte free: bcrypt rejects NUL bytes
+			// (ValueError) and truncates at the first one, so raw random_bytes
+			// would intermittently throw or weaken the dummy hash.
+			$dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 		}
 		return $dummy;
 	}

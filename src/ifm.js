@@ -2038,6 +2038,15 @@ function IFM(params) {
 			dataType: "json",
 			success: function(d) {
 				self.config = d;
+				// send the CSRF token with every POST request
+				if( self.config.csrf_token ) {
+					$.ajaxPrefilter( function( options ) {
+						if( options.type && options.type.toUpperCase() === "POST" ) {
+							options.headers = options.headers || {};
+							options.headers['X-IFM-CSRF'] = self.config.csrf_token;
+						}
+					} );
+				}
 				if( self.config.ace_includes ) {
 					self.ace = {};
 					self.ace.files = self.config.ace_includes.split( '|' ).filter( x => x != "" );

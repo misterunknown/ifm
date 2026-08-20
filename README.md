@@ -164,8 +164,9 @@ php composer.phar install
 
 This installs the build-time dependencies declared in `composer.json` into `./vendor`:
 
-* [`phpmd/phpmd`](https://phpmd.org/) — static analysis used by `make lint`
 * [`matthiasmullie/minify`](https://github.com/matthiasmullie/minify) — JS/CSS minifier used by the compiler
+* [`phpstan/phpstan`](https://phpstan.org/) — static analysis used by `make analyse`
+* [`phpunit/phpunit`](https://phpunit.de/) & [`guzzlehttp/guzzle`](https://github.com/guzzle/guzzle) — used by the test suite (`make test`)
 
 #### Makefile targets
 
@@ -174,8 +175,9 @@ The `Makefile` wraps the compiler and helper scripts. Run `make help` to see all
 | Target              | Description                                                |
 | ------------------- | ---------------------------------------------------------- |
 | `make help`         | List available targets                                     |
-| `make lint`         | Run PHPMD on `./src`                                       |
+| `make analyse`      | Run PHPStan static analysis on `./src`                     |
 | `make syntax-check` | Run `php -l` against every tracked `*.php` file            |
+| `make test`         | Build dist and run the full PHPUnit suite                  |
 | `make build`        | Compile the regular (bundled) dist files into `./dist`     |
 | `make build-cdn`    | Compile the CDN dist files into `./dist`                   |
 | `make build-all`    | Compile both bundled and CDN flavours                      |
@@ -224,6 +226,35 @@ CDN=true docker compose up -d --build
 ```
 
 See [Installation → Docker Compose](#docker-compose) for how to run the resulting service.
+
+### Versioning and releasing
+
+IFM follows [Semantic Versioning](https://semver.org/) with a `v` prefix:
+`vMAJOR.MINOR.PATCH` (e.g. `v4.2.0`).
+
+**Git tags are the single source of truth for the version.** The version is no
+longer hard-coded; `compiler.php` resolves it at build time, in this order:
+
+1. the `IFM_VERSION` environment variable (used by the release workflow),
+2. a `VERSION` file next to `compiler.php` (for source tarballs without git),
+3. `git describe --tags --always --dirty` (normal development and tagged builds),
+4. `v0.0.0-dev` as a last-resort fallback.
+
+So local/dev builds embed a descriptive version such as
+`v4.1.1-9-gb86f1eb-dirty`, while a clean tagged build embeds exactly the tag.
+
+**To cut a release**, just create and push a tag:
+
+```bash
+git tag v4.2.0
+git push origin v4.2.0
+```
+
+The `Release` GitHub Actions workflow (`.github/workflows/release.yml`) then
+builds the artifacts with `IFM_VERSION` pinned to the tag, verifies the embedded
+version matches, and publishes a GitHub Release with auto-generated notes and
+these assets attached: `ifm.php`, `ifm.min.php`, `cdn.ifm.php`,
+`cdn.ifm.min.php`. No manual file edits or uploads are required.
 
 ## Security information
 

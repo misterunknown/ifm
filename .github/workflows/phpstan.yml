@@ -1,0 +1,45 @@
+name: PHPStan
+
+on:
+  push:
+    branches: [ "master", "v4.0" ]
+  pull_request:
+    branches: [ "master", "v4.0" ]
+
+permissions: {}
+
+concurrency:
+  group: phpstan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpstan:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: zip, bz2, posix, fileinfo, curl, mbstring, phar
+          coverage: none
+          tools: composer
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: composer update --no-interaction --no-progress
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M
