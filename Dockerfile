@@ -42,6 +42,7 @@ RUN apk add --no-cache \
     zip
 
 # add missing extensions (runtime)
+# note: opcache is compiled in statically since PHP 8.5, only ini settings needed
 RUN docker-php-ext-install \
     bz2 \
     fileinfo \
