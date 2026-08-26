@@ -1127,12 +1127,21 @@ f00bar;
 			throw new IFMException("Authentication is enabled, but auth_source still contains the publicly known default credentials. Please configure your own credentials.");
 
 		$credentials_header = $_SERVER['HTTP_X_IFM_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? false;
-		if ($credentials_header && !$this->config['auth_ignore_basic'] && preg_match('/^Basic (.+)$/', $credentials_header, $m)) {
-			$cred = explode(":", base64_decode($m[1]), 2);
-			if (count($cred) == 2 && $this->checkCredentials($cred[0], $cred[1])) {
-				// stateless header auth is not subject to CSRF (no ambient credentials)
-				$this->authViaHeader = true;
-				return true;
+		if ($credentials_header && !$this->config['auth_ignore_basic']) {
+			if (preg_match('/^Basic (.+)$/', $credentials_header, $m))
+				$b64 = $m[1];
+			else
+				// X-IFM-AUTH historically carries bare base64 credentials without
+				// the Basic scheme; the standard Authorization header keeps
+				// requiring the prefix, since it can carry other schemes
+				$b64 = isset($_SERVER['HTTP_X_IFM_AUTH']) ? $credentials_header : false;
+			if ($b64 !== false) {
+				$cred = explode(":", base64_decode($b64, true) ?: "", 2);
+				if (count($cred) == 2 && $this->checkCredentials($cred[0], $cred[1])) {
+					// stateless header auth is not subject to CSRF (no ambient credentials)
+					$this->authViaHeader = true;
+					return true;
+				}
 			}
 		}
 
