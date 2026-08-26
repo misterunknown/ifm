@@ -5,8 +5,9 @@ namespace IFM\Tests\Integration;
 use IFM\Tests\Support\IfmServerTestCase;
 
 /**
- * Authentication behaviour: no-auth mode, Basic header (stateless), session
- * login, wrong credentials, default-credential refusal, and logout.
+ * Authentication behaviour: no-auth mode, header auth in all accepted forms
+ * (stateless), session login, wrong credentials, default-credential refusal,
+ * and logout.
  */
 class AuthTest extends IfmServerTestCase
 {
@@ -31,6 +32,69 @@ class AuthTest extends IfmServerTestCase
         $this->startServer($this->authEnv());
         $res = $this->apiGet('checkAuth', [], $this->authHeader('admin', 'secret'));
         $this->assertOkStatus($res);
+    }
+
+    /**
+     * Regression: X-IFM-AUTH historically carries bare base64 credentials
+     * without the Basic scheme; existing API clients rely on that form.
+     */
+    public function testBareBase64XIfmAuthHeaderAuthenticates(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['X-IFM-AUTH' => base64_encode('admin:secret')]);
+        $this->assertOkStatus($res);
+    }
+
+    public function testStandardAuthorizationBasicAuthenticates(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['Authorization' => 'Basic ' . base64_encode('admin:secret')]);
+        $this->assertOkStatus($res);
+    }
+
+    /**
+     * The standard Authorization header can carry other schemes (Bearer, ...),
+     * so bare base64 must only be accepted on the custom X-IFM-AUTH header.
+     */
+    public function testBareBase64AuthorizationHeaderRejected(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['Authorization' => base64_encode('admin:secret')]);
+        $this->assertErrorStatus($res);
+    }
+
+    public function testNonBase64HeaderRejected(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['X-IFM-AUTH' => '!!!not-base64!!!']);
+        $this->assertErrorStatus($res);
+    }
+
+    public function testHeaderWithoutColonRejected(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['X-IFM-AUTH' => base64_encode('adminsecret')]);
+        $this->assertErrorStatus($res);
+    }
+
+    public function testEmptyPasswordInHeaderRejected(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiGet('checkAuth', [], ['X-IFM-AUTH' => base64_encode('admin:')]);
+        $this->assertErrorStatus($res);
+    }
+
+    /** Bare-base64 header auth is stateless like the Basic form: CSRF-exempt. */
+    public function testBareHeaderAuthIsCsrfExempt(): void
+    {
+        $this->startServer($this->authEnv());
+        $res = $this->apiPost(
+            'createDir',
+            ['dir' => '.', 'dirname' => 'viabareheader'],
+            ['X-IFM-AUTH' => base64_encode('admin:secret')]
+        );
+        $this->assertOkStatus($res);
+        $this->assertDirectoryExists($this->sandbox . '/viabareheader');
     }
 
     public function testWrongBasicHeaderRejected(): void
