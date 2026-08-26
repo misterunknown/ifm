@@ -6,8 +6,12 @@ RUN apk add --no-cache \
     bzip2-dev \
     libzip-dev \
     openldap-dev \
-    composer \
     git
+
+# use the official composer binary with this image's own PHP: the alpine
+# `composer` package pulls in a parallel php85 that lacks ext-dom and friends,
+# which the dev dependencies (phpunit) require since the test suite was added
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 # add missing extensions (buildtime)
 RUN docker-php-ext-install \
