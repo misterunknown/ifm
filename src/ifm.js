@@ -2313,6 +2313,18 @@ function IFM(params) {
 
 	this.init = function(id) {
 		self.rootElement = document.getElementById(id);
+		// the backend answers errors with real HTTP status codes (401/403/404/...)
+		// but the same JSON body; route such responses into the success handlers,
+		// which carry all the existing status=="ERROR" handling
+		$.ajaxPrefilter( function( options ) {
+			var success = options.success, error = options.error;
+			options.error = function( jqXHR, textStatus, errorThrown ) {
+				if( jqXHR.responseJSON && jqXHR.responseJSON.status && success )
+					success( jqXHR.responseJSON, textStatus, jqXHR );
+				else if( error )
+					error( jqXHR, textStatus, errorThrown );
+			};
+		} );
 		this.initLoadConfig();
 	};
 }

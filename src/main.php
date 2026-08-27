@@ -230,7 +230,7 @@ f00bar;
 	public function run($mode="standalone") {
 		try {
 			if (!is_dir(realpath($this->config['root_dir'])) || !is_readable(realpath($this->config['root_dir'])))
-				throw new IFMException("Cannot access root_dir.", false);
+				throw new IFMException("Cannot access root_dir.", false, 500);
 
 			chdir(realpath($this->config['root_dir']));
 
@@ -242,8 +242,14 @@ f00bar;
 			else
 				$this->getInlineApplication();
 		} catch (IFMException $e) {
+			// errors carry their HTTP status; unclassified ones count as server-side
+			$code = $e->getCode();
+			if (!headers_sent())
+				http_response_code($code >= 400 && $code < 600 ? $code : 500);
 			$this->jsonResponse(["status" => "ERROR", "message" => ($e->forUser ? $e->getMessage() : "An internal error occurred.")]);
 		} catch (Exception $e) {
+			if (!headers_sent())
+				http_response_code(500);
 			// don't leak internal exception details (paths etc.) to the client
 			$this->jsonResponse(["status" => "ERROR", "message" => "An internal error occurred."]);
 		}
@@ -278,7 +284,7 @@ f00bar;
 
 		// check authentication
 		if (!$this->checkAuth())
-			throw new IFMException("Not authenticated");
+			throw new IFMException("Not authenticated", true, 401);
 
 		// state-changing APIs require POST and a valid CSRF token.
 		// Requests authenticated via the X-IFM-AUTH / Authorization header are
@@ -286,10 +292,10 @@ f00bar;
 		// apply to them and they are exempt from the token check.
 		if (!$this->authViaHeader && in_array($api, ["createDir", "saveFile", "delete", "rename", "extract", "upload", "copyMove", "changePermissions", "remoteUpload", "createArchive"], true)) {
 			if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST')
-				throw new IFMException("Invalid request method");
+				throw new IFMException("Invalid request method", true, 405);
 			$token = $_SERVER['HTTP_X_IFM_CSRF'] ?? ($_POST['csrf_token'] ?? '');
 			if (!is_string($token) || !hash_equals($this->getCsrfToken(), $token))
-				throw new IFMException("Invalid CSRF token");
+				throw new IFMException("Invalid CSRF token", true, 403);
 		}
 
 		// api requests which work without a valid working directory
@@ -310,7 +316,7 @@ f00bar;
 
 		// checking working directory
 		if (!isset($_REQUEST["dir"]) || !$this->isPathValid($_REQUEST["dir"]))
-			throw new IFMException($this->l("invalid_dir"));
+			throw new IFMException($this->l("invalid_dir"), true, 400);
 
 		$this->chDirIfNecessary($_REQUEST['dir']);
 		switch ($api) {
@@ -331,7 +337,7 @@ f00bar;
 			case "createArchive":	return $this->createArchive($_REQUEST);
 			case "proxy":		return $this->downloadFile($_REQUEST, false);
 			default:
-				throw new IFMException($this->l("invalid_action"));
+				throw new IFMException($this->l("invalid_action"), true, 400);
 		}
 	}
 
@@ -564,10 +570,10 @@ f00bar;
 
 	private function searchItems($d) {
 		if ($this->config['search'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (strpos($d['pattern'], '/') !== false)
-			throw new IFMException($this->l('pattern_error_slashes'));
+			throw new IFMException($this->l('pattern_error_slashes'), true, 400);
 
 		$results = $this->searchItemsRecursive($d['pattern']);
 		return $results;
@@ -632,16 +638,16 @@ f00bar;
 
 	private function copyMove($d) {
 		if ($this->config['copymove'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!isset($d['destination']) || !$this->isPathValid(realpath($d['destination'])))
-			throw new IFMException($this->l('invalid_dir'));
+			throw new IFMException($this->l('invalid_dir'), true, 400);
 
 		if (!is_array($d['filenames']))
-			throw new IFMException($this->l('invalid_params'));
+			throw new IFMException($this->l('invalid_params'), true, 400);
 
 		if (!in_array($d['action'], ['copy', 'move']))
-			throw new IFMException($this->l('invalid_action'));
+			throw new IFMException($this->l('invalid_action'), true, 400);
 
 		$err = [];
 		foreach ($d['filenames'] as $file) {
@@ -661,60 +667,60 @@ f00bar;
 				"message" => ($d['action'] == "copy" ? $this->l('copy_success') : $this->l('move_success'))
 			];
 		} else
-			throw new IFMException($this->buildErrorList(($d['action'] == "copy" ? $this->l('copy_error') : $this->l('move_error')), $err));
+			throw new IFMException($this->buildErrorList(($d['action'] == "copy" ? $this->l('copy_error') : $this->l('move_error')), $err), true, 500);
 	}
 
 	// creates a directory
 	private function createDir($d) {
 		if ($this->config['createdir'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if ($d['dirname'] == "" || !$this->isFilenameValid($d['dirname']))
-			throw new IFMException($this->l('invalid_dir'));
+			throw new IFMException($this->l('invalid_dir'), true, 400);
 
 		if (@mkdir($d['dirname']))
 			return ["status" => "OK", "message" => $this->l('folder_create_success')];
 		else
-			throw new IFMException($this->l('folder_create_error').". ".error_get_last()['message']);
+			throw new IFMException($this->l('folder_create_error').". ".error_get_last()['message'], true, 500);
 	}
 
 	// save a file
 	private function saveFile($d) {
 		if (!isset($d['filename']) || !$this->isFilenameValid($d['filename']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if (!isset($d['content']))
-			throw new IFMException($this->l('file_save_error'));
+			throw new IFMException($this->l('file_save_error'), true, 500);
 
 		// cwd is already $d['dir'] at this point (see chDirIfNecessary in dispatch)
 		$exists = file_exists($d['filename']);
 		if (($exists && $this->config['edit'] != 1) || (!$exists && $this->config['createfile'] != 1))
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (@file_put_contents($d['filename'], $d['content']) !== false)
 			return ["status" => "OK", "message" => $this->l('file_save_success')];
 		else
-			throw new IFMException($this->l('file_save_error'));
+			throw new IFMException($this->l('file_save_error'), true, 500);
 	}
 
 	// gets the content of a file
 	// notice: if the content is not JSON encodable it returns an error
 	private function getContent($d) {
 		if ($this->config['edit'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (isset($d['filename']) && $this->isFilenameValid($d['filename']) && is_file($d['filename']) && is_readable($d['filename'])) {
 			$content = @file_get_contents($d['filename']);
 			$this->convertToUTF8($content);
 			return ["status" => "OK", "data" => ["filename" => $d['filename'], "content" => $content]];
 		} else
-			throw new IFMException($this->l('file_not_found'));
+			throw new IFMException($this->l('file_not_found'), true, 404);
 	}
 
 	// deletes a bunch of files or directories
 	private function deleteFiles($d) {
 		if ($this->config['delete'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		$err = [];
 		foreach ($d['filenames'] as $file) {
@@ -732,29 +738,29 @@ f00bar;
 		if (empty($err))
 			return ["status" => "OK", "message" => $this->l('file_delete_success')];
 		else
-			throw new IFMException($this->buildErrorList($this->l('file_delete_error'), $err));
+			throw new IFMException($this->buildErrorList($this->l('file_delete_error'), $err), true, 500);
 	}
 
 	// renames a file
 	private function renameFile(array $d) {
 		if ($this->config['rename'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 		elseif (!$this->isFilenameValid($d['filename']) || !$this->isFilenameValid($d['newname']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if (@rename($d['filename'], $d['newname']))
 			return ["status" => "OK", "message" => $this->l('file_rename_success')];
 		else
-			throw new IFMException($this->l('file_rename_error'));
+			throw new IFMException($this->l('file_rename_error'), true, 500);
 	}
 
 	// provides a file for downloading
 	private function downloadFile(array $d, $forceDL=true) {
 		if ($this->config['download'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!$this->isFilenameValid($d['filename']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if (!is_file($d['filename']))
 			http_response_code(404);
@@ -765,19 +771,19 @@ f00bar;
 	// extracts a zip-archive
 	private function extractFile(array $d) {
 		if ($this->config['extract'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!isset($d['filename']) || !$this->isFilenameValid($d['filename']) || !is_file($d['filename']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if (!isset($d['targetdir']) || trim($d['targetdir']) == "")
 			$d['targetdir'] = "./";
 
 		if (!$this->isPathValid($d['targetdir']))
-			throw new IFMException($this->l('invalid_dir'));
+			throw new IFMException($this->l('invalid_dir'), true, 400);
 
 		if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0755, true))
-			throw new IFMException($this->l('folder_create_error'));
+			throw new IFMException($this->l('folder_create_error'), true, 500);
 
 		// if the archive is extracted into a directory containing this script,
 		// snapshot it so it can be restored if the archive overwrites it
@@ -798,7 +804,7 @@ f00bar;
 			)
 				$success = IFMArchive::extractTar($d['filename'], $d['targetdir']);
 			else
-				throw new IFMException($this->l('archive_invalid_format'));
+				throw new IFMException($this->l('archive_invalid_format'), true, 400);
 		} finally {
 			if ($tmpSelfContent !== null) {
 				if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
@@ -813,47 +819,47 @@ f00bar;
 		}
 
 		if (!$success)
-			throw new IFMException($this->l('extract_error'));
+			throw new IFMException($this->l('extract_error'), true, 500);
 		return ["status" => "OK", "message" => $this->l('extract_success')];
 	}
 
 	// uploads a file
 	private function uploadFile(array $d) {
 		if($this->config['upload'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!isset($_FILES['file']))
-			throw new IFMException($this->l('file_upload_error'));
+			throw new IFMException($this->l('file_upload_error'), true, 500);
 
 		if (($_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK)
-			throw new IFMException($this->l('file_upload_error') . " (upload error code " . intval($_FILES['file']['error']) . ")");
+			throw new IFMException($this->l('file_upload_error') . " (upload error code " . intval($_FILES['file']['error']) . ")", true, 400);
 
 		$newfilename = (isset($d["newfilename"]) && $d["newfilename"]!="") ? $d["newfilename"] : $_FILES['file']['name'];
 		if (!$this->isFilenameValid($newfilename))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if ($_FILES['file']['tmp_name']) {
 			if (is_writable(getcwd())) {
 				if (move_uploaded_file($_FILES['file']['tmp_name'], $newfilename))
 					return ["status" => "OK", "message" => $this->l('file_upload_success'), "cd" => $d['dir']];
 				else
-					throw new IFMException($this->l('file_upload_error'));
+					throw new IFMException($this->l('file_upload_error'), true, 500);
 			} else
-				throw new IFMException($this->l('file_upload_error'));
+				throw new IFMException($this->l('file_upload_error'), true, 500);
 		} else
-			throw new IFMException($this->l('file_not_found'));
+			throw new IFMException($this->l('file_not_found'), true, 404);
 	}
 
 	// change permissions of a file
 	private function changePermissions(array $d) {
 		if ($this->config['chmod'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!isset($d["chmod"]) || $d['chmod'] == "" )
-			throw new IFMException($this->l('permission_parse_error'));
+			throw new IFMException($this->l('permission_parse_error'), true, 400);
 
 		if (!$this->isPathValid($this->pathCombine($d['dir'], $d['filename'])))
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		$chmod = $d["chmod"]; $cmi = true;
 		if (!is_numeric($chmod)) {
@@ -882,25 +888,25 @@ f00bar;
 			if (@chmod($d["filename"], (int)octdec($chmod)))
 				return ["status" => "OK", "message" => $this->l('permission_change_success')];
 			else
-				throw new IFMException($this->l('permission_change_error'));
+				throw new IFMException($this->l('permission_change_error'), true, 500);
 		} else
-			throw new IFMException($this->l('permission_parse_error'));
+			throw new IFMException($this->l('permission_parse_error'), true, 400);
 	}
 
 	// zips a directory and provides it for downloading
 	// it creates a temporary zip file in the current directory, so it has to be as much space free as the file size is
 	private function zipnload(array $d) {
 		if ($this->config['zipnload'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!file_exists($d['filename']))
-			throw new IFMException($this->l('folder_not_found'));
+			throw new IFMException($this->l('folder_not_found'), true, 404);
 
 		if (!$this->isPathValid($d['filename']))
-			throw new IFMException($this->l('invalid_dir'));
+			throw new IFMException($this->l('invalid_dir'), true, 400);
 
 		if ($d['filename'] != "." && !$this->isFilenameValid($d['filename']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if ($this->isAbsolutePath($this->config['tmp_dir']))
 			$dfile = $this->pathCombine($this->config['tmp_dir'], uniqid("ifm-tmp-") . ".zip"); // temporary filename
@@ -917,7 +923,7 @@ f00bar;
 			}
 			$this->fileDownload(["file" => $dfile, "name" => $d['filename'] . ".zip", "forceDL" => true]);
 		} catch (Exception $e) {
-			throw new IFMException($this->l('error') . " " . $e->getMessage());
+			throw new IFMException($this->l('error') . " " . $e->getMessage(), true, 500);
 		} finally {
 			if (file_exists($dfile))
 				@unlink($dfile);
@@ -927,13 +933,13 @@ f00bar;
 	// uploads a file from an other server using the curl extension
 	private function remoteUpload(array $d) {
 		if ($this->config['remoteupload'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!isset($d['method']) || !in_array($d['method'], ["curl", "file"], true))
-			throw new IFMException($this->l('invalid_params'));
+			throw new IFMException($this->l('invalid_params'), true, 400);
 
 		if (!isset($d['url']) || !is_string($d['url']) || $d['url'] == "")
-			throw new IFMException($this->l('invalid_params'));
+			throw new IFMException($this->l('invalid_params'), true, 400);
 
 		$url = $d['url'];
 
@@ -942,26 +948,26 @@ f00bar;
 		if ($this->config['remoteupload_disable_ssrf_check'] != 1) {
 			$safeIPs = $this->checkUrlSsrf($url);
 			if ($safeIPs === false || empty($safeIPs))
-				throw new IFMException($this->l('url_not_allowed'));
+				throw new IFMException($this->l('url_not_allowed'), true, 403);
 			$pinnedIP = $safeIPs[0];
 		}
 
 		$filename = (isset($d['filename']) && $d['filename'] != "") ? $d['filename'] : "remote_" . uniqid();
 		if (!$this->isFilenameValid($filename))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		if ($d['method'] == "curl") {
 			if (!$this->checkCurl())
-				throw new IFMException($this->l('error') . " cURL extension not installed.");
+				throw new IFMException($this->l('error') . " cURL extension not installed.", true, 500);
 
 			$ch = curl_init();
 			if (!$ch)
-				throw new IFMException($this->l('error') . " curl init");
+				throw new IFMException($this->l('error') . " curl init", true, 500);
 
 			$fp = @fopen($filename, "w");
 			if (!$fp) {
 				curl_close($ch);
-				throw new IFMException($this->l('file_open_error'));
+				throw new IFMException($this->l('file_open_error'), true, 500);
 			}
 
 			try {
@@ -983,7 +989,7 @@ f00bar;
 					$opts[CURLOPT_RESOLVE] = [$parts['host'] . ":" . $port . ":" . $pinnedIP];
 				}
 				if (!curl_setopt_array($ch, $opts) || !curl_exec($ch))
-					throw new IFMException($this->l('error') . " " . curl_error($ch));
+					throw new IFMException($this->l('error') . " " . curl_error($ch), true, 500);
 				return ["status" => "OK", "message" => $this->l('file_upload_success')];
 			} finally {
 				curl_close($ch);
@@ -1006,9 +1012,9 @@ f00bar;
 			}
 			$content = @file_get_contents($fetchUrl, false, stream_context_create($contextOptions));
 			if ($content === false)
-				throw new IFMException($this->l('error') . " " . (error_get_last()['message'] ?? 'download failed'));
+				throw new IFMException($this->l('error') . " " . (error_get_last()['message'] ?? 'download failed'), true, 500);
 			if (@file_put_contents($filename, $content) === false)
-				throw new IFMException($this->l('file_save_error'));
+				throw new IFMException($this->l('file_save_error'), true, 500);
 			return ["status" => "OK", "message" => $this->l('file_upload_success')];
 		}
 	}
@@ -1030,15 +1036,15 @@ f00bar;
 
 	private function createArchive($d) {
 		if ($this->config['createarchive'] != 1)
-			throw new IFMException($this->l('nopermissions'));
+			throw new IFMException($this->l('nopermissions'), true, 403);
 
 		if (!$this->isFilenameValid($d['archivename']))
-			throw new IFMException($this->l('invalid_filename'));
+			throw new IFMException($this->l('invalid_filename'), true, 400);
 
 		$filenames = [];
 		foreach ($d['filenames'] as $file)
 			if (!$this->isFilenameValid($file))
-				throw new IFMException($this->l('invalid_filename'));
+				throw new IFMException($this->l('invalid_filename'), true, 400);
 			else
 				array_push($filenames, realpath($file));
 
@@ -1047,14 +1053,14 @@ f00bar;
 				if (IFMArchive::createZip($filenames, $d['archivename']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
-					throw new IFMException($this->l('archive_create_error'));
+					throw new IFMException($this->l('archive_create_error'), true, 500);
 				break;
 			case "tar":
 				$d['archivename'] = pathinfo($d['archivename'], PATHINFO_FILENAME);
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
-					throw new IFMException($this->l('archive_create_error'));
+					throw new IFMException($this->l('archive_create_error'), true, 500);
 				break;
 			case "tar.gz":
 			case "tar.bz2":
@@ -1062,10 +1068,10 @@ f00bar;
 				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
-					throw new IFMException($this->l('archive_create_error'));
+					throw new IFMException($this->l('archive_create_error'), true, 500);
 				break;
 			default:
-				throw new IFMException($this->l('archive_invalid_format'));
+				throw new IFMException($this->l('archive_invalid_format'), true, 400);
 				break;
 		}
 	}
@@ -1101,7 +1107,7 @@ f00bar;
 		$this->convertToUTF8($array);
 		$json = json_encode($array);
 		if ($json === false) {
-			throw new IFMException($this->l('json_encode_error') . " - " . json_last_error_msg());
+			throw new IFMException($this->l('json_encode_error') . " - " . json_last_error_msg(), true, 500);
 		} else {
 			header("Content-Type: application/json");
 			echo $json;
@@ -1124,7 +1130,7 @@ f00bar;
 
 		// refuse to operate with the publicly known default credentials
 		if ($this->config['auth_source'] === $this->defaultconfig['auth_source'])
-			throw new IFMException("Authentication is enabled, but auth_source still contains the publicly known default credentials. Please configure your own credentials.");
+			throw new IFMException("Authentication is enabled, but auth_source still contains the publicly known default credentials. Please configure your own credentials.", true, 500);
 
 		$credentials_header = $_SERVER['HTTP_X_IFM_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? false;
 		if ($credentials_header && !$this->config['auth_ignore_basic'] && preg_match('/^Basic (.+)$/', $credentials_header, $m)) {
@@ -1156,9 +1162,9 @@ f00bar;
 		}
 
 		if ($login_failed === true)
-			throw new IFMException("Authentication failed: Wrong credentials");
+			throw new IFMException("Authentication failed: Wrong credentials", true, 401);
 		else
-			throw new IFMException("Not authenticated");
+			throw new IFMException("Not authenticated", true, 401);
 	}
 
 	private function getCsrfToken() {
@@ -1203,7 +1209,7 @@ f00bar;
 				}
 				$u = $uuid . "=" . (function_exists('ldap_escape') ? ldap_escape($user, '', LDAP_ESCAPE_DN) : $user) . "," . $basedn;
 				if (!$ds = ldap_connect($ldap_server)) {
-					throw new IFMException("Could not reach the ldap server.", true);
+					throw new IFMException("Could not reach the ldap server.", true, 500);
 					//trigger_error("Could not reach the ldap server.", E_USER_ERROR);
 					return false;
 				}
@@ -1215,14 +1221,14 @@ f00bar;
 							if (ldap_count_entries($ds, ldap_search($ds, $u, $ufilter)) == 1) {
 								$authenticated = true;
 							} else {
-								throw new IFMException("User not allowed.", true);
+								throw new IFMException("User not allowed.", true, 403);
 								//trigger_error("User not allowed.", E_USER_ERROR);
 								$authenticated = false;
 							}
 						} else
 							$authenticated = true;
 					} else {
-						throw new IFMException(ldap_error($ds), true);
+						throw new IFMException(ldap_error($ds), true, 401);
 						//trigger_error(ldap_error($ds), E_USER_ERROR);
 						$authenticated = false;
 					}
