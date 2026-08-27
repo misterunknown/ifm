@@ -29,6 +29,8 @@ abstract class IfmServerTestCase extends TestCase
     /** Directory deliberately placed OUTSIDE the jail for escape tests. */
     protected string $outside = '';
     protected CookieJar $cookies;
+    /** HTTP status of the last apiGet/apiPost/apiUpload response. */
+    protected int $lastHttpCode = 0;
     private array $tmpDirs = [];
 
     protected function setUp(): void
@@ -189,6 +191,7 @@ abstract class IfmServerTestCase extends TestCase
             'query'   => array_merge(['api' => $api], $query),
             'headers' => $headers,
         ]);
+        $this->lastHttpCode = $resp->getStatusCode();
         return $this->decode($resp->getBody()->getContents());
     }
 
@@ -209,6 +212,7 @@ abstract class IfmServerTestCase extends TestCase
             'form_params' => $form,
             'headers'     => $headers,
         ]);
+        $this->lastHttpCode = $resp->getStatusCode();
         return $this->decode($resp->getBody()->getContents());
     }
 
@@ -223,6 +227,7 @@ abstract class IfmServerTestCase extends TestCase
             'multipart' => $multipart,
             'headers'   => $headers,
         ]);
+        $this->lastHttpCode = $resp->getStatusCode();
         return $this->decode($resp->getBody()->getContents());
     }
 
@@ -310,6 +315,12 @@ abstract class IfmServerTestCase extends TestCase
     {
         $this->assertArrayHasKey('status', $resp, $message ?: 'response should have status');
         $this->assertSame('OK', $resp['status'], $message ?: ('expected OK, got: ' . json_encode($resp)));
+    }
+
+    /** Assert the HTTP status code of the last apiGet/apiPost/apiUpload call. */
+    protected function assertHttpCode(int $expected, string $message = ''): void
+    {
+        $this->assertSame($expected, $this->lastHttpCode, $message ?: "expected HTTP $expected, got $this->lastHttpCode");
     }
 
     /** Assert a path does NOT exist anywhere (used to prove a write was blocked). */
