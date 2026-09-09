@@ -1,4 +1,5 @@
 {
+    "actions": "Aktionen",
     "ajax_request": "AJAX-Anfrage",
     "archive_create_error": "Das Archiv konnte nicht erstellt werden.",
     "archive_create_success": "Archiv erstellt.",
@@ -98,6 +99,10 @@
     "soft_tabs": "Leichte Tabulatoren",
     "tab_size": "Tabulatorengröße",
     "tasks": "Aufgaben",
+    "theme": "Design",
+    "theme_auto": "Design: System",
+    "theme_dark": "Design: dunkel",
+    "theme_light": "Design: hell",
     "toggle_nav": "Navigation umschalten",
     "upload": "Hochladen",
     "upload_drop": "Dateien zum Hochladen hier ablegen",

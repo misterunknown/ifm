@@ -1,4 +1,5 @@
 {
+    "actions": "Actions",
     "ajax_request": "requête AJAX",
     "archive_create_error": "Impossible de créer l'archive.",
     "archive_create_success": "Archive créée.",
@@ -98,6 +99,10 @@
     "soft_tabs": "Tabulations par espaces",
     "tab_size": "Taille de tabulation",
     "tasks": "Tâches",
+    "theme": "Thème",
+    "theme_auto": "Thème : système",
+    "theme_dark": "Thème : sombre",
+    "theme_light": "Thème : clair",
     "toggle_nav": "Basculer la navigation",
     "upload": "Téléverser",
     "upload_drop": "Glisser-déplacer les fichier pour les téléverser",

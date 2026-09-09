@@ -1,4 +1,5 @@
 {
+    "actions": "Ações",
     "ajax_request": "requisição AJAX",
     "archive_create_error": "Não foi possível compactar o arquivo.",
     "archive_create_success": "Arquivo criado.",
@@ -98,6 +99,10 @@
     "soft_tabs": "Tabulação suave",
     "tab_size": "Tamanho da tabulação",
     "tasks": "Tarefas",
+    "theme": "Tema",
+    "theme_auto": "Tema: do sistema",
+    "theme_dark": "Tema: escuro",
+    "theme_light": "Tema: claro",
     "toggle_nav": "Ativar/Desativar Navegação",
     "upload": "Enviar",
     "upload_drop": "Solte arquivo aqui para enviar",

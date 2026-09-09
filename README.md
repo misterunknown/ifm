@@ -22,7 +22,9 @@ The IFM is a web-based filemanager, which comes as a single file solution using 
 The IFM uses the following resources:
 
 * [ACE Editor](https://ace.c9.io)
-* [Bootstrap v4](https://getbootstrap.com)
+* [Bootstrap v5](https://getbootstrap.com)
+* [bs-treeview](https://github.com/jbtronics/bs-treeview)
+* [DataTables](https://datatables.net)
 * [Font Awesome](https://fontawesome.com/)
 * [jQuery](https://jquery.com)
 * [Mustache](https://mustache.github.io/)
@@ -36,6 +38,7 @@ The IFM uses the following resources:
 * extract archives (tar, tgz, tar.gz, tar.bz2, zip)
 * change permissions
 * image preview
+* light and dark theme, following the system by default
 * simple authentication (LDAP via `ldap_bind` possible)
 
 ## Requirements

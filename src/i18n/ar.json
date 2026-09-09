@@ -1,4 +1,5 @@
 {
+    "actions": "إجراءات",
     "ajax_request": "AJAXطلب",
     "archive_create_error": "تعذر أنشاء الأرشيف",
     "archive_create_success": "تم إنشاء الأرشيف بنجاح",
@@ -98,6 +99,10 @@
     "soft_tabs": "إضافة فراغ",
     "tab_size": "حجم علامة التبويب",
     "tasks": "مهام",
+    "theme": "السمة",
+    "theme_auto": "السمة: النظام",
+    "theme_dark": "السمة: داكنة",
+    "theme_light": "السمة: فاتحة",
     "toggle_nav": "تبديل التنقل",
     "upload": "رفع",
     "upload_drop": "قم بإسقاط الملف / الملفات للرفع",

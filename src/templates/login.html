@@ -1,34 +1,19 @@
-<style type="text/css">
-html, body { height: 100%; }
-body {
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-align: center;
-  align-items: center;
-  padding-top: 40px;
-  padding-bottom: 40px;
-  background-color: #f5f5f5;
-}
-</style>
-
 <div class="modal-header">
   <h3 class="modal-title text-center w-100">IFM {{i18n.login}}</h3>
 </div>
 <div class="modal-body">
   <form id="loginForm" class="form-signin" method="post">
     {{error}}
-    <div class="form-label-group">
-      <span class="fa fa-user-circle fa-fw input-icon"></span>
+    <div class="form-floating mb-3">
       <input type="text" name="inputLogin" id="inputLogin" class="form-control" placeholder="{{i18n.username}}" required="" autofocus="">
-      <label for="inputLogin">{{i18n.username}}</label>
+      <label for="inputLogin"><span class="fa fa-user-circle fa-fw"></span> {{i18n.username}}</label>
     </div>
-    <div class="form-label-group">
-      <span class="fa fa-key fa-fw input-icon"></span>
+    <div class="form-floating mb-3">
       <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="{{i18n.password}}" required="">
-      <label for="inputPassword">{{i18n.password}}</label>
+      <label for="inputPassword"><span class="fa fa-key fa-fw"></span> {{i18n.password}}</label>
     </div>
-    <div class="alert alert-danger d-none" role="alert"></div>
+    <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
 
-    <button id="buttonLogin" class="btn btn-lg btn-primary btn-block" type="submit">{{i18n.login}}</button>
+    <button id="buttonLogin" class="btn btn-lg btn-primary w-100" type="submit">{{i18n.login}}</button>
   </form>
 </div>

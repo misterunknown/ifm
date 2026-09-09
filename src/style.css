@@ -1,7 +1,25 @@
 body {
 	padding-top: 70px;
-	overflow-y: scroll !important;
-	padding-right: 0px !important;
+	overflow-y: scroll;
+}
+
+/* Sticky footer: when the listing is too short to fill the screen, the info
+   card drops to the bottom of the viewport instead of floating mid-page.
+   Scoped to IFM's own root so that embedding it inline leaves the host
+   page's own layout alone. */
+#ifm {
+	min-height: calc(100vh - 70px);
+}
+#ifm,
+#ifm > main {
+	display: flex;
+	flex-direction: column;
+}
+#ifm > main {
+	flex: 1 0 auto;
+}
+#ifm > main > div.container:last-child {
+	margin-top: auto;
 }
 
 main {
@@ -16,6 +34,12 @@ a.ifmitem:focus {
 	outline: 0;
 }
 
+/* bootstrap 5 underlines links by default - not wanted on item names */
+a.ifmitem,
+a.searchitem {
+	text-decoration: none;
+}
+
 img.imgpreview {
 	max-width: 100%;
 	background-repeat: repeat repeat;
@@ -27,9 +51,16 @@ div#content { /* is for the ACE editor */
 	height: 350px;
 }
 
-/* Make tables more compact (overwrites bootstrap default of 0.75rem) */
-.table td, .table th {
-	padding: 0.25rem;
+/* Bootstrap paints tables in --bs-emphasis-color (pure black/white), which
+   reads as bold next to the rest of the page; use the normal body colour */
+.table {
+	--bs-table-color: var(--bs-body-color);
+}
+
+/* Make tables more compact (bootstrap's default is 0.5rem; it hardcodes the
+   padding, so the override has to match its own selector) */
+.table > :not(caption) > * > * {
+	padding: 0.2rem 0.25rem;
 }
 
 /* narrow navbar */
@@ -49,57 +80,31 @@ div#content { /* is for the ACE editor */
 }
 
 /*
- * Datatables related settings
- */
-table.dataTable thead th {
-	position: relative;
-	background-image: none !important;
-}
-
-/* remove original sort icons */
-table.dataTable thead .sorting:before,
-table.dataTable thead .sorting_asc:before,
-table.dataTable thead .sorting_desc:before,
-table.dataTable thead .sorting_asc_disabled:before,
-table.dataTable thead .sorting_desc_disabled:before {
-	right: 0 !important;
-	content: "" !important;
-}
-/* custom sort icons */
-table.dataTable thead th.sorting:after,
-table.dataTable thead th.sorting_asc:after,
-table.dataTable thead th.sorting_desc:after {
-	position: absolute;
-	top: 6px;
-	right: 8px;
-	display: block;
-	font-family: fontello;
-	font-size: 0.8em;
-	opacity: 1;
-	color: #000;
-}
-table.dataTable thead th.sorting:after {
-	content: "\F0DC";
-	color: #ddd;
-}
-table.dataTable thead th.sorting_asc:after {
-	content: "\f0de";
-}
-table.dataTable thead th.sorting_desc:after {
-	content: "\f0dd";
-}
-
-/*
  * Filetable related settings
  */
 #filetable th {
 	border-top: 0;
 }
-#filetable td:nth-child(5), #filetable th:nth-child(5) {
+/* DataTables 3 right-aligns columns it detects as numbers or dates; keep the
+   listing left-aligned the way it always was */
+#filetable th, #filetable td {
+	text-align: left;
+}
+/* ...and it flips the header flex for those columns, which parks the sort
+   arrow on the far left of the cell, away from its own label */
+#filetable th.dt-type-numeric div.dt-column-header,
+#filetable th.dt-type-date div.dt-column-header {
+	flex-direction: row;
+}
+/* the columns that carry no sortable text are centered instead */
+#filetable th.th-download, #filetable td.td-download,
+#filetable th.th-permissions, #filetable td.td-permissions {
 	text-align: center;
 }
-#filetable td:nth-child(6), #filetable th:nth-child(6) {
-	text-align: center;
+/* the action column holds right-aligned icons, so its heading follows them
+   (DataTables stretches the title element, so text-align is what moves it) */
+#filetable th.th-buttons {
+	text-align: right;
 }
 #filetable tr td:last-child {
 	text-align: right;
@@ -108,26 +113,34 @@ table.dataTable thead th.sorting_desc:after {
 	text-decoration: none;
 }
 #filetable th.th-permissions,
-#filetable td.td-permissions {
+#filetable td.td-permissions,
+/* the size column only ever holds a short value (and nothing at all for
+   directories), so let it shrink to its content and give the room to the
+   file name instead - it matters most on narrow screens */
+#filetable th.th-size,
+#filetable td.td-size {
 	width: 1%;
 	white-space: nowrap;
 }
 
 input[name="newpermissions"] {
 	display: inline-block;
-	padding: 6px 8px;
+	padding: 0.15rem 0.4rem;
 	width: 6.5rem;
 }
 
 #filetable tr th.buttons { min-width: 95px; }
-#filetable tbody tr.highlightedItem { box-shadow: 0px 0px 10px 2px #337ab7; }
+#filetable tbody tr.highlightedItem { box-shadow: 0 0 10px 2px var(--bs-primary); }
 #filetable tbody tr.highlightedItem td:first-child a { outline: none; }
-#filetable tbody tr.selectedItem { background-color: #337ab7; color: #fff; }
-#filetable tbody tr.selectedItem * a { color: #fff; }
-#filetable tbody tr td { vertical-align: inherit; }
+/* bootstrap paints row states through these two variables (see .table-active) */
+#filetable tbody tr.selectedItem {
+	--bs-table-bg-state: var(--bs-primary);
+	--bs-table-color-state: #fff;
+}
+#filetable tbody tr.selectedItem a { color: #fff; }
+#filetable tbody tr td { vertical-align: middle; }
 
-div.ifminfo { color: #adadad; font-size: 10pt; }
-div.ifminfo div.panel div.panel-body { padding: 0px !important; text-align: center; }
+div.ifminfo { color: var(--bs-secondary-color); font-size: 10pt; }
 
 /*
  * Footer / Task-Queue settings
@@ -136,7 +149,7 @@ footer {
 	position: fixed;
 	padding-top: 1em;
 	border-top: 1px;
-	background-color: #eee;
+	background-color: var(--bs-tertiary-bg);
 	bottom: 0;
 	width: 100%;
 	overflow: hidden;
@@ -173,7 +186,7 @@ footer {
 	filter: alpha(opacity=70);
 	-moz-opacity: 0.7;
 	opacity: 0.7;
-	z-index: 1000;
+	z-index: 1040;
 }
 
 #filedropoverlay h1 {
@@ -193,13 +206,30 @@ footer {
 }
 
 .ifm-extract-option:has(input[type="radio"]:checked) {
-	outline: 2px solid #007bff;
-	border-radius: .25rem;
+	outline: 2px solid var(--bs-primary);
+	border-radius: var(--bs-border-radius);
 }
 
 #copyMoveTree {
 	max-height: 80vh;
 	overflow: auto;
+}
+
+.ifm-tree-node {
+	cursor: pointer;
+	border-width: 0 0 1px 0;
+	padding-top: 0.35rem;
+	padding-bottom: 0.35rem;
+}
+.ifm-tree-toggle {
+	margin-right: 0.6rem;
+	color: var(--bs-secondary-color);
+}
+.ifm-tree-node.active .ifm-tree-toggle {
+	color: inherit;
+}
+.ifm-tree-children {
+	border-radius: 0;
 }
 
 @media (min-width: 576px) {
@@ -242,75 +272,6 @@ footer {
   margin: auto;
 }
 
-.form-label-group {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.form-label-group > input,
-.form-label-group > label {
-  height: 3.125rem;
-  padding: .75rem;
-}
-
-.form-label-group > input {
-  padding-left: 2.75rem;
-}
-
-.form-label-group .input-icon {
-  position: absolute;
-  left: .9rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.form-label-group > label {
-  position: absolute;
-  top: 0;
-  left: 2rem;
-  display: block;
-  width: calc(100% - 2rem);
-  margin-bottom: 0;
-  line-height: 1.5;
-  color: #495057;
-  pointer-events: none;
-  cursor: text;
-  border: 1px solid transparent;
-  border-radius: .25rem;
-  transition: all .1s ease-in-out;
-}
-
-.form-label-group input::-webkit-input-placeholder { color: transparent; }
-.form-label-group input:-ms-input-placeholder { color: transparent; }
-.form-label-group input::-ms-input-placeholder { color: transparent; }
-.form-label-group input::-moz-placeholder { color: transparent; }
-.form-label-group input::placeholder { color: transparent; }
-
-.form-label-group input:not(:placeholder-shown) {
-  padding-top: 1.25rem;
-  padding-bottom: .25rem;
-}
-
-.form-label-group input:not(:placeholder-shown) ~ label {
-  padding-top: .25rem;
-  padding-bottom: .25rem;
-  font-size: 12px;
-  color: #777;
-}
-
-@supports (-ms-ime-align: auto) {
-  .form-label-group > label { display: none; }
-  .form-label-group input::-ms-input-placeholder { color: #777; }
-}
-
-@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-  .form-label-group > label { display: none; }
-  .form-label-group input:-ms-input-placeholder { color: #777; }
-}
-
 /*
  * App info footer
  */
@@ -341,7 +302,7 @@ footer {
 }
 
 .search-folder-path {
-  color: #999;
+  color: var(--bs-secondary-color);
 }
 
 /*
@@ -349,4 +310,12 @@ footer {
  */
 .task-progress-bar {
   width: 100%;
+}
+
+/*
+ * Context menu
+ */
+.ifm-contextmenu {
+  position: fixed;
+  z-index: 1060;
 }

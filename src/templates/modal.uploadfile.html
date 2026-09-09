@@ -1,17 +1,15 @@
 <form id="formUploadFile">
 	<div class="modal-body">
 		<fieldset>
-			<div class="form-group mb-3">
-				<div class="custom-file">
-					<label class="custom-file-label" for="fileselect">{{i18n.upload_file}}</label>
-					<input class="custom-file-input" type="file" name="files" id="fileselect" multiple>
-				</div>
+			<div class="mb-3">
+				<label class="form-label" for="fileselect">{{i18n.upload_file}}</label>
+				<input class="form-control" type="file" name="files" id="fileselect" multiple>
 			</div>
-			<div class="form-group mb-3" id="uploadFileListContainer" hidden>
+			<div class="mb-3" id="uploadFileListContainer" hidden>
 				<ul id="uploadFileList" class="list-group list-group-flush border rounded"></ul>
 			</div>
-			<div class="form-group mb-0" id="filenameContainer" hidden>
-				<label class="sr-only" for="filename">{{i18n.filename_new}}</label>
+			<div class="mb-0" id="filenameContainer" hidden>
+				<label class="visually-hidden" for="filename">{{i18n.filename_new}}</label>
 				<input class="form-control" type="text" name="newfilename" id="filename" placeholder="{{i18n.filename_new}}">
 			</div>
 		</fieldset>

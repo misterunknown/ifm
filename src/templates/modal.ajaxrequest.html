@@ -1,11 +1,11 @@
 <form id="formAjaxRequest">
 	<div class="modal-body">
 		<fieldset>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="ajaxurl">URL</label>
 				<input class="form-control" type="url" id="ajaxurl" name="ajaxurl" placeholder="https://..." autocomplete="off" autofocus required>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<legend>{{i18n.method}}</legend>
 				<div class="form-check form-check-inline">
 					<input class="form-check-input" type="radio" id="radioget" name="arMethod" value="GET">
@@ -16,13 +16,13 @@
 					<label class="form-check-label" for="radiopost">POST</label>
 				</div>
 			</div>
-			<div class="form-group" id="ajaxDataContainer">
+			<div class="mb-3" id="ajaxDataContainer">
 				<label for="ajaxdata">{{i18n.data}}</label>
 				<textarea class="form-control" id="ajaxdata" name="ajaxdata" rows="4"></textarea>
 			</div>
 			<button type="button" class="btn btn-success" id="buttonRequest">{{i18n.request}}</button>
-			<div class="form-group mt-3">
-				<label for="ajaxresponse">{{i18n.response}} <span id="ajaxStatusCode" class="badge badge-secondary" hidden></span></label>
+			<div class="mb-3 mt-3">
+				<label for="ajaxresponse">{{i18n.response}} <span id="ajaxStatusCode" class="badge text-bg-secondary" hidden></span></label>
 				<textarea class="form-control" id="ajaxresponse" name="ajaxresponse" rows="6" readonly></textarea>
 			</div>
 		</fieldset>

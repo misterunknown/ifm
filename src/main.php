@@ -213,8 +213,16 @@ f00bar;
 			<head>
 				<title>IFM - improved file manager</title>
 				<meta charset="utf-8">
-				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, shrink-to-fit=no">';
+				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<script>
+					// apply the stored color mode before the CSS arrives, so the
+					// page never flashes in the wrong theme
+					try {
+						var m = localStorage.getItem("ifm_theme");
+						document.documentElement.dataset.bsTheme = (m === "light" || m === "dark") ? m :
+							(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+					} catch (e) {}
+				</script>';
 		$this->getCSS();
 		print '</head><body>';
 	}

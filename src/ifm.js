@@ -26,6 +26,8 @@ function IFM(params) {
 	this.isModalClosedByButton = false;
 
 	this.datatable = null; // Reference for the data table
+	this.contextMenu = null; // Reference for the context menu
+	this.filetableHead = null; // pristine <thead> markup of the file table
 
 	/**
 	 * Shows a bootstrap modal
@@ -38,10 +40,12 @@ function IFM(params) {
 		let modal = document.createElement( 'div' );
 		modal.classList.add( 'modal' );
 		modal.id = 'ifmmodal';
-		modal.attributes.role = 'dialog';
+		// bootstrap needs a focusable container to handle ESC and focus trapping
+		modal.setAttribute( 'tabindex', '-1' );
+		modal.setAttribute( 'role', 'dialog' );
 		let modalDialog = document.createElement( 'div' );
 		modalDialog.classList.add( 'modal-dialog' );
-		modalDialog.attributes.role = 'document';
+		modalDialog.setAttribute( 'role', 'document' );
 		if( options.large == true ) modalDialog.classList.add( 'modal-lg' );
 		let modalContent = document.createElement('div');
 		modalContent.classList.add( 'modal-content' );
@@ -137,7 +141,7 @@ function IFM(params) {
 					item.download.icon = "icon fa fa-fw fa-download";
 				}
 				if ((item.icon.indexOf( 'file-image' ) !== -1) && (ISMOBILE == false)) {
-					item.popover = 'data-toggle="popover"';
+					item.popover = 'data-bs-toggle="popover"';
 				}
 				if( self.config.extract && self.inArray( item.ext, ["zip","tar","tgz","tar.gz","tar.xz","tar.bz2"] ) ) {
 					item.eaction = "extract";
@@ -208,14 +212,23 @@ function IFM(params) {
 		self.fileCache = data;
 
 
+		let filetable = document.getElementById( 'filetable' );
+
+		// tear the old table down before touching the DOM, then restore the
+		// header it emptied out, so that the column count matches the rows we
+		// are about to render
+		if( self.datatable ) {
+			self.datatable.destroy();
+			self.datatable = null;
+			filetable.tHead.innerHTML = self.filetableHead;
+		}
+
 		// build new tbody and replace the old one with the new
 		let newTBody = Mustache.render( self.templates.filetable, { items: data, config: self.config, i18n: self.i18n, api: self.api } );
-		let filetable = document.getElementById( 'filetable' );
 		filetable.tBodies[0].remove();
 		filetable.append( document.createElement( 'tbody' ) );
 		filetable.tBodies[0].innerHTML = newTBody;
 
-		if( self.datatable ) self.datatable.destroy();
 		self.datatable = $('#filetable').DataTable({
 			paging: !!self.config.paging,
 			pageLength: self.config.pageLength||50,
@@ -232,7 +245,7 @@ function IFM(params) {
 			responsive: true,
 			drawCallback: function() {
 				// has to be jquery, since this is a bootstrap feature
-				$( 'a[data-toggle="popover"]' ).popover({
+				$( 'a[data-bs-toggle="popover"]' ).popover({
 					content: function() {
 						let item = self.fileCache.find( x => x.guid == $(this).attr('id') );
 						let popover = document.createElement( 'img' );
@@ -243,7 +256,7 @@ function IFM(params) {
 						popover.classList.add( 'imgpreview' );
 						return popover;
 					},
-					animated: 'fade',
+					animation: true,
 					placement: 'bottom',
 					trigger: 'hover',
 					html: true
@@ -303,14 +316,18 @@ function IFM(params) {
 		});
 
 		if( self.config.contextmenu && !!( self.config.edit || self.config.extract || self.config.rename || self.config.copymove || self.config.download || self.config.delete ) ) {
-			// create the context menu, this also uses jquery, AFAIK
-			let contextMenu = new BootstrapMenu( '.clickable-row', {
+			// the menu delegates from the document, so one instance covers every
+			// table rebuild
+			if( !self.contextMenu ) self.contextMenu = self.createContextMenu( '.clickable-row', {
 				fetchElementData: function( row ) {
+					// the row carries its guid in data-id; digging through the cell
+					// tree instead used to break whenever the column layout changed
+					let itemOf = function( tr ) { return self.fileCache.find( x => x.guid == tr.dataset.id ); };
 					let data = {};
 					data.selected =
 						Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
-						.map( function(e){ return self.fileCache.find( x => x.guid == e.children[0].children[0].id ); } );
-					data.clicked = self.fileCache.find( x => x.guid == row[0].children[0].children[0].id );
+						.map( itemOf ).filter( Boolean );
+					data.clicked = itemOf( row );
 					return data;
 				},
 				actionsGroups:[
@@ -366,7 +383,7 @@ function IFM(params) {
 					copymove: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.copy+'/'+self.i18n.move+' <span class="badge text-bg-secondary">'+data.selected.length+'</span>';
 							else
 								return self.i18n.copy+'/'+self.i18n.move;
 						},
@@ -382,7 +399,7 @@ function IFM(params) {
 					download: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return self.i18n.download+' <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.download+' <span class="badge text-bg-secondary">'+data.selected.length+'</span>';
 							else
 								return self.i18n.download;
 						},
@@ -398,7 +415,7 @@ function IFM(params) {
 					createarchive: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return self.i18n.create_archive+' <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.create_archive+' <span class="badge text-bg-secondary">'+data.selected.length+'</span>';
 							else
 								return self.i18n.create_archive;
 						},
@@ -414,7 +431,7 @@ function IFM(params) {
 					delete: {
 						name: function( data ) {
 							if( data.selected.length > 0 )
-								return self.i18n.delete+' <span class="badge">'+data.selected.length+'</span>';
+								return self.i18n.delete+' <span class="badge text-bg-secondary">'+data.selected.length+'</span>';
 							else
 								return self.i18n.delete;
 						},
@@ -515,10 +532,6 @@ function IFM(params) {
 			html: true,
 			title: self.i18n.options,
 			content: function() {
-				// see https://github.com/twbs/bootstrap/issues/12571
-				// var ihatethisfuckingpopoverworkaround = $('#editoroptions').data('bs.popover');
-				// $(ihatethisfuckingpopoverworkaround.tip).find( '.popover-body' ).empty();
-
 				let aceEditor = self.editor;
 				let aceSession = aceEditor.getSession();
 				let content = self.getNodeFromString(
@@ -845,6 +858,7 @@ function IFM(params) {
 	 */
 	this.showCopyMoveDialog = function( items ) {
 		self.showModal( Mustache.render( self.templates.copymove, { i18n: self.i18n } ) );
+		let tree = null;
 		$.ajax({
 			url: self.api,
 			type: "POST",
@@ -853,22 +867,19 @@ function IFM(params) {
 			}),
 			dataType: "json",
 			success: function( data ) {
-				$( '#copyMoveTree' ).treeview({
-					data: data,
-					levels: 1,
-					expandIcon: "icon fa fa-plus-square",
-					collapseIcon: "icon fa fa-minus-square-o",
-					loadingIcon: "icon fa fa-spinner fa-spin",
-					lazyLoad: function( n, cb ) {
+				tree = self.createFolderTree( document.getElementById( 'copyMoveTree' ), {
+					nodes: data,
+					load: function( path, done, fail ) {
 						$.ajax({
 							url: self.api,
 							type: "POST",
-							data: {
-								api: "getFolders",
-								dir: n.dataAttr.path
-							},
+							data: { api: "getFolders", dir: path },
 							dataType: "json",
-							success: cb
+							success: done,
+							error: function() {
+								self.showMessage( self.i18n.folder_tree_load_error, "e" );
+								fail();
+							}
 						});
 					}
 				});
@@ -876,16 +887,20 @@ function IFM(params) {
 			error: function() { self.hideModal(); self.showMessage( self.i18n.folder_tree_load_error, "e" ) }
 		});
 		let form = document.forms.formCopyMove;
+		// returns the target directory, or null while nothing is selected
+		let selectedPath = function() { return tree ? tree.selectedPath() : null; };
 		form.addEventListener( 'click', function( e ) {
 			switch (e.target.id) {
 				case 'copyButton':
 					e.preventDefault();
-					self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'copy' );
+					if( selectedPath() === null ) { self.showMessage( self.i18n.folder_not_found, "e" ); break; }
+					self.copyMove( items, selectedPath(), 'copy' );
 					self.hideModal();
 					break;
 				case 'moveButton':
 					e.preventDefault();
-					self.copyMove( items, form.getElementsByClassName( 'node-selected' )[0].dataset.path, 'move' );
+					if( selectedPath() === null ) { self.showMessage( self.i18n.folder_not_found, "e" ); break; }
+					self.copyMove( items, selectedPath(), 'move' );
 					self.hideModal();
 					break;
 				case 'cancelButton':
@@ -1015,7 +1030,6 @@ function IFM(params) {
 		let form = document.forms.formUploadFile;
 		let pendingFiles = [];
 		let fileListEl = document.getElementById( 'uploadFileList' );
-		let fileLabel = form.querySelector( '.custom-file-label' );
 
 		let fileFingerprint = function( f ) {
 			return f.name + '\0' + f.size + '\0' + f.lastModified;
@@ -1034,7 +1048,7 @@ function IFM(params) {
 				let li = document.createElement( 'li' );
 				li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
 				let nameSpan = document.createElement( 'span' );
-				nameSpan.className = 'text-truncate mr-2';
+				nameSpan.className = 'text-truncate me-2';
 				nameSpan.textContent = file.name;
 				nameSpan.title = file.name;
 				let btn = document.createElement( 'button' );
@@ -1047,17 +1061,8 @@ function IFM(params) {
 				li.appendChild( btn );
 				fileListEl.appendChild( li );
 			} );
-			switch (pendingFiles.length) {
-				case 0:
-					fileLabel.textContent = self.i18n.upload_file;
-					break;
-				case 1:
-					fileLabel.textContent = pendingFiles[0].name;
-					break;
-				default:
-					fileLabel.textContent = self.i18n.upload_file + ' (' + pendingFiles.length + ')';
-					break;
-			}
+			// the native file input renders the selection itself, the list below
+			// spells it out - so the label stays untouched
 			syncFileInputFromPending();
 
 			// Update visibility based on file count
@@ -1341,14 +1346,14 @@ function IFM(params) {
 				document.getElementById( 'ajaxresponse' ).innerText = response;
 				let statusEl = document.getElementById( 'ajaxStatusCode' );
 				statusEl.textContent = jqXHR.status;
-				statusEl.className = 'badge badge-success';
+				statusEl.className = 'badge text-bg-success';
 				statusEl.hidden = false;
 			},
 			error	: function( jqXHR ) {
 				document.getElementById( 'ajaxresponse' ).innerText = jqXHR.responseText || '';
 				let statusEl = document.getElementById( 'ajaxStatusCode' );
 				statusEl.textContent = jqXHR.status;
-				statusEl.className = 'badge badge-danger';
+				statusEl.className = 'badge text-bg-danger';
 				statusEl.hidden = false;
 				self.log( jqXHR );
 			}
@@ -1499,6 +1504,159 @@ function IFM(params) {
 	// --------------------
 
 	/**
+	 * Folder tree for the copy/move dialog, built on bootstrap's list group.
+	 *
+	 * Nodes come from the getFolders API as { text, dataAttr: { path } } plus
+	 * lazyLoad: true for the ones that have subfolders; children are fetched
+	 * the first time a node is expanded.
+	 */
+	this.createFolderTree = function( mount, options ) {
+		let selectedPath = null;
+
+		let makeNode = function( node, level ) {
+			let wrapper = document.createElement( 'div' );
+
+			let row = document.createElement( 'div' );
+			row.className = 'list-group-item list-group-item-action ifm-tree-node';
+			row.style.paddingLeft = ( 0.5 + level * 1.25 ) + 'rem';
+			row.dataset.path = node.dataAttr.path;
+			row.setAttribute( 'role', 'treeitem' );
+
+			let toggle = document.createElement( 'span' );
+			toggle.className = 'icon fa fa-fw ifm-tree-toggle' + ( node.lazyLoad ? ' fa-plus-square' : '' );
+			let label = document.createElement( 'span' );
+			label.className = 'ifm-tree-label';
+			label.textContent = node.text;
+			row.appendChild( toggle );
+			row.appendChild( label );
+
+			let children = document.createElement( 'div' );
+			children.className = 'list-group ifm-tree-children';
+			children.hidden = true;
+
+			let loaded = false;
+			toggle.addEventListener( 'click', function( e ) {
+				if( !node.lazyLoad ) return;
+				e.stopPropagation();
+				if( loaded ) {
+					children.hidden = !children.hidden;
+					toggle.classList.toggle( 'fa-plus-square', children.hidden );
+					toggle.classList.toggle( 'fa-minus-square-o', !children.hidden );
+					return;
+				}
+				toggle.classList.remove( 'fa-plus-square' );
+				toggle.classList.add( 'fa-spinner', 'fa-spin' );
+				options.load( node.dataAttr.path, function( nodes ) {
+					toggle.classList.remove( 'fa-spinner', 'fa-spin' );
+					toggle.classList.add( 'fa-minus-square-o' );
+					( nodes || [] ).forEach( function( child ) {
+						children.appendChild( makeNode( child, level + 1 ) );
+					});
+					children.hidden = false;
+					loaded = true;
+				}, function() {
+					toggle.classList.remove( 'fa-spinner', 'fa-spin' );
+					toggle.classList.add( 'fa-plus-square' );
+				});
+			});
+
+			row.addEventListener( 'click', function() {
+				let active = mount.querySelector( '.ifm-tree-node.active' );
+				if( active ) active.classList.remove( 'active' );
+				row.classList.add( 'active' );
+				selectedPath = node.dataAttr.path;
+			});
+
+			wrapper.appendChild( row );
+			wrapper.appendChild( children );
+			return wrapper;
+		};
+
+		mount.innerHTML = '';
+		mount.classList.add( 'list-group' );
+		mount.setAttribute( 'role', 'tree' );
+		( options.nodes || [] ).forEach( function( node ) {
+			mount.appendChild( makeNode( node, 0 ) );
+		});
+
+		return { selectedPath: function() { return selectedPath; } };
+	};
+
+	/**
+	 * Context menu built on bootstrap's own dropdown markup.
+	 *
+	 * Takes the option shape of the unmaintained BootstrapMenu plugin it
+	 * replaces - fetchElementData(row), actionsGroups, and actions with
+	 * name/iconClass/isShown/onClick - so the action definitions stay as they
+	 * are, but without its lodash and classnames dependencies.
+	 */
+	this.createContextMenu = function( selector, options ) {
+		let menu = document.createElement( 'div' );
+		menu.className = 'dropdown-menu ifm-contextmenu';
+		menu.setAttribute( 'role', 'menu' );
+		document.body.appendChild( menu );
+
+		let close = function() { menu.classList.remove( 'show' ); };
+
+		// returns the number of entries that ended up in the menu
+		let build = function( data ) {
+			menu.innerHTML = '';
+			let keys = Object.keys( options.actions );
+			let groups = ( options.actionsGroups || [] ).slice();
+			let listed = groups.reduce( function( all, g ) { return all.concat( g ); }, [] );
+			let ungrouped = keys.filter( function( k ) { return listed.indexOf( k ) === -1; } );
+			if( ungrouped.length ) groups.push( ungrouped );
+
+			let count = 0;
+			groups.forEach( function( group ) {
+				let visible = group.filter( function( key ) {
+					let action = options.actions[key];
+					return action && ( typeof action.isShown !== 'function' || action.isShown( data ) );
+				});
+				if( !visible.length ) return;
+				if( count ) menu.appendChild( document.createElement( 'hr' ) ).className = 'dropdown-divider';
+				visible.forEach( function( key ) {
+					let action = options.actions[key];
+					let entry = document.createElement( 'button' );
+					entry.type = 'button';
+					entry.className = 'dropdown-item';
+					entry.innerHTML = ( action.iconClass ? '<span class="' + action.iconClass + '"></span> ' : '' )
+						+ ( typeof action.name === 'function' ? action.name( data ) : action.name );
+					entry.addEventListener( 'click', function( e ) {
+						e.preventDefault();
+						close();
+						action.onClick( data );
+					});
+					menu.appendChild( entry );
+					count++;
+				});
+			});
+			return count;
+		};
+
+		document.addEventListener( 'contextmenu', function( e ) {
+			let row = e.target.closest ? e.target.closest( selector ) : null;
+			if( !row ) return;
+			if( !build( options.fetchElementData( row ) ) ) return;
+			e.preventDefault();
+
+			// show it first so it can be measured, then keep it in the viewport
+			menu.style.left = '0px';
+			menu.style.top = '0px';
+			menu.classList.add( 'show' );
+			let width = menu.offsetWidth, height = menu.offsetHeight;
+			menu.style.left = Math.max( 0, Math.min( e.clientX, window.innerWidth - width - 4 ) ) + 'px';
+			menu.style.top = Math.max( 0, Math.min( e.clientY, window.innerHeight - height - 4 ) ) + 'px';
+		});
+		document.addEventListener( 'click', close );
+		document.addEventListener( 'scroll', close, true );
+		window.addEventListener( 'resize', close );
+		document.addEventListener( 'keydown', function( e ) { if( e.key == 'Escape' ) close(); } );
+
+		return menu;
+	};
+
+	/**
 	 * Shows a notification
 	 *
 	 * @param string m - message text
@@ -1506,17 +1664,37 @@ function IFM(params) {
 	 */
 	this.showMessage = function(m, t) {
 		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
-		let offsetY = ( document.activeElement.tagName == "BODY" ) ? 15 : 70;
-		$.notify(
-			{ message: m },
-			{ type: msgType, delay: 3000, mouse_over: 'pause', 
-				offset: { x: 0, y: offsetY }, 
-				placement: {
-					from: "bottom",
-					align: "right"
-				},
-			element: document.activeElement }
-		);
+		let container = document.getElementById( 'ifmtoasts' );
+		if( !container ) {
+			container = document.createElement( 'div' );
+			container.id = 'ifmtoasts';
+			container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+			document.body.appendChild( container );
+		}
+
+		let toast = document.createElement( 'div' );
+		toast.className = 'toast align-items-center border-0 text-bg-' + msgType;
+		toast.setAttribute( 'role', 'alert' );
+		toast.setAttribute( 'aria-live', ( t == "e" ) ? 'assertive' : 'polite' );
+		toast.setAttribute( 'aria-atomic', 'true' );
+		let flex = document.createElement( 'div' );
+		flex.className = 'd-flex';
+		let body = document.createElement( 'div' );
+		body.className = 'toast-body';
+		body.innerHTML = m;
+		let close = document.createElement( 'button' );
+		close.type = 'button';
+		close.className = 'btn-close btn-close-white me-2 m-auto';
+		close.setAttribute( 'data-bs-dismiss', 'toast' );
+		close.setAttribute( 'aria-label', self.i18n.close || 'Close' );
+		flex.appendChild( body );
+		flex.appendChild( close );
+		toast.appendChild( flex );
+		container.appendChild( toast );
+
+		// bootstrap pauses the timer while the toast is hovered or focused
+		toast.addEventListener( 'hidden.bs.toast', function() { toast.remove(); } );
+		new bootstrap.Toast( toast, { delay: 3000 } ).show();
 	};
 
 	/**
@@ -1711,9 +1889,10 @@ function IFM(params) {
 	 * @param string id - task identifier
 	 */
 	this.task_update = function( progress, id ) {
-		let progbar = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress-bar' )[0];
-		progbar.style.width = progress+'%';
-		progbar.setAttribute( 'aria-valuenow', progress );
+		let progress_el = document.getElementById( 'wq-'+id ).getElementsByClassName( 'progress' )[0];
+		progress_el.getElementsByClassName( 'progress-bar' )[0].style.width = progress+'%';
+		// in bootstrap 5.3 the aria state lives on .progress, not on the bar
+		progress_el.setAttribute( 'aria-valuenow', progress );
 	};
 
 	/**
@@ -1942,14 +2121,14 @@ function IFM(params) {
 		// key events which need a highlighted item
 		let element = document.getElementsByClassName( 'highlightedItem' )[0];
 		if( element )
-			item = self.fileCache.find( x => x.guid == element.children[0].children[0].id );
+			item = self.fileCache.find( x => x.guid == element.dataset.id );
 		else
 			item = false;
 
 		// Some operations do not work if the highlighted item is the parent
 		// directory. In these cases the keybindings are ignored.
 		let selectedItems = Array.prototype.slice.call( document.getElementsByClassName( 'selectedItem' ) )
-			.map( function( e ) { return self.fileCache.find( x => x.guid === e.children[0].children[0].id ) } );
+			.map( function( e ) { return self.fileCache.find( x => x.guid === e.dataset.id ) } ).filter( Boolean );
 
 		switch( e.key ) {
 			case 'Delete':
@@ -1984,7 +2163,7 @@ function IFM(params) {
 					return;
 					break;
 				case 'Escape':
-					if( element.children[0].children[0] == document.activeElement ) {
+					if( element.querySelector( 'a.ifmitem' ) == document.activeElement ) {
 						e.preventDefault();
 						element.classList.toggle( 'highlightedItem' );
 					}
@@ -1992,7 +2171,7 @@ function IFM(params) {
 					break;
 				case ' ':
 				case 'Enter':
-					if( element.children[0].children[0] == document.activeElement ) { 
+					if( element.querySelector( 'a.ifmitem' ) == document.activeElement ) { 
 						if( e.key == 'Enter' && element.classList.contains( 'isDir' ) ) {
 							e.preventDefault();
 							e.stopPropagation();
@@ -2136,14 +2315,14 @@ function IFM(params) {
 										self.hideModal();
 										self.initApplication();
 									} else {
-										var errorlogin = document.getElementsByClassName('alert')[0];
+										var errorlogin = document.getElementById('loginError');
 										errorlogin.classList.remove("d-none");
 										errorlogin.innerHTML = e.message;
 									}
 
 								},
 								error: function(e) {
-									var errorlogin = document.getElementsByClassName('alert')[0];
+									var errorlogin = document.getElementById('loginError');
 									errorlogin.classList.remove("d-none");
 									errorlogin.innerHTML = "Authentication failed";
 								}
@@ -2171,6 +2350,11 @@ function IFM(params) {
 						return ( self.config.edit || self.config.rename || self.config.delete || self.config.zipnload || self.config.extract );
 					}
 				});
+
+		// keep the pristine table header: DataTables strips the cells of hidden
+		// columns from the DOM and (unlike 1.x) does not put them back on
+		// destroy(), so every rebuild has to start from this copy
+		self.filetableHead = document.getElementById( 'filetable' ).tHead.innerHTML;
 
 		// bind static buttons
 		if (el_r = document.getElementById('refresh'))
@@ -2303,12 +2487,64 @@ function IFM(params) {
 		// handle window.onbeforeunload
 		window.onbeforeunload = self.onbeforeunloadHandler;
 
+		self.initThemeSwitcher();
+
 		// load initial file table
 		if( window.location.hash ) {
 			self.changeDirectory( decodeURIComponent( window.location.hash.substring( 1 ) ) );
 		} else {
 			this.refreshFileTable();
 		}
+	};
+
+	/**
+	 * Color mode switcher, cycling system -> light -> dark.
+	 *
+	 * "system" follows prefers-color-scheme; an explicit choice is remembered in
+	 * localStorage and applied by the inline script in the document head, so the
+	 * page never renders in the wrong theme first.
+	 */
+	this.initThemeSwitcher = function() {
+		let button = document.getElementById( 'buttonTheme' );
+		if( !button ) return;
+
+		let icons = { auto: 'fa-adjust', light: 'fa-sun-o', dark: 'fa-moon-o' };
+		let stored = function() {
+			try {
+				let m = localStorage.getItem( 'ifm_theme' );
+				return ( m === 'light' || m === 'dark' ) ? m : 'auto';
+			} catch( e ) { return 'auto'; }
+		};
+
+		let apply = function( mode ) {
+			let effective = ( mode === 'auto' )
+				? ( window.matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light' )
+				: mode;
+			document.documentElement.dataset.bsTheme = effective;
+
+			let icon = document.getElementById( 'buttonThemeIcon' );
+			let label = document.getElementById( 'buttonThemeLabel' );
+			let text = self.i18n['theme_'+mode] || self.i18n.theme;
+			icon.className = 'fa fa-2x fa-fw ' + icons[mode];
+			icon.title = text;
+			if( label ) label.textContent = text;
+		};
+
+		button.onclick = function() {
+			let next = { auto: 'light', light: 'dark', dark: 'auto' }[ stored() ];
+			try {
+				if( next === 'auto' ) localStorage.removeItem( 'ifm_theme' );
+				else localStorage.setItem( 'ifm_theme', next );
+			} catch( e ) {}
+			apply( next );
+		};
+
+		// follow the system while no explicit choice is stored
+		window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', function() {
+			if( stored() === 'auto' ) apply( 'auto' );
+		});
+
+		apply( stored() );
 	};
 
 	this.init = function(id) {
