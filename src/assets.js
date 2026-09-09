@@ -5,5 +5,11 @@
 ###file:src/includes/mustache.min.js###
 ###file:src/includes/ace.min.js###
 ###acedir:src/includes/ace###
-###file:src/ifm.js###
+###file:src/js/ifm.core.js###
+###file:src/js/ifm.util.js###
+###file:src/js/ifm.widgets.js###
+###file:src/js/ifm.filetable.js###
+###file:src/js/ifm.dialogs.js###
+###file:src/js/ifm.actions.js###
+###file:src/js/ifm.events.js###
 </script>

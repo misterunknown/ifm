@@ -4,5 +4,11 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.2.1/mustache.min.js" integrity="sha512-Qjrukx28QnvFWISw9y4wCB0kTB/ISnWXPz5/RME5o8OlZqllWygc1AB64dOBlngeTeStmYmNTNcM6kfEjUdnnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.min.js" integrity="sha512-BHJlu9vUXVrcxhRwbBdNv3uTsbscp8pp3LJ5z/sw9nBJUegkNlkcZnvODRgynJWhXMCsVUGZlFuzTrr5I2X3sQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer>
-###file:src/ifm.js###
+###file:src/js/ifm.core.js###
+###file:src/js/ifm.util.js###
+###file:src/js/ifm.widgets.js###
+###file:src/js/ifm.filetable.js###
+###file:src/js/ifm.dialogs.js###
+###file:src/js/ifm.actions.js###
+###file:src/js/ifm.events.js###
 </script>
