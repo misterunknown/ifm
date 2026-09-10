@@ -68,6 +68,8 @@ class IFM {
 		"contextmenu" => 1,
 		"disable_mime_detection" => 0,
 		"showrefresh" => 1,
+		// modes and themes compiled into this file (see ###acedir### in the assets)
+		"ace_includes" => "###vars:ace_includes###",
 		"forceproxy" => 0,
 		"confirmoverwrite" => 1,
 		"customDateFormat" => false

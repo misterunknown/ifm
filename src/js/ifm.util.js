@@ -6,6 +6,51 @@
 IFM.parts.push( function( self ) {
 
 	/**
+	 * Picks the ace theme that goes with the current interface theme.
+	 *
+	 * The list of themes and which of them are dark comes from ace itself
+	 * (ext/themelist). In the self-contained build only the themes bundled
+	 * into the file are usable, so the choice is narrowed down to those;
+	 * the CDN build can load any of them on demand.
+	 *
+	 * @param {boolean} dark - whether the dark variant is wanted
+	 * @returns {string|null} - e.g. "ace/theme/cloud_editor_dark"
+	 */
+	this.getAceTheme = function( dark ) {
+		let preferred = dark ? 'cloud_editor_dark' : 'cloud_editor';
+		let themes = [];
+		try {
+			themes = ace.require( 'ace/ext/themelist' ).themes || [];
+		} catch( e ) {
+			// no theme list: fall back to the pair that ships with IFM
+			return 'ace/theme/' + preferred;
+		}
+
+		// the self-contained build only has what was compiled into it
+		if( self.ace && self.ace.files && self.ace.files.length )
+			themes = themes.filter( function( theme ) {
+				return self.ace.files.indexOf( 'theme-' + theme.name ) !== -1;
+			});
+		if( !themes.length ) return null;
+
+		let matching = themes.filter( function( theme ) { return !!theme.isDark === !!dark; } );
+		// nothing for this side: take whatever there is rather than none
+		if( !matching.length ) matching = themes;
+
+		let chosen = matching.find( function( theme ) { return theme.name === preferred; } ) || matching[0];
+		return chosen.theme;
+	};
+
+	/**
+	 * Applies the ace theme matching the interface to the open editor, if any.
+	 */
+	this.applyAceTheme = function() {
+		if( !self.editor ) return;
+		let theme = self.getAceTheme( document.documentElement.dataset.bsTheme === 'dark' );
+		if( theme ) self.editor.setTheme( theme );
+	};
+
+	/**
 	 * Combines two path components
 	 *
 	 * @param {string} a - component 1

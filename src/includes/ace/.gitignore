@@ -1,2 +1,8 @@
+# ace modes/themes are pulled in by the compiler (###acedir###); the light/dark
+# pair used by the theme switch and the theme list ship with the repository,
+# anything else a build wants to bundle is dropped in here locally
 *
 !.gitignore
+!theme-cloud_editor.js
+!theme-cloud_editor_dark.js
+!ext-themelist.js

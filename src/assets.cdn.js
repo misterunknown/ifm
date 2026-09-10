@@ -3,6 +3,7 @@
 <script src="https://cdn.datatables.net/v/bs5/dt-3.0.3/r-4.0.3/datatables.min.js" integrity="sha384-EgTkwH/pYs+G0YBWaJL5BYg+7pHvvm9wR2ykTBzZCCY+qJAYJb5JmmIOTV392GPR" crossorigin="anonymous"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.2.1/mustache.min.js" integrity="sha512-Qjrukx28QnvFWISw9y4wCB0kTB/ISnWXPz5/RME5o8OlZqllWygc1AB64dOBlngeTeStmYmNTNcM6kfEjUdnnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.min.js" integrity="sha512-BHJlu9vUXVrcxhRwbBdNv3uTsbscp8pp3LJ5z/sw9nBJUegkNlkcZnvODRgynJWhXMCsVUGZlFuzTrr5I2X3sQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ext-themelist.min.js" integrity="sha512-egj+hdS3WDwjcPavY9dXXphQBQk/1jQKY8xpgWpkA7ovrbztfCCRkE0oWn/659+wO8JiRy5dEO2AUlAeOGrIig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer>
 ###file:src/js/ifm.core.js###
 ###file:src/js/ifm.util.js###

@@ -56,6 +56,13 @@ function IFM(params) {
 						}
 					} );
 				}
+				// when ace comes from a CDN it can pull themes and modes from there
+				// on demand; the self-contained build has to make do with what
+				// was compiled into it
+				let aceScript = document.querySelector( 'script[src*="/ace.min.js"], script[src*="/ace.js"]' );
+				if( aceScript && window.ace && ace.config )
+					ace.config.set( 'basePath', aceScript.src.replace( /\/ace(\.min)?\.js.*$/, '' ) );
+
 				if( self.config.ace_includes ) {
 					self.ace = {};
 					self.ace.files = self.config.ace_includes.split( '|' ).filter( x => x != "" );
@@ -351,6 +358,7 @@ function IFM(params) {
 				? ( window.matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light' )
 				: mode;
 			document.documentElement.dataset.bsTheme = effective;
+			self.applyAceTheme();
 
 			let icon = document.getElementById( 'buttonThemeIcon' );
 			let label = document.getElementById( 'buttonThemeLabel' );

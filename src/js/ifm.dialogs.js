@@ -70,7 +70,7 @@ IFM.parts.push( function( self ) {
 							invisible_chars: aceEditor.getOption( 'showInvisibles' ),
 							softtabs: aceSession.getOption( 'useSoftTabs' ),
 							tabsize: aceSession.getOption( 'tabSize' ),
-							ace_includes: self.ace,
+							ace_includes: ( self.ace && self.ace.modes && self.ace.modes.length > 1 ) ? self.ace : null,
 							ace_mode_selected: function() {
 								return ( aceSession.$modeId == "ace/mode/"+this ) ? 'selected="selected"' : '';
 							},
@@ -110,6 +110,7 @@ IFM.parts.push( function( self ) {
 		// Start ACE
 		self.editor = ace.edit("content");
 		self.editor.$blockScrolling = 'Infinity';
+		self.applyAceTheme();
 		self.editor.getSession().setValue(content);
 		self.editor.focus();
 		self.editor.on("change", function() { self.fileChanged = true; });
