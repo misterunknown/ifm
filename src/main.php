@@ -182,15 +182,15 @@ class IFM {
 	 */
 	public function getApplication() {
 		$this->getHTMLHeader();
-		print '<div id="ifm"></div>';
+		print '###vars:app_shell###';
 		$this->getJS();
-		print '<script>var ifm = new IFM(); ifm.init("ifm");</script>';
+		print '###vars:app_init###';
 		$this->getHTMLFooter();
 	}
 
 	public function getInlineApplication() {
 		$this->getCSS();
-		print '<div id="ifm"></div>';
+		print '###vars:app_shell###';
 		$this->getJS();
 	}
 

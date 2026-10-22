@@ -20,6 +20,32 @@ function minify_file(string $path): string {
     return $content;
 }
 
+/**
+ * Read the Vue 3 + Vite production bundle (frontend/dist/ifm-vue.js and
+ * frontend/dist/ifm-vue.css, built via `make frontend-build`) and wrap it
+ * for inlining into the single-file dist. The bundle is already minified
+ * and fully self-contained (fonts/assets are data URIs), so unlike the
+ * legacy assets it needs no further processing — and it must NOT pass
+ * through the ###file:###/###vars:### scans below, which is why the caller
+ * injects it after those have run.
+ *
+ * @return array{css: string, js: string}
+ */
+function ifm_vue_bundle(): array {
+    $jsPath = __DIR__ . "/frontend/dist/ifm-vue.js";
+    $cssPath = __DIR__ . "/frontend/dist/ifm-vue.css";
+    foreach (["js" => $jsPath, "css" => $cssPath] as $kind => $path) {
+        if (!is_file($path) || !is_readable($path)) {
+            file_put_contents("php://stderr", "Missing Vue bundle: {$path}.\nBuild it first: make frontend-build\n");
+            exit(1);
+        }
+    }
+    return [
+        "css" => "<style type=\"text/css\">\n" . file_get_contents($cssPath) . "\n</style>",
+        "js" => "<script>\n" . file_get_contents($jsPath) . "\n</script>",
+    ];
+}
+
 // output files and common attrs
 
 /**
@@ -77,13 +103,25 @@ $IFM_SRC_PHP = [
 ];
 
 // get options
-$options = getopt("", ["language::", "languages::", "lang::", "cdn"]);
+$options = getopt("", ["language::", "languages::", "lang::", "cdn", "vue"]);
 
 // build CDN version?
 if (isset($options['cdn'])) {
 	define("IFM_CDN", true);
 } else {
 	define("IFM_CDN", false);
+}
+
+// build Vue 3 + Vite frontend instead of the legacy jQuery frontend?
+if (isset($options['vue'])) {
+	define("IFM_VUE", true);
+} else {
+	define("IFM_VUE", false);
+}
+
+if (IFM_VUE && IFM_CDN) {
+	file_put_contents("php://stderr", "--vue and --cdn are mutually exclusive: the Vue bundle is always self-contained.\n");
+	exit(1);
 }
 
 // process languages
@@ -111,6 +149,17 @@ if (in_array("all", $langs))
 		function ($lang_file) { return pathinfo($lang_file)['filename']; },
 		glob("src/i18n/*.json")
 	);
+
+// Application shell: the legacy frontend boots via `new IFM().init()`,
+// while the Vue bundle mounts itself on #app. Default builds produce
+// byte-identical output to previous versions.
+if (IFM_VUE) {
+	$vars['app_shell'] = '<div id="app"></div>';
+	$vars['app_init'] = '';
+} else {
+	$vars['app_shell'] = '<div id="ifm"></div>';
+	$vars['app_init'] = '<script>var ifm = new IFM(); ifm.init("ifm");</script>';
+}
 
 $vars['languageincludes'] = "";
 foreach ($langs as $l) {
@@ -144,8 +193,16 @@ foreach ($IFM_SRC_PHP as $phpfile) {
 $compiled = join($compiled);
 
 // Include assets
-$compiled = str_replace("###ASSETS_CSS###", file_get_contents("src/assets".(IFM_CDN?".cdn":"").".css"), $compiled);
-$compiled = str_replace("###ASSETS_JS###", file_get_contents("src/assets".(IFM_CDN?".cdn":"").".js"), $compiled);
+if (IFM_VUE) {
+	// Deferred: the built Vue bundle is injected after the placeholder
+	// scans below (it must not pass through them). Temporary tokens use a
+	// shape none of those scans match.
+	$compiled = str_replace("###ASSETS_CSS###", "###VUE_CSS###", $compiled);
+	$compiled = str_replace("###ASSETS_JS###", "###VUE_JS###", $compiled);
+} else {
+	$compiled = str_replace("###ASSETS_CSS###", file_get_contents("src/assets".(IFM_CDN?".cdn":"").".css"), $compiled);
+	$compiled = str_replace("###ASSETS_JS###", file_get_contents("src/assets".(IFM_CDN?".cdn":"").".js"), $compiled);
+}
 
 // Process file includes
 $includes = NULL;
@@ -178,13 +235,24 @@ foreach( $includes as $var ) {
 
 $compiled = str_replace('IFM_VERSION', IFM_VERSION, $compiled);
 
+if (IFM_VUE) {
+	$vue = ifm_vue_bundle();
+	$compiled = str_replace("###VUE_CSS###", $vue['css'], $compiled);
+	$compiled = str_replace("###VUE_JS###", $vue['js'], $compiled);
+	// Footer version token used by the Vue bundle (see frontend/src/store).
+	$compiled = str_replace('__IFM_VERSION__', IFM_VERSION, $compiled);
+}
+
 if (!is_dir(IFM_RELEASE_DIR)) {
 	mkdir(IFM_RELEASE_DIR);
 }
 
+// Output prefix: vue builds ship alongside (never clobber) the legacy dist.
+$prefix = IFM_VUE ? 'vue.' : (IFM_CDN ? 'cdn.' : '');
+
 // build standalone ifm
-file_put_contents(IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, $compiled);
-file_put_contents(IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, '
+file_put_contents(IFM_RELEASE_DIR . $prefix . IFM_STANDALONE, $compiled);
+file_put_contents(IFM_RELEASE_DIR . $prefix . IFM_STANDALONE, '
 /**
  * start IFM
  */
@@ -194,9 +262,9 @@ $ifm->run();
 
 // build compressed ifm
 file_put_contents(
-	IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE_GZ,
+	IFM_RELEASE_DIR . $prefix . IFM_STANDALONE_GZ,
 	'<?php eval(gzdecode(file_get_contents(__FILE__, false, null, 79))); exit(0); ?>'
-	. gzencode(file_get_contents(IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_STANDALONE, false, null, 5))
+	. gzencode(file_get_contents(IFM_RELEASE_DIR . $prefix . IFM_STANDALONE, false, null, 5))
 );
 // build lib
-file_put_contents(IFM_RELEASE_DIR . (IFM_CDN ? 'cdn.' : '') . IFM_LIB, $compiled);
+file_put_contents(IFM_RELEASE_DIR . $prefix . IFM_LIB, $compiled);

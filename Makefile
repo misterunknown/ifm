@@ -1,4 +1,4 @@
-.PHONY: help analyse syntax-check build build-cdn build-all clean test test-unit test-integration test-security
+.PHONY: help analyse syntax-check build build-cdn build-vue build-all clean test test-unit test-integration test-security frontend-install frontend-build frontend-test
 
 PHP ?= php
 PHPSTAN ?= ./vendor/bin/phpstan
@@ -15,6 +15,10 @@ help:
 	@echo "  make test-security    - run the security/jail-escape suite"
 	@echo "  make build        - compile regular dist files"
 	@echo "  make build-cdn    - compile CDN dist files"
+	@echo "  make build-vue    - compile Vue 3 + Vite dist files (needs frontend build)"
+	@echo "  make frontend-install - install frontend dependencies (npm install)"
+	@echo "  make frontend-build   - build the Vue bundle (frontend/dist)"
+	@echo "  make frontend-test    - run the frontend unit tests"
 	@echo "  make build-all    - compile regular and CDN dist files"
 	@echo "  make clean        - remove dist directory"
 
@@ -47,6 +51,18 @@ build:
 
 build-cdn:
 	$(PHP) ./compiler.php --cdn
+
+frontend-install:
+	cd frontend && npm install
+
+frontend-build:
+	cd frontend && npm run build
+
+frontend-test:
+	cd frontend && npm test
+
+build-vue: frontend-build
+	$(PHP) ./compiler.php --vue
 
 build-all: build build-cdn
 

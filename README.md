@@ -227,6 +227,25 @@ CDN=true docker compose up -d --build
 
 See [Installation → Docker Compose](#docker-compose) for how to run the resulting service.
 
+### Vue frontend
+
+`frontend/` contains a rewrite of the web UI with Vue 3 + Vite. The PHP
+backend is unchanged — the Vue app speaks the same `?api=` contract, so all
+configuration, authentication, and feature flags keep working.
+
+```bash
+make frontend-install   # npm install in frontend/
+make frontend-test      # vitest unit tests
+make frontend-build     # Vite build into frontend/dist/
+make build-vue          # embed the bundle: dist/vue.ifm.php (+ .min.php, vue.libifm.php)
+```
+
+The Vue dists ship alongside the legacy ones (`make build` output is
+byte-identical to before). Drop `dist/vue.ifm.php` into a PHP-enabled vhost
+like `ifm.php`, or run `php -S 8080 dist/vue.ifm.php`. See
+[frontend/README.md](frontend/README.md) for the dev proxy setup, the
+legacy-to-Vue component map, and the (small) list of deliberate UI deltas.
+
 ### Versioning and releasing
 
 IFM follows [Semantic Versioning](https://semver.org/) with a `v` prefix:
