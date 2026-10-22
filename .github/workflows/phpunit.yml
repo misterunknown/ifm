@@ -47,6 +47,18 @@ jobs:
         # runner's PHP (PU10 on 8.1, 11 on 8.2, 12 on 8.3, 13 on 8.4/8.5)
         run: composer update --no-interaction --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Build frontend bundle
+        run: |
+          npm --prefix frontend ci --no-audit --no-fund
+          npm --prefix frontend run build
+
       - name: Build dist artifacts
         run: php compiler.php
 

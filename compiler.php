@@ -12,12 +12,25 @@ require_once 'vendor/autoload.php';
 
 function minify_file(string $path): string {
     $content = file_get_contents($path);
+    // The Vue frontend bundle is already minified by Vite; re-minifying it
+    // would only waste time and risks breaking the bundle.
+    if (strpos($path, 'frontend/dist/') !== false) return $content;
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     $is_already_minified = strpos(basename($path), '.min.') !== false;
     if ($is_already_minified) return $content;
     if ($ext === 'css') return (new MatthiasMullie\Minify\CSS($content))->minify();
     if ($ext === 'js')  return (new MatthiasMullie\Minify\JS($content))->minify();
     return $content;
+}
+
+// The single-file frontend bundle must exist before compiling; it is built
+// from frontend/ via Vite (see frontend/README.md).
+foreach (['frontend/dist/ifm-frontend.js', 'frontend/dist/ifm-frontend.css'] as $bundle) {
+    if (!is_file($bundle)) {
+        fwrite(STDERR, "Missing frontend bundle: $bundle\n");
+        fwrite(STDERR, "Build it first: cd frontend && npm ci && npm run build\n");
+        exit(1);
+    }
 }
 
 // output files and common attrs

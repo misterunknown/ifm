@@ -1,0 +1,68 @@
+name: Frontend
+
+on:
+  push:
+    branches: [ "master", "v4.0" ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [ "master", "v4.0" ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+
+permissions: {}
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck and build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm --prefix frontend ci --no-audit --no-fund
+
+      - name: Typecheck and build
+        # `npm run build` runs `vue-tsc --noEmit && vite build`
+        run: npm --prefix frontend run build
+
+  coverage:
+    name: Unit tests and coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm --prefix frontend ci --no-audit --no-fund
+
+      - name: Unit tests with coverage gate
+        # fails when statements/branches/functions/lines drop below 80%
+        run: npm --prefix frontend run coverage

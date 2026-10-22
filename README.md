@@ -21,11 +21,10 @@ The IFM is a web-based filemanager, which comes as a single file solution using 
 
 The IFM uses the following resources:
 
-* [ACE Editor](https://ace.c9.io)
-* [Bootstrap v4](https://getbootstrap.com)
-* [Font Awesome](https://fontawesome.com/)
-* [jQuery](https://jquery.com)
-* [Mustache](https://mustache.github.io/)
+* [Vue 3](https://vuejs.org/) + [Vite](https://vite.dev/) (frontend, see [frontend/](frontend/))
+* [ACE Editor](https://ace.c9.io) (via npm, bundled into the frontend)
+* [Bootstrap 5](https://getbootstrap.com)
+* [Font Awesome](https://fontawesome.com/) (SVG icons)
 
 ## Features
 
@@ -60,6 +59,7 @@ The IFM uses the following resources:
 * Build (only if you build from source — see [Building](#building))
   + [Composer](https://getcomposer.org/) (for the local build)
   + `make` (for the local build)
+  + [Node.js](https://nodejs.org/) `^20.19.0 || >=22.12.0` and `npm` (for the Vue 3 frontend build)
   + Docker / Docker Compose (for the docker-based builds)
 
 ## Installation
@@ -70,7 +70,7 @@ IFM can be deployed in three ways. Each maps to one of the three flavours descri
 
 Download the latest release from [GitHub Releases](https://github.com/misterunknown/ifm/releases/latest), or build the project yourself ([Building → Local](#local)) — the compiled files land in `./dist`.
 
-You can choose between the CDN version (dependencies like bootstrap, jquery etc. are loaded via CDN) or the bundled version, which inlines all these dependencies. Drop the chosen `*.php` file into a directory served by your PHP-enabled web server.
+You can choose between the CDN version or the bundled version. Both embed the same self-contained Vue 3 frontend (all third-party code is inlined at build time, so clients need no CDN access). Drop the chosen `*.php` file into a directory served by your PHP-enabled web server.
 
 The minified versions (`*.min.php`) are zipped via gzip. These versions are not recommended; if the filesize of the IFM is an issue for you, consider using the CDN versions.
 
@@ -135,12 +135,22 @@ You can build IFM from source in three different ways — locally, via Docker, o
 
 The compiler can produce two flavours of the final single-file PHP script:
 
-* **Bundled** *(default)* — third-party assets (Bootstrap, jQuery, ACE editor, etc.) are inlined into the output. The resulting file is self-contained and works without internet access on the client.
-* **CDN** — third-party assets are loaded from public CDNs at runtime. The output file is much smaller, but clients need network access to the CDN hosts.
+* **Bundled** *(default)* — the Vue 3 frontend bundle is inlined into the output. The resulting file is self-contained and works without internet access on the client.
+* **CDN** — same self-contained bundle as the bundled flavour (kept for backward compatibility with release tooling).
 
 ### Local
 
-Build directly on your machine with Composer and `make`.
+Build directly on your machine with Composer, Node.js and `make`.
+
+#### Install the frontend dependencies
+
+The frontend lives in [`frontend/`](frontend/) (Vue 3 + Vite, see
+[`frontend/README.md`](frontend/README.md)). Its dependencies are installed
+automatically by `make frontend`, or manually:
+
+```bash
+cd frontend && npm ci
+```
 
 #### Install Composer
 
@@ -177,11 +187,12 @@ The `Makefile` wraps the compiler and helper scripts. Run `make help` to see all
 | `make help`         | List available targets                                     |
 | `make analyse`      | Run PHPStan static analysis on `./src`                     |
 | `make syntax-check` | Run `php -l` against every tracked `*.php` file            |
+| `make frontend`     | Build the Vue 3 frontend bundle into `frontend/dist`       |
 | `make test`         | Build dist and run the full PHPUnit suite                  |
-| `make build`        | Compile the regular (bundled) dist files into `./dist`     |
-| `make build-cdn`    | Compile the CDN dist files into `./dist`                   |
-| `make build-all`    | Compile both bundled and CDN flavours                      |
-| `make clean`        | Remove the `./dist` directory                              |
+| `make build`        | Build the frontend and compile the regular dist files      |
+| `make build-cdn`    | Build the frontend and compile the CDN dist files          |
+| `make build-all`    | Build the frontend and compile both flavours               |
+| `make clean`        | Remove `./dist` and `frontend/dist`                        |
 
 You can override the PHP binary with the `PHP` variable, e.g. `make build PHP=/usr/bin/php8.2`.
 

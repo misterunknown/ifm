@@ -4,6 +4,9 @@ misc
 src/includes/ace/*
 sftp-config.json
 dist/*
+frontend/node_modules
+frontend/dist
+frontend/coverage
 vendor
 composer.lock
 .phpunit.cache

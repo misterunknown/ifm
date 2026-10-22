@@ -182,15 +182,15 @@ class IFM {
 	 */
 	public function getApplication() {
 		$this->getHTMLHeader();
-		print '<div id="ifm"></div>';
+		print '<div id="app"></div>';
+		// the Vue bundle (see frontend/) mounts itself on #app
 		$this->getJS();
-		print '<script>var ifm = new IFM(); ifm.init("ifm");</script>';
 		$this->getHTMLFooter();
 	}
 
 	public function getInlineApplication() {
 		$this->getCSS();
-		print '<div id="ifm"></div>';
+		print '<div id="app"></div>';
 		$this->getJS();
 	}
 

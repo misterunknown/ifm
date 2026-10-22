@@ -1,0 +1,40 @@
+{
+  "name": "ifm-frontend",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "IFM file manager frontend — Vue 3 + Vite single-file bundle, inlined into ifm.php by compiler.php",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "build-only": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "7.3.1",
+    "@fortawesome/free-brands-svg-icons": "7.3.1",
+    "@fortawesome/free-regular-svg-icons": "7.3.1",
+    "@fortawesome/free-solid-svg-icons": "7.3.1",
+    "@fortawesome/vue-fontawesome": "3.3.3",
+    "ace-builds": "1.44.0",
+    "bootstrap": "5.3.8",
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vitest/coverage-v8": "5.0.4",
+    "@vue/test-utils": "2.5.1",
+    "@vue/tsconfig": "0.9.1",
+    "jsdom": "30.1.2",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.4",
+    "vue-tsc": "3.3.13"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}

@@ -7,7 +7,9 @@ RUN apk add --no-cache \
     libzip-dev \
     openldap-dev \
     composer \
-    git
+    git \
+    nodejs \
+    npm
 
 # add missing extensions (buildtime)
 RUN docker-php-ext-install \
@@ -19,6 +21,10 @@ WORKDIR /usr/src/ifm
 COPY . .
 
 ARG CDN=false
+
+# build the Vue 3 frontend bundle (see frontend/README.md)
+RUN npm --prefix frontend ci --no-audit --no-fund && \
+    npm --prefix frontend run build
 
 # install composer packages
 RUN composer install --optimize-autoloader && \
