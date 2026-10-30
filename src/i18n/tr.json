@@ -48,6 +48,10 @@
     "select_destination": "Varış Noktası seç",
     "size": "Boyut",
     "tasks": "Önceden tanımlanmış bazı komutlar için sekme adı",
+    "theme": "Tema",
+    "theme_auto": "Tema: sistem",
+    "theme_dark": "Tema: koyu",
+    "theme_light": "Tema: açık",
     "toggle_nav": "Gezinmeyi değiştir",
     "upload": "Karşıya yükle",
     "upload_file": "Dosya Yükleyin",
@@ -107,5 +111,6 @@
     "extract_filename": "Dosyayı çıkar:",
     "extract_error": "Arşiv açılamıyor.",
     "editor_options": "Düzenleyici seçenekleri",
+    "actions": "İşlemler",
     "ajax_request": "AJAX talebi"
 }

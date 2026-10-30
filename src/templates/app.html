@@ -1,19 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-dark 
+<nav class="navbar navbar-expand-lg
 	{{^config.inline}}
 	fixed-top
-	{{/config.inline}} bg-dark">
+	{{/config.inline}} bg-dark" data-bs-theme="dark">
 	<div class="container">
 		<a class="navbar-brand" href="#">IFM</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="true" aria-label="{{i18n.toggle_nav}}">
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="true" aria-label="{{i18n.toggle_nav}}">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarCollapse">
-			<div class="navbar-nav mr-auto">
-				<form class="form-inline mt-2 mt-md-0">
+			<div class="navbar-nav me-auto">
+				<form class="d-flex mt-2 mt-md-0">
 					<div class="input-group">
-						<div class="input-group-prepend">
-							<span class="input-group-text" id="currentDirLabel">{{i18n.path_content}} {{showpath}}</span>
-						</div>
+						<span class="input-group-text" id="currentDirLabel">{{i18n.path_content}} {{showpath}}</span>
 						<input class="form-control" id="currentDir" aria-describedby="currentDirLabel" type="text">
 					</div>      
 				</form>
@@ -81,6 +79,12 @@
 					</a>
 				</li>
 				{{/config.ajaxrequest}}
+				<li class="nav-item">
+					<a id="buttonTheme" class="nav-link">
+						<span title="{{i18n.theme}}" class="fa fa-2x fa-fw" id="buttonThemeIcon"></span>
+						<span class="d-inline d-lg-none" id="buttonThemeLabel">{{i18n.theme}}</span>
+					</a>
+				</li>
 				{{#config.auth}}
 				<li class="nav-item">
 					<a href="?api=logout" id="buttonLogout" class="nav-link">
@@ -101,7 +105,7 @@
 		<table id="filetable" class="table">
 			<thead>
 				<tr>
-					<th class="th-meta hidden never" data-visible="false"></th>
+					<th class="th-meta never" data-visible="false"></th>
 					<th class="th-filename all">{{i18n.filename}}</th>
 					{{#config.download}}
 					<th class="th-download all"></th>
@@ -121,7 +125,7 @@
 					{{#config.showgroup}}
 					<th class="th-group d-none d-xl-table-cell desktop">{{i18n.group}}</th>
 					{{/config.showgroup}}
-					<th class="th-buttons buttons all"></th>
+					<th class="th-buttons buttons all">{{i18n.actions}}</th>
 				</tr>
 			</thead>
 			<tbody>

@@ -1,4 +1,5 @@
 {
+    "actions": "Handlinger",
     "ajax_request": "AJAX-forespørsel",
     "archive_create_error": "Kunne ikke opprette arkiv.",
     "archive_create_success": "Arkiv opprettet.",
@@ -98,6 +99,10 @@
     "soft_tabs": "Myke faner",
     "tab_size": "Fanestørrelse",
     "tasks": "Gjøremål",
+    "theme": "Tema",
+    "theme_auto": "Tema: system",
+    "theme_dark": "Tema: mørkt",
+    "theme_light": "Tema: lyst",
     "toggle_nav": "Veksle navigasjon",
     "upload": "Last opp",
     "upload_drop": "Slipp filer for å laste opp",

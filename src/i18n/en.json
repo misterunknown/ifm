@@ -1,4 +1,5 @@
 {
+    "actions": "Actions",
     "ajax_request": "AJAX request",
     "archive_create_error": "Could not create archive.",
     "archive_create_success": "Archive created.",
@@ -101,6 +102,10 @@
     "soft_tabs": "Soft Tabs",
     "tab_size": "Tab Size",
     "tasks": "Tasks",
+    "theme": "Theme",
+    "theme_auto": "Theme: system",
+    "theme_dark": "Theme: dark",
+    "theme_light": "Theme: light",
     "toggle_nav": "Toggle navigation",
     "upload": "Upload",
     "upload_drop": "Drop files to upload",
