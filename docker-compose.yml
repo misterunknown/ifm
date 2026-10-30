@@ -15,5 +15,10 @@ services:
       - IFM_DOCKER_GID=1000
       - IFM_AUTH=1
       - IFM_AUTH_SOURCE="inline;admin:$$apr1$$mS.N6oQx$0wAz/05xVMNvEHPSL2TxS/" # password: admin
+      - IFM_SHOWLASTMODIFIED=1
+      - IFM_SHOWOWNER=0
+      - IFM_SHOWGROUP=0
+      - IFM_PAGING=1
+      - IFM_PAGELENGTH=50
     volumes:
       - /tmp:/var/www
