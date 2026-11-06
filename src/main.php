@@ -1292,7 +1292,12 @@ f00bar;
 		$tmp_d = $dir;
 		$tmp_missing_parts = [];
 		while (realpath($tmp_d) === false) {
-			$tmp_i = pathinfo($tmp_d, PATHINFO_FILENAME);
+			$tmp_i = pathinfo($tmp_d, PATHINFO_BASENAME);
+			// A ".." or "." segment in the non-existent tail cannot be canonicalized
+			// against an existing directory, so the string prefix check below could be
+			// bypassed (e.g. "sub/nonexist/../../../tmp"). Reject such traversal.
+			if ($tmp_i === ".." || $tmp_i === ".")
+				return false;
 			array_push($tmp_missing_parts, $tmp_i);
 			$tmp_d = dirname($tmp_d);
 			if ($tmp_d == dirname($tmp_d))
