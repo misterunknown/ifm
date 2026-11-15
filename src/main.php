@@ -1090,23 +1090,28 @@ f00bar;
 		if (!$this->isFilenameValid($d['archivename']))
 			throw new IFMException($this->l('invalid_filename'));
 
+		if (!isset($d['filenames']) || !is_array($d['filenames']))
+			throw new IFMException($this->l('invalid_params'));
+
 		$filenames = [];
 		foreach ($d['filenames'] as $file)
 			if (!$this->isFilenameValid($file))
 				throw new IFMException($this->l('invalid_filename'));
+			elseif (($rp = realpath($file)) === false)
+				throw new IFMException($this->l('file_not_found'));
 			else
-				array_push($filenames, realpath($file));
+				array_push($filenames, $rp);
 
 		switch ($d['format']) {
 			case "zip":
-				if (IFMArchive::createZip($filenames, $d['archivename']))
+				if (IFMArchive::createZip($filenames, $d['archivename'], [$this, 'isFilenameValid']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
 					throw new IFMException($this->l('archive_create_error'));
 				break;
 			case "tar":
 				$d['archivename'] = pathinfo($d['archivename'], PATHINFO_FILENAME);
-				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
+				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format'], [$this, 'isFilenameValid']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
 					throw new IFMException($this->l('archive_create_error'));
@@ -1114,7 +1119,7 @@ f00bar;
 			case "tar.gz":
 			case "tar.bz2":
 				$d['archivename'] = pathinfo(pathinfo($d['archivename'], PATHINFO_FILENAME), PATHINFO_FILENAME);
-				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format']))
+				if (IFMArchive::createTar($filenames, $d['archivename'], $d['format'], [$this, 'isFilenameValid']))
 					return ["status" => "OK", "message" => $this->l('archive_create_success')];
 				else
 					throw new IFMException($this->l('archive_create_error'));

@@ -21,90 +21,176 @@
 class IFMArchive {
 
 	/**
-	 * Add a folder to an archive
+	 * Recursively yields the entries below $folder as [name in the archive,
+	 * path, is directory], named relative to $prefix.
+	 *
+	 * $exclude_callback is called with the bare name of every entry, files and
+	 * directories alike; entries it rejects are skipped, directories together
+	 * with their whole content. This is the single place where the filter is
+	 * applied, for every archive backend. Directories which are reached a
+	 * second time (symlink loops) are not descended into again.
 	 */
-	private static function addFolder(&$archive, $folder, $offset=0, $exclude_callback=null, $noCompressExtensions = []) {
-		if ($offset == 0) {
-			$offset = strlen(dirname($folder)) + 1;
-		}
-		$archive->addEmptyDir(substr($folder, $offset));
-		$handle = opendir($folder);
-		while (false !== $f = readdir($handle)) {
-			if ($f != '.' && $f != '..') {
-				$filePath = $folder . '/' . $f;
-				if (file_exists($filePath) && is_readable($filePath)) {
-					if (is_file($filePath)) {
-						if (!is_callable($exclude_callback) || $exclude_callback($f)) {
-							$archive->addFile($filePath, substr($filePath, $offset));
-							// Set STORE compression for already compressed formats (\ZipArchive only)
-							if ($archive instanceof \ZipArchive) {
-								$ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-								$nameInArchive = substr($filePath, $offset);
-								if (!empty($noCompressExtensions) && in_array($ext, $noCompressExtensions)) {
-									$archive->setCompressionName($nameInArchive, \ZipArchive::CM_STORE, 0);
-								} else {
-									$archive->setCompressionName($nameInArchive, \ZipArchive::CM_DEFLATE, 6);
-								}
-							}
-						}
-					} elseif (is_dir($filePath)) {
-						if (is_callable($exclude_callback)) {
-							self::addFolder($archive, $filePath, $offset, $exclude_callback, $noCompressExtensions);
-						} else {
-							self::addFolder($archive, $filePath, $offset, null, $noCompressExtensions);
-						}
-					}
+	private static function walk($folder, $prefix, $exclude_callback = null, ?\ArrayObject $visited = null) {
+		$visited = $visited ?? new \ArrayObject();
+		$real = realpath($folder);
+		if ($real === false || isset($visited[$real]))
+			return;
+		$visited[$real] = true;
+
+		$handle = @opendir($folder);
+		if ($handle === false)
+			return;
+		try {
+			while (false !== ($f = readdir($handle))) {
+				if ($f == '.' || $f == '..')
+					continue;
+				$path = $folder . '/' . $f;
+				if (!is_readable($path))
+					continue;
+				if (is_callable($exclude_callback) && !$exclude_callback($f))
+					continue;
+				$name = $prefix . '/' . $f;
+				if (is_dir($path)) {
+					yield [$name, $path, true];
+					yield from self::walk($path, $name, $exclude_callback, $visited);
+				} elseif (is_file($path)) {
+					yield [$name, $path, false];
 				}
 			}
+		} finally {
+			closedir($handle);
 		}
-		closedir($handle);
 	}
 
 	/**
-	 * Create a zip file using system zip command (low memory usage)
+	 * Add a folder to an archive (\ZipArchive or \PharData)
 	 */
-	public static function createZipSystem($source, $archivePath, $noCompressExtensions = []) {
-		// Check if zip command is available
-		$zipCmd = trim(shell_exec('which zip 2>/dev/null'));
-		if (empty($zipCmd)) {
-			return false;
+	private static function addFolder($archive, $folder, $exclude_callback = null, $noCompressExtensions = []) {
+		$archive->addEmptyDir(basename($folder));
+		foreach (self::walk($folder, basename($folder), $exclude_callback) as [$name, $path, $isDir]) {
+			if ($isDir) {
+				$archive->addEmptyDir($name);
+			} else {
+				$archive->addFile($path, $name);
+				if ($archive instanceof \ZipArchive)
+					self::setZipCompression($archive, $name, $noCompressExtensions);
+			}
 		}
+	}
+
+	/**
+	 * Set STORE compression for already compressed formats, DEFLATE otherwise
+	 */
+	private static function setZipCompression(\ZipArchive $archive, $name, $noCompressExtensions) {
+		$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+		if (!empty($noCompressExtensions) && in_array($ext, $noCompressExtensions))
+			$archive->setCompressionName($name, \ZipArchive::CM_STORE, 0);
+		else
+			$archive->setCompressionName($name, \ZipArchive::CM_DEFLATE, 6);
+	}
+
+	/**
+	 * Find an executable in an absolute directory of $PATH
+	 */
+	private static function findExecutable($name) {
+		$path = getenv('PATH');
+		if ($path === false || $path === '')
+			$path = '/usr/local/bin:/usr/bin:/bin'; // e.g. php-fpm clears the environment by default
+		foreach (explode(PATH_SEPARATOR, $path) as $dir) {
+			// relative entries (like ".") would resolve against the managed
+			// directory, where users can upload files
+			if ($dir === '' || ($dir[0] !== '/' && !preg_match('~^[A-Z]:[\\\\/]~i', $dir)))
+				continue;
+			$file = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $name;
+			if (@is_file($file) && @is_executable($file))
+				return $file;
+		}
+		return null;
+	}
+
+	/**
+	 * Create a zip file of a single file or directory using the system zip
+	 * command (low memory usage, compression doesn't count towards PHP's
+	 * time limit).
+	 *
+	 * zip never recurses on its own: the entry list is built by walk(), with
+	 * $exclude_callback applied, and passed to zip via stdin, with wildcard
+	 * processing disabled. Returns false if zip is not available or the list
+	 * can't be passed safely; callers then fall back to \ZipArchive.
+	 */
+	public static function createZipSystem($source, $archivePath, $noCompressExtensions = [], $exclude_callback = null) {
+		if (!function_exists('proc_open'))
+			return false;
+		$zipCmd = self::findExecutable('zip');
+		if ($zipCmd === null)
+			return false;
 
 		$source = realpath($source);
-		if (!$source) {
+		if ($source === false || (!is_dir($source) && !is_file($source)))
+			return false;
+
+		// let zip write to a temporary name and rename that when done: zip
+		// appends ".zip" to archive names without extension, and an aborted
+		// run must not leave a partial archive behind
+		$archiveDir = realpath(dirname($archivePath));
+		if ($archiveDir === false)
+			return false;
+		$archivePath = $archiveDir . DIRECTORY_SEPARATOR . basename($archivePath);
+		$tmpArchive = $archiveDir . DIRECTORY_SEPARATOR . '.ifm-zip-' . bin2hex(random_bytes(8)) . '.zip';
+
+		// an existing archive gets updated (entries added or replaced), like with
+		// \ZipArchive: let zip work on a copy of it
+		if (is_file($archivePath) && !@copy($archivePath, $tmpArchive))
+			return false;
+
+		// -nw: take names literally (no wildcards), -@: read the names from stdin
+		$cmd = [$zipCmd, '-q', '-6', '-nw'];
+		if (!empty($noCompressExtensions)) {
+			$cmd[] = '-n';
+			$cmd[] = implode(':', array_map(fn($e) => '.' . $e, $noCompressExtensions));
+		}
+		array_push($cmd, '-@', $tmpArchive);
+
+		$devNull = (DIRECTORY_SEPARATOR === '\\') ? 'NUL' : '/dev/null';
+		$proc = @proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['file', $devNull, 'w'], 2 => ['file', $devNull, 'w']], $pipes, dirname($source));
+		if (!is_resource($proc)) {
+			@unlink($tmpArchive);
 			return false;
 		}
 
-		// Change to source directory to avoid full paths in archive
-		$sourceDir = dirname($source);
-		$sourceName = basename($source);
-
-		$currentDir = getcwd();
-		chdir($sourceDir);
-
-		$noCompressFlag = '';
-		if (!empty($noCompressExtensions)) {
-			$suffixes = implode(':', array_map(fn($e) => '.' . $e, $noCompressExtensions));
-			$noCompressFlag = '-n ' . escapeshellarg($suffixes) . ' ';
+		$names = (function () use ($source, $exclude_callback) {
+			yield basename($source);
+			if (is_dir($source))
+				foreach (self::walk($source, basename($source), $exclude_callback) as [$name])
+					yield $name;
+		})();
+		$complete = true;
+		foreach ($names as $name) {
+			// zip reads one name per line, so names containing line breaks
+			// can't be passed; leave those archives to \ZipArchive
+			if (strpbrk($name, "\r\n") !== false || fwrite($pipes[0], $name . "\n") === false) {
+				$complete = false;
+				break;
+			}
 		}
 
-		$cmd = sprintf(
-			'cd %s && %s -6 -r -q %s%s %s >/dev/null 2>&1',
-			escapeshellarg($sourceDir),
-			$zipCmd,
-			$noCompressFlag,
-			escapeshellarg($archivePath),
-			escapeshellarg($sourceName)
-		);
+		if (!$complete)
+			proc_terminate($proc);
+		fclose($pipes[0]);
+		$exitCode = proc_close($proc);
 
-		system($cmd, $returnCode);
-		chdir($currentDir);
-
-		return $returnCode === 0 && file_exists($archivePath);
+		if (!$complete || $exitCode !== 0 || !is_file($tmpArchive) || !@rename($tmpArchive, $archivePath)) {
+			@unlink($tmpArchive);
+			return false;
+		}
+		return true;
 	}
 
 	/**
 	 * Create a zip file
+	 *
+	 * $exclude_callback is applied to the names of all entries below the
+	 * given directories and to the given files themselves.
 	 */
 	public static function createZip($filenames, $archivename, $exclude_callback=null, $noCompressExtensions = []) {
 		// Default extensions to store without compression
@@ -124,37 +210,22 @@ class IFMArchive {
 		}
 
 		// Try system zip first for better memory efficiency
-		if (is_array($filenames) && count($filenames) === 1) {
-			$source = $filenames[0];
-			if (is_dir($source) || is_file($source)) {
-				$realPath = realpath($source);
-				if ($realPath && self::createZipSystem($realPath, $archivename, $noCompressExtensions)) {
-					return true;
-				}
-			}
-		}
-		
+		if (count($filenames) === 1 && self::createZipSystem($filenames[0], $archivename, $noCompressExtensions, $exclude_callback))
+			return true;
+
 		// Fallback to PHP \ZipArchive
 		$a = new \ZipArchive();
-		$a->open($archivename, ZIPARCHIVE::CREATE);
+		if ($a->open($archivename, \ZipArchive::CREATE) !== true)
+			return false;
 
 		foreach ($filenames as $f)
 			if (is_dir($f)) {
-				if (is_callable($exclude_callback)) {
-					self::addFolder($a, $f, null, $exclude_callback, $noCompressExtensions);
-				} else {
-					self::addFolder($a, $f, null, null, $noCompressExtensions);
-				}
+				self::addFolder($a, $f, $exclude_callback, $noCompressExtensions);
 			} elseif (is_file($f)) {
-				if (!is_callable($exclude_callback) || $exclude_callback($f)) {
-					$nameInArchive = pathinfo($f, PATHINFO_BASENAME);
+				$nameInArchive = basename($f);
+				if (!is_callable($exclude_callback) || $exclude_callback($nameInArchive)) {
 					$a->addFile($f, $nameInArchive);
-					$ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-					if (!empty($noCompressExtensions) && in_array($ext, $noCompressExtensions)) {
-						$a->setCompressionName($nameInArchive, \ZipArchive::CM_STORE, 0);
-					} else {
-						$a->setCompressionName($nameInArchive, \ZipArchive::CM_DEFLATE, 6);
-					}
+					self::setZipCompression($a, $nameInArchive, $noCompressExtensions);
 				}
 			}
 
@@ -186,7 +257,7 @@ class IFMArchive {
 	/**
 	 * Creates a tar archive
 	 */
-	public static function createTar($filenames, $archivename, $format) {
+	public static function createTar($filenames, $archivename, $format, $exclude_callback = null) {
 		if (!in_array($format, ["tar", "tar.gz", "tar.bz2"])) {
 			return false;
 		}
@@ -207,9 +278,9 @@ class IFMArchive {
 
 			foreach ($filenames as $f) {
 				if (is_dir($f)) {
-					self::addFolder($a, $f);
-				} elseif (is_file($f)) {
-					$a->addFile($f, pathinfo($f, PATHINFO_BASENAME));
+					self::addFolder($a, $f, $exclude_callback);
+				} elseif (is_file($f) && (!is_callable($exclude_callback) || $exclude_callback(basename($f)))) {
+					$a->addFile($f, basename($f));
 				}
 			}
 			switch ($format) {
