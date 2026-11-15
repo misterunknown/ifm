@@ -154,6 +154,26 @@ class ValidationTest extends TestCase
         $this->assertFalse($ifm->isFilenameValid('.htpasswd'));
     }
 
+    /** GHSA-hj69-3cr4-95qg: .user.ini enables e.g. auto_prepend_file on PHP-FPM/CGI. */
+    public function testServerConfigFilesProtectedWhenShowHtdocsOff(): void
+    {
+        $ifm = new \IFM(['root_dir' => $this->root, 'showhtdocs' => 0, 'showhiddenfiles' => 1]);
+        foreach (['.user.ini', '.USER.INI', '.HTaccess', '.htdigest', '.htgroups'] as $name) {
+            $this->assertFalse($ifm->isFilenameValid($name), "$name must be protected");
+        }
+        // only the exact names are protected, not everything that looks alike
+        foreach (['user.ini', '.user.ini.txt', 'php.ini', '.hidden'] as $name) {
+            $this->assertTrue($ifm->isFilenameValid($name), "$name must stay allowed");
+        }
+    }
+
+    public function testServerConfigFilesAllowedWhenShowHtdocsOn(): void
+    {
+        $ifm = new \IFM(['root_dir' => $this->root, 'showhtdocs' => 1, 'showhiddenfiles' => 1]);
+        $this->assertTrue($ifm->isFilenameValid('.htaccess'));
+        $this->assertTrue($ifm->isFilenameValid('.user.ini'));
+    }
+
     public function testHiddenFilesRejectedWhenShowHiddenOff(): void
     {
         $ifm = new \IFM(['root_dir' => $this->root, 'showhiddenfiles' => 0]);

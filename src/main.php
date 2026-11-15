@@ -427,7 +427,7 @@ f00bar;
 					continue;
 				if ($result == $scriptName && $isInitialWD)
 					continue;
-				if (!$showHtdocs && ($result == ".htaccess" || $result == ".htpasswd"))
+				if (!$showHtdocs && $this->isServerConfigFile($result))
 					continue;
 				if (!$showHidden && $result != ".." && $result[0] == ".")
 					continue;
@@ -584,7 +584,9 @@ f00bar;
 		$visited[$rp] = true;
 
 		foreach (glob($this->pathCombine($dir, $pattern)) as $result)
-			$items[] = $this->getItemInformation($result);
+			// same visibility rules as the file listing
+			if ($this->isFilenameAllowed(basename($result)))
+				$items[] = $this->getItemInformation($result);
 
 		foreach (glob($this->pathCombine($dir, '*'), GLOB_ONLYDIR) as $subdir)
 			foreach ($this->searchItemsRecursive($pattern, $subdir, $visited) as $it)
@@ -616,7 +618,8 @@ f00bar;
 		if ($handle = opendir($start_dir)) {
 			while (false !== ($result = readdir($handle))) {
 				$path = $this->pathCombine($start_dir, $result);
-				if (is_dir($path) && $result != "." && $result != ".." ) {
+				// same visibility rules as the file listing
+				if (is_dir($path) && $result != "." && $result != ".." && $this->isFilenameAllowed($result)) {
 					array_push($ret, [
 						"text" => htmlspecialchars($result),
 						"dataAttributes" => ["path" => $path],
@@ -1488,7 +1491,7 @@ f00bar;
 	}
 
 	private function isFilenameAllowed($f) {
-		if ($this->config['showhtdocs'] != 1 && substr($f, 0, 3) == ".ht")
+		if ($this->config['showhtdocs'] != 1 && $this->isServerConfigFile($f))
 			return false;
 		elseif ($this->config['showhiddenfiles'] != 1 && substr($f, 0, 1) == ".")
 			return false;
@@ -1496,6 +1499,18 @@ f00bar;
 			return false;
 		else
 			return true;
+	}
+
+	// files which configure the web server or PHP for their directory and are
+	// thus protected unless showhtdocs is enabled: .htaccess, .htpasswd & co.
+	// and PHP's per-directory .user.ini (which allows e.g. auto_prepend_file).
+	// Compared case-insensitively for case-insensitive file systems.
+	private function isServerConfigFile($f) {
+		$f = strtolower($f);
+		if (substr($f, 0, 3) == ".ht")
+			return true;
+		$userIni = strtolower((string)ini_get('user_ini.filename'));
+		return $f == ".user.ini" || ($userIni !== "" && $f == $userIni);
 	}
 
 	// is the cURL extension available?

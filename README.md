@@ -260,7 +260,7 @@ these assets attached: `ifm.php`, `ifm.min.php`, `cdn.ifm.php`,
 
 The IFM is usually locked to it's own directory, so you are not able to go above. You can change that by setting the `root_dir` in the scripts [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
-By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration.
+By default, it is not allowed to show or edit the `.htaccess` file. This is because you can configure the IFM via environment variables. Thus if anyone has the ability to edit the `.htaccess` file, he could overwrite the active configuration. The same applies to the other `.ht*` files (e.g. `.htpasswd`) and to PHP's per-directory `.user.ini`, which can be used to inject code into every PHP script of its directory. All of them can only be shown and edited if you enable `showhtdocs`.
 > [!TIP]
 > [See also configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
