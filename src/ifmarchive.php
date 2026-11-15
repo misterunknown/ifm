@@ -243,8 +243,9 @@ class IFMArchive {
 		if (!file_exists($file)) {
 			return false;
 		}
-		$tar = new PharData($file);
 		try {
+			// the constructor throws as well, e.g. for corrupted archives
+			$tar = new PharData($file);
 			$tar->extractTo($destination, null, true);
 			return true;
 		} catch (Exception $e) {

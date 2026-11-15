@@ -777,6 +777,16 @@ f00bar;
 		if (!isset($d['filename']) || !$this->isFilenameValid($d['filename']) || !is_file($d['filename']))
 			throw new IFMException($this->l('invalid_filename'));
 
+		if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "zip")
+			$format = "zip";
+		elseif (
+			(strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "tar")
+			|| (strtolower(pathinfo(pathinfo($d['filename'], PATHINFO_FILENAME), PATHINFO_EXTENSION)) == "tar")
+		)
+			$format = "tar";
+		else
+			throw new IFMException($this->l('archive_invalid_format'));
+
 		if (!isset($d['targetdir']) || (is_string($d['targetdir']) && trim($d['targetdir']) == ""))
 			$d['targetdir'] = "./";
 
@@ -793,42 +803,70 @@ f00bar;
 		if ($targetDir === false || !is_dir($targetDir) || !$this->isPathValid($targetDir))
 			throw new IFMException($this->l('invalid_dir'));
 
-		// if the archive is extracted into a directory containing this script,
-		// snapshot it so it can be restored if the archive overwrites it
-		$tmpSelfContent = null;
-		$tmpSelfChecksum = null;
-		if ($targetDir == substr($this->initialWD, 0, strlen($targetDir))) {
-			$tmpSelfContent = tmpfile();
-			fwrite($tmpSelfContent, file_get_contents(__FILE__));
-			$tmpSelfChecksum = hash_file("sha256", __FILE__);
-		}
+		// Extract into a private staging directory first and move over only the
+		// entries whose names pass the same checks as every other file operation:
+		// archives must not be able to place e.g. .htaccess or .user.ini files,
+		// or overwrite this script. Validating the extracted result (instead of
+		// the archive's entry list) covers whatever the archive libraries make of
+		// odd entry names. The staging directory lives inside the target, so
+		// moving is a cheap rename on the same file system.
+		$staging = $this->pathCombine($targetDir, ".ifm-extract-" . bin2hex(random_bytes(8)));
+		if (!@mkdir($staging, 0700))
+			throw new IFMException($this->l('extract_error'));
 
+		$skipped = [];
 		try {
-			if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "zip")
-				$success = IFMArchive::extractZip($d['filename'], $targetDir);
-			elseif (
-				(strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "tar")
-				|| (strtolower(pathinfo(pathinfo($d['filename'], PATHINFO_FILENAME), PATHINFO_EXTENSION)) == "tar")
-			)
-				$success = IFMArchive::extractTar($d['filename'], $targetDir);
+			if ($format == "zip")
+				$success = IFMArchive::extractZip($d['filename'], $staging);
 			else
-				throw new IFMException($this->l('archive_invalid_format'));
+				$success = IFMArchive::extractTar($d['filename'], $staging);
+			if ($success)
+				$this->moveExtracted($staging, $targetDir, "", $skipped);
 		} finally {
-			if ($tmpSelfContent !== null) {
-				if ($tmpSelfChecksum != hash_file("sha256", __FILE__)) {
-					rewind($tmpSelfContent);
-					$fh = fopen(__FILE__, "w");
-					while (!feof($tmpSelfContent))
-						fwrite($fh, fread($tmpSelfContent, 8192));
-					fclose($fh);
-				}
-				fclose($tmpSelfContent);
-			}
+			$this->rec_rmdir($staging);
 		}
 
 		if (!$success)
 			throw new IFMException($this->l('extract_error'));
-		return ["status" => "OK", "message" => $this->l('extract_success')];
+		$ret = ["status" => "OK", "message" => $this->l('extract_success')];
+		if (!empty($skipped))
+			$ret['warning'] = $this->buildErrorList($this->l('extract_skipped'), $skipped);
+		return $ret;
+	}
+
+	// moves extracted entries from the staging directory $src into $dst;
+	// entries with disallowed names are skipped (with their whole subtree) and
+	// reported in $skipped, relative to the archive root
+	private function moveExtracted($src, $dst, $relative, array &$skipped) {
+		$entries = @scandir($src);
+		if ($entries === false)
+			return;
+		$self = realpath(__FILE__);
+		$dstReal = realpath($dst);
+		foreach (array_diff($entries, ['.', '..']) as $entry) {
+			$from = $src . DIRECTORY_SEPARATOR . $entry;
+			$to = $dst . DIRECTORY_SEPARATOR . $entry;
+			$name = ($relative === "") ? $entry : $relative . "/" . $entry;
+
+			if (
+				is_link($from) // archive libraries don't create links, but never move one
+				|| !$this->isFilenameValid($entry, false)
+				|| ($this->config['selfoverwrite'] != 1 && $dstReal . DIRECTORY_SEPARATOR . $entry === $self)
+			) {
+				$skipped[] = $name;
+				continue;
+			}
+
+			if (is_dir($from)) {
+				if (!is_dir($to) && !@mkdir($to)) {
+					$skipped[] = $name;
+					continue;
+				}
+				$this->moveExtracted($from, $to, $name, $skipped);
+			} elseif (is_dir($to) || !@rename($from, $to)) {
+				$skipped[] = $name;
+			}
+		}
 	}
 
 	// uploads a file
@@ -1462,13 +1500,15 @@ f00bar;
 	}
 
 	// check if filename is allowed
-	public function isFilenameValid($f) {
+	// $checkSelfOverwrite: whether to apply the selfoverwrite protection, which
+	// only makes sense for names relative to the current working directory
+	public function isFilenameValid($f, $checkSelfOverwrite = true) {
 		// reject non-strings and the dot segments; neither contains a path
 		// separator, so the checks below would let them through
 		if (!is_string($f) || $f === "" || $f === "." || $f === "..")
 			return false;
 
-		if (!$this->isFilenameAllowed($f))
+		if (!$this->isFilenameAllowed($f, $checkSelfOverwrite))
 			return false;
 
 		if (strtoupper(substr(PHP_OS, 0, 3)) == "WIN") {
@@ -1490,12 +1530,12 @@ f00bar;
 		return true;
 	}
 
-	private function isFilenameAllowed($f) {
+	private function isFilenameAllowed($f, $checkSelfOverwrite = true) {
 		if ($this->config['showhtdocs'] != 1 && $this->isServerConfigFile($f))
 			return false;
 		elseif ($this->config['showhiddenfiles'] != 1 && substr($f, 0, 1) == ".")
 			return false;
-		elseif ($this->config['selfoverwrite'] != 1 && getcwd() == $this->initialWD && $f == basename(__FILE__))
+		elseif ($checkSelfOverwrite && $this->config['selfoverwrite'] != 1 && getcwd() == $this->initialWD && $f == basename(__FILE__))
 			return false;
 		else
 			return true;

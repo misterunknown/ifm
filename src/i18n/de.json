@@ -21,6 +21,7 @@
     "extract": "Entpacken",
     "extract_error": "Das Archiv konnte nicht entpackt werden.",
     "extract_filename": "Datei entpacken:",
+    "extract_skipped": "Die folgenden Einträge wurden nicht entpackt, weil ihre Namen nicht erlaubt sind oder sie nicht geschrieben werden konnten:",
     "extract_success": "Archiv entpackt.",
     "file_copy_to": "nach",
     "file_delete_confirm": "Soll die folgende Datei wirklich gelöscht werden:",

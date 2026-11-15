@@ -23,6 +23,7 @@
     "extract": "Extract",
     "extract_error": "Could not extract archive.",
     "extract_filename": "Extract file:",
+    "extract_skipped": "The following entries were not extracted, because their names are not allowed or they could not be written:",
     "extract_success": "Archive extracted.",
     "file_copy_to": "to",
     "file_delete_confirm": "Do you really want to delete the following file:",

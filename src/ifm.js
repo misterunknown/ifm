@@ -999,6 +999,8 @@ function IFM(params) {
 			success: function( data ) {
 						if( data.status == "OK" ) {
 							self.showMessage( data.message, "s" );
+							if( data.warning )
+								self.showMessage( data.warning, "w" );
 							self.refreshFileTable();
 						} else self.showMessage( data.message, "e" );
 					},
@@ -1505,11 +1507,12 @@ function IFM(params) {
 	 * @param string t - message type (e: error, s: success)
 	 */
 	this.showMessage = function(m, t) {
-		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : "info";
+		let msgType = ( t == "e" ) ? "danger" : ( t == "s" ) ? "success" : ( t == "w" ) ? "warning" : "info";
 		let offsetY = ( document.activeElement.tagName == "BODY" ) ? 15 : 70;
 		$.notify(
 			{ message: m },
-			{ type: msgType, delay: 3000, mouse_over: 'pause', 
+			// warnings usually carry details (e.g. lists of files), so keep them longer
+			{ type: msgType, delay: ( t == "w" ) ? 10000 : 3000, mouse_over: 'pause', 
 				offset: { x: 0, y: offsetY }, 
 				placement: {
 					from: "bottom",
