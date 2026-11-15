@@ -46,7 +46,36 @@ class CsrfTest extends IfmServerTestCase
         $this->assertDirectoryExists($this->sandbox . '/good');
     }
 
-    /** Header-authenticated (stateless) requests are CSRF-exempt. */
+    /**
+     * Browsers attach cached Basic credentials automatically, even to
+     * cross-site form posts, so the Authorization header must not exempt a
+     * request from the CSRF check (only X-IFM-AUTH does).
+     */
+    public function testAuthorizationHeaderIsNotCsrfExempt(): void
+    {
+        $hash = password_hash('secret', PASSWORD_BCRYPT);
+        $this->startServer([
+            'IFM_AUTH'        => '1',
+            'IFM_AUTH_SOURCE' => "inline;admin:$hash",
+        ]);
+        $basic = ['Authorization' => 'Basic ' . base64_encode('admin:secret')];
+
+        // authenticates fine for reading ...
+        $this->assertOkStatus($this->apiGet('checkAuth', [], $basic));
+
+        // ... but a state-changing call without token is refused
+        $res = $this->apiPost('createDir', ['dir' => '.', 'dirname' => 'csrf'], $basic);
+        $this->assertErrorStatus($res);
+        $this->refuteFileExists($this->sandbox . '/csrf');
+
+        // and works with a token, like a session
+        $token = $this->apiGet('getConfig', [], $basic)['csrf_token'];
+        $res = $this->csrfPost('createDir', ['dir' => '.', 'dirname' => 'withtoken'], $token, $basic);
+        $this->assertOkStatus($res);
+        $this->assertDirectoryExists($this->sandbox . '/withtoken');
+    }
+
+    /** Requests authenticated via X-IFM-AUTH (stateless) are CSRF-exempt. */
     public function testHeaderAuthIsCsrfExempt(): void
     {
         $hash = password_hash('secret', PASSWORD_BCRYPT);

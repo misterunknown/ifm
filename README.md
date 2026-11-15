@@ -305,15 +305,15 @@ Scripts and API clients can skip the session entirely and send credentials on ev
 * `X-IFM-AUTH` — accepts both `Basic <base64(user:pass)>` and bare `<base64(user:pass)>`
 * `Authorization: Basic <base64(user:pass)>` — the standard header; here the `Basic` scheme prefix is required, since the header can carry other schemes
 
-Header-authenticated requests are stateless: no cookies are involved and the CSRF token requirement does not apply, so a single self-contained request can perform any API action:
+Requests authenticated via `X-IFM-AUTH` are stateless: no cookies are involved and the CSRF token requirement does not apply, so a single self-contained request can perform any API action. This does not apply to the `Authorization` header, because browsers send cached Basic credentials automatically, even with requests triggered by other sites: with `Authorization`, state-changing calls need a CSRF token just like session-based ones. So for scripts, use `X-IFM-AUTH`:
 
 ```sh
 # list a directory
-curl -H "X-IFM-AUTH: $(printf '%s' 'user:pass' | base64)" \
+curl -u user:pass \
   -d 'api=getFiles' -d 'dir=' https://example.com/ifm.php
 
 # delete a file - no session, no CSRF token needed
-curl -u user:pass \
+curl -H "X-IFM-AUTH: $(printf '%s' 'user:pass' | base64)" \
   -d 'api=delete' -d 'dir=' -d 'filenames[]=old.log' https://example.com/ifm.php
 ```
 

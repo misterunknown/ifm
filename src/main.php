@@ -130,8 +130,12 @@ class IFM {
 		"txt" => "text/plain", "xml" => "text/xml", "yaml" => "text/yaml",
 		"yml" => "text/yaml",
 	];
-	// set to true when the request was authenticated via the X-IFM-AUTH /
-	// Authorization header (stateless API access) rather than a cookie session
+	// set to true when the request was authenticated via the X-IFM-AUTH header
+	// (stateless API access); such requests are exempt from the CSRF check.
+	// Not so the standard Authorization header: browsers attach cached Basic
+	// credentials to it automatically, even for cross-site requests (e.g. if
+	// the web server protects the IFM with the same credentials), while a
+	// custom header can't be sent cross-site without a CORS preflight.
 	private $authViaHeader = false;
 
 	public function __construct($config=[]) {
@@ -1198,8 +1202,8 @@ f00bar;
 			if ($b64 !== false) {
 				$cred = explode(":", base64_decode($b64, true) ?: "", 2);
 				if (count($cred) == 2 && $this->checkCredentials($cred[0], $cred[1])) {
-					// stateless header auth is not subject to CSRF (no ambient credentials)
-					$this->authViaHeader = true;
+					// only X-IFM-AUTH is free of ambient credentials, see $authViaHeader
+					$this->authViaHeader = isset($_SERVER['HTTP_X_IFM_AUTH']);
 					return true;
 				}
 			}
