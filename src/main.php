@@ -660,6 +660,13 @@ f00bar;
 				array_push($err, $file);
 				continue;
 			}
+			// a directory can't be copied or moved into itself or one of its
+			// subdirectories (copying would nest it until the maximum path length)
+			$source = realpath($file);
+			if (is_dir($source) && strpos($destination . DIRECTORY_SEPARATOR, $source . DIRECTORY_SEPARATOR) === 0) {
+				array_push($err, $file);
+				continue;
+			}
 			if ($d['action'] == "copy") {
 				$this->xcopy($file, $destination) or array_push($err, $file);
 			} elseif ($d['action'] == "move") {

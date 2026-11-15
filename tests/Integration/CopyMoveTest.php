@@ -64,6 +64,38 @@ class CopyMoveTest extends IfmServerTestCase
         $this->assertFileExists($this->sandbox . '/into/folder/inner/file.txt');
     }
 
+    /** Copying a directory into itself used to nest it until the maximum path length. */
+    public function testDirectoryCannotBeCopiedOrMovedIntoItself(): void
+    {
+        $this->seedFile('folder/sub/file.txt', 'x');
+        $this->seedDir('folder-sibling');
+        $this->boot();
+        foreach (['copy', 'move'] as $action) {
+            foreach (['folder', 'folder/sub'] as $target) {
+                $res = $this->csrfPost('copyMove', [
+                    'dir'         => '.',
+                    'action'      => $action,
+                    'filenames'   => ['folder'],
+                    'destination' => $this->sandbox . '/' . $target,
+                ], $this->token);
+                $this->assertErrorStatus($res, "$action folder into $target must be rejected");
+            }
+        }
+        $this->refuteFileExists($this->sandbox . '/folder/folder');
+        $this->refuteFileExists($this->sandbox . '/folder/sub/folder');
+        $this->assertFileExists($this->sandbox . '/folder/sub/file.txt');
+
+        // a sibling with a common name prefix is a valid target
+        $res = $this->csrfPost('copyMove', [
+            'dir'         => '.',
+            'action'      => 'copy',
+            'filenames'   => ['folder'],
+            'destination' => $this->sandbox . '/folder-sibling',
+        ], $this->token);
+        $this->assertOkStatus($res);
+        $this->assertFileExists($this->sandbox . '/folder-sibling/folder/sub/file.txt');
+    }
+
     public function testInvalidActionRejected(): void
     {
         $this->seedFile('x.txt');
