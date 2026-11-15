@@ -290,7 +290,36 @@ See [configuration](https://github.com/misterunknown/ifm/wiki/Configuration).
 
 ### Authentication
 
-See [authentication](https://github.com/misterunknown/ifm/wiki/Authentication).
+See [authentication](https://github.com/misterunknown/ifm/wiki/Authentication) for how to configure the credential sources (`inline`, `file` or `ldap`).
+
+With authentication enabled (`auth => 1` / `IFM_AUTH=1`), clients can authenticate in two ways:
+
+#### Interactive: session login
+
+The web UI logs in via `api=checkAuth` with `inputLogin` / `inputPassword` form fields and keeps a session cookie. Session-based state-changing calls (`createDir`, `saveFile`, `delete`, `rename`, `extract`, `upload`, `copyMove`, `changePermissions`, `remoteUpload`, `createArchive`) additionally require a CSRF token: fetch it once from `api=getConfig` (field `csrf_token`) and send it with every mutating POST as the `X-IFM-CSRF` header (or a `csrf_token` form field). Read-only calls like `getFiles` need no token.
+
+#### Non-interactive: header auth (API clients, scripts)
+
+Scripts and API clients can skip the session entirely and send credentials on every request. Two headers are recognized:
+
+* `X-IFM-AUTH` — accepts both `Basic <base64(user:pass)>` and bare `<base64(user:pass)>`
+* `Authorization: Basic <base64(user:pass)>` — the standard header; here the `Basic` scheme prefix is required, since the header can carry other schemes
+
+Header-authenticated requests are stateless: no cookies are involved and the CSRF token requirement does not apply, so a single self-contained request can perform any API action:
+
+```sh
+# list a directory
+curl -H "X-IFM-AUTH: $(printf '%s' 'user:pass' | base64)" \
+  -d 'api=getFiles' -d 'dir=' https://example.com/ifm.php
+
+# delete a file - no session, no CSRF token needed
+curl -u user:pass \
+  -d 'api=delete' -d 'dir=' -d 'filenames[]=old.log' https://example.com/ifm.php
+```
+
+The API expects regular form encoding (`application/x-www-form-urlencoded` or `multipart/form-data`); JSON request bodies are not parsed.
+
+Header auth can be disabled with the `auth_ignore_basic` config option if you only ever want interactive logins.
 
 ## Screenshots
 
