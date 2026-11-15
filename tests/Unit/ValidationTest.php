@@ -69,6 +69,47 @@ class ValidationTest extends TestCase
         $this->assertFalse($this->callPrivate($this->ifm, 'isPathValid', [$escape]));
     }
 
+    /** ".." behind a non-existent component can't be canonicalized (GHSA-89cj-29fr-h663). */
+    #[DataProvider('traversalThroughMissingDirs')]
+    public function testTraversalThroughNonExistentDirIsRejected(string $relative): void
+    {
+        $this->assertFalse($this->callPrivate($this->ifm, 'isPathValid', [$this->root . '/' . $relative]));
+    }
+
+    public static function traversalThroughMissingDirs(): array
+    {
+        return [
+            'missing, then up'        => ['inside/ghost/../../../escaped'],
+            'missing with dot'        => ['inside/ghost/./../../../escaped'],
+            'trailing slash'          => ['inside/ghost/../../../escaped/'],
+            'missing first component' => ['ghost/../../escaped'],
+            'up inside the jail only' => ['inside/ghost/../other'],
+        ];
+    }
+
+    public function testNonExistentPathsInsideRootAreValid(): void
+    {
+        $this->assertTrue($this->callPrivate($this->ifm, 'isPathValid', [$this->root . '/newdir']));
+        $this->assertTrue($this->callPrivate($this->ifm, 'isPathValid', [$this->root . '/inside/deeper/new/nested']));
+        $this->assertTrue($this->callPrivate($this->ifm, 'isPathValid', [$this->root . '/inside/../inside/new']));
+    }
+
+    /** realpath() returns false for missing paths; that must never be valid. */
+    #[DataProvider('nonStringPaths')]
+    public function testNonStringPathsAreRejected($value): void
+    {
+        $this->assertFalse($this->callPrivate($this->ifm, 'isPathValid', [$value]));
+    }
+
+    public static function nonStringPaths(): array
+    {
+        return [
+            'false (failed realpath)' => [false],
+            'null'                    => [null],
+            'array'                   => [['inside']],
+        ];
+    }
+
     /* ---------- isFilenameValid ---------- */
 
     #[DataProvider('invalidNames')]

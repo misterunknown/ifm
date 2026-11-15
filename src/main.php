@@ -634,7 +634,11 @@ f00bar;
 		if ($this->config['copymove'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 
-		if (!isset($d['destination']) || !$this->isPathValid(realpath($d['destination'])))
+		// validate and operate on the same value: the canonical path of an
+		// existing directory inside root_dir (realpath() returns false for
+		// non-existent paths, which must not be passed on to isPathValid())
+		$destination = (isset($d['destination']) && is_string($d['destination'])) ? realpath($d['destination']) : false;
+		if ($destination === false || !is_dir($destination) || !$this->isPathValid($destination))
 			throw new IFMException($this->l('invalid_dir'));
 
 		if (!is_array($d['filenames']))
@@ -650,9 +654,9 @@ f00bar;
 				continue;
 			}
 			if ($d['action'] == "copy") {
-				$this->xcopy($file, $d['destination']) or array_push($err, $file);
+				$this->xcopy($file, $destination) or array_push($err, $file);
 			} elseif ($d['action'] == "move") {
-				rename($file, $this->pathCombine($d['destination'], basename($file))) or array_push($err, $file);
+				rename($file, $this->pathCombine($destination, basename($file))) or array_push($err, $file);
 			}
 		}
 		if (empty($err)) {
@@ -770,7 +774,7 @@ f00bar;
 		if (!isset($d['filename']) || !$this->isFilenameValid($d['filename']) || !is_file($d['filename']))
 			throw new IFMException($this->l('invalid_filename'));
 
-		if (!isset($d['targetdir']) || trim($d['targetdir']) == "")
+		if (!isset($d['targetdir']) || (is_string($d['targetdir']) && trim($d['targetdir']) == ""))
 			$d['targetdir'] = "./";
 
 		if (!$this->isPathValid($d['targetdir']))
@@ -779,11 +783,18 @@ f00bar;
 		if (!is_dir($d['targetdir']) && !mkdir($d['targetdir'], 0755, true))
 			throw new IFMException($this->l('folder_create_error'));
 
+		// re-check the canonical target now that it exists and use only that from
+		// here on, so the archive is never extracted to a different place than
+		// the one that was validated (e.g. if the path changed in between)
+		$targetDir = realpath($d['targetdir']);
+		if ($targetDir === false || !is_dir($targetDir) || !$this->isPathValid($targetDir))
+			throw new IFMException($this->l('invalid_dir'));
+
 		// if the archive is extracted into a directory containing this script,
 		// snapshot it so it can be restored if the archive overwrites it
 		$tmpSelfContent = null;
 		$tmpSelfChecksum = null;
-		if (realpath($d['targetdir']) == substr($this->initialWD, 0, strlen(realpath($d['targetdir'])))) {
+		if ($targetDir == substr($this->initialWD, 0, strlen($targetDir))) {
 			$tmpSelfContent = tmpfile();
 			fwrite($tmpSelfContent, file_get_contents(__FILE__));
 			$tmpSelfChecksum = hash_file("sha256", __FILE__);
@@ -791,12 +802,12 @@ f00bar;
 
 		try {
 			if (strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "zip")
-				$success = IFMArchive::extractZip($d['filename'], $d['targetdir']);
+				$success = IFMArchive::extractZip($d['filename'], $targetDir);
 			elseif (
 				(strtolower(pathinfo($d['filename'], PATHINFO_EXTENSION)) == "tar")
 				|| (strtolower(pathinfo(pathinfo($d['filename'], PATHINFO_FILENAME), PATHINFO_EXTENSION)) == "tar")
 			)
-				$success = IFMArchive::extractTar($d['filename'], $d['targetdir']);
+				$success = IFMArchive::extractTar($d['filename'], $targetDir);
 			else
 				throw new IFMException($this->l('archive_invalid_format'));
 		} finally {
@@ -852,8 +863,11 @@ f00bar;
 		if (!isset($d["chmod"]) || $d['chmod'] == "" )
 			throw new IFMException($this->l('permission_parse_error'));
 
-		if (!$this->isPathValid($this->pathCombine($d['dir'], $d['filename'])))
-			throw new IFMException($this->l('nopermissions'));
+		// cwd is already $d['dir'] at this point (see chDirIfNecessary in dispatch),
+		// so the filename must be a plain name inside it, just like for every
+		// other file operation
+		if (!isset($d['filename']) || !$this->isFilenameValid($d['filename']) || !file_exists($d['filename']))
+			throw new IFMException($this->l('invalid_filename'));
 
 		$chmod = $d["chmod"]; $cmi = true;
 		if (!is_numeric($chmod)) {
@@ -1294,6 +1308,11 @@ f00bar;
 
 
 	private function isPathValid($dir) {
+		// e.g. the result of a failed realpath() call: realpath(false) would
+		// resolve to the current working directory and thus pass the check
+		if (!is_string($dir))
+			return false;
+
 		/**
 		 * This function is also used to check non-existent paths, but the PHP realpath function returns false for
 		 * nonexistent paths. Hence we need to check the path manually in the following lines.
