@@ -116,6 +116,10 @@ function IFM(params) {
 			item.linkname = ( item.name == ".." ) ? "[ up ]" : item.name;
 			if( item.name == ".." )
 				item.fixtop = 100;
+			else if( item.type == "dir" )
+				// rank directories above files so the orderFixed prefix keeps
+				// the grouping under any user-chosen column sort
+				item.fixtop = 50;
 			item.download = {};
 			item.download.name = ( item.name == ".." ) ? "." : item.name;
 			item.lastmodified_hr = self.formatDate( item.lastmodified );
