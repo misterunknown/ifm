@@ -40,9 +40,11 @@ jobs:
         env:
           # tag name (e.g. v4.2.0) is the authoritative version for a release
           IFM_VERSION: ${{ github.ref_name }}
+        # ship all translations, like the Docker image; english stays the
+        # default language (config option "language")
         run: |
-          php compiler.php
-          php compiler.php --cdn
+          php compiler.php --languages=all
+          php compiler.php --languages=all --cdn
 
       - name: Verify embedded version matches the tag
         run: |
