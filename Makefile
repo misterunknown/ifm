@@ -44,11 +44,13 @@ test-security: build
 	$(PHPUNIT) --testsuite security
 
 # same as the "Docker" CI workflow; needs docker, curl and jq
+IFM_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null)
+
 test-docker:
-	docker build --build-arg CDN=false -t ifm:test .
-	tests/docker/smoke-test.sh ifm:test regular
-	docker build --build-arg CDN=true -t ifm:test-cdn .
-	tests/docker/smoke-test.sh ifm:test-cdn cdn
+	docker build --build-arg CDN=false --build-arg IFM_VERSION="$(IFM_VERSION)" -t ifm:test .
+	tests/docker/smoke-test.sh ifm:test regular "$(IFM_VERSION)"
+	docker build --build-arg CDN=true --build-arg IFM_VERSION="$(IFM_VERSION)" -t ifm:test-cdn .
+	tests/docker/smoke-test.sh ifm:test-cdn cdn "$(IFM_VERSION)"
 
 build:
 	$(PHP) ./compiler.php

@@ -26,9 +26,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # tags for git describe
+
+      - name: Determine version
+        run: echo "IFM_VERSION=$(git describe --tags --always)" >> "$GITHUB_ENV"
 
       - name: Build image
-        run: docker build --build-arg CDN=${{ matrix.variant == 'cdn' }} -t ifm:ci .
+        run: docker build --build-arg CDN=${{ matrix.variant == 'cdn' }} --build-arg IFM_VERSION="$IFM_VERSION" -t ifm:ci .
 
       - name: Smoke test
-        run: tests/docker/smoke-test.sh ifm:ci ${{ matrix.variant }}
+        run: tests/docker/smoke-test.sh ifm:ci ${{ matrix.variant }} "$IFM_VERSION"

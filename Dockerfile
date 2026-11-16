@@ -23,6 +23,9 @@ WORKDIR /usr/src/ifm
 COPY . .
 
 ARG CDN=false
+# the build context contains no .git, so the version can't be derived via
+# git describe; pass it explicitly, e.g. --build-arg IFM_VERSION="$(git describe --tags)"
+ARG IFM_VERSION=""
 
 # install composer packages
 RUN composer install --optimize-autoloader && \

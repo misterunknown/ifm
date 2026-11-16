@@ -3,7 +3,7 @@
 # Smoke test for the IFM docker image: starts containers the way the README
 # and docker-compose.yml do and checks the essential functions via the API.
 #
-# usage: tests/docker/smoke-test.sh <image> [regular|cdn]
+# usage: tests/docker/smoke-test.sh <image> [regular|cdn] [expected version]
 #
 # Needs docker, curl and jq on the host; everything else (e.g. creating and
 # inspecting zip archives) runs inside the image under test.
@@ -12,8 +12,9 @@
 # shellcheck disable=SC2016
 set -euo pipefail
 
-image=${1:?usage: $0 <image> [regular|cdn]}
+image=${1:?usage: $0 <image> [regular|cdn] [expected version]}
 variant=${2:-regular}
+version=${3:-}
 case "$variant" in regular|cdn) ;; *) echo "unknown variant: $variant" >&2; exit 2;; esac
 
 work=$(mktemp -d)
@@ -99,6 +100,12 @@ else
 	! grep -q "cdnjs.cloudflare.com" <<<"$page" || fail "regular variant must not load assets from CDNs"
 fi
 ok "UI page ($variant variant)"
+
+if [ -n "$version" ]; then
+	shown=$(api "${base}?api=getTemplates" | jq -r '.footer + .app' | grep -o "releases/tag/[^']*" | head -n 1)
+	[ "$shown" = "releases/tag/$version" ] || fail "UI must show version $version, shows: ${shown#releases/tag/}"
+	ok "version $version"
+fi
 
 [ "$(api "${base}?api=getI18N&lang=de" | jq -r .extract)" = "Entpacken" ] || fail "german translation missing"
 ok "all languages included"

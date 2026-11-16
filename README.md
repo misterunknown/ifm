@@ -208,6 +208,12 @@ docker build -t ifm .
 docker build --build-arg CDN=true -t ifm:cdn .
 ```
 
+The build context doesn't include the git metadata, so pass the version shown in the UI explicitly (otherwise it's `v0.0.0-dev`):
+
+```bash
+docker build --build-arg IFM_VERSION="$(git describe --tags)" -t ifm .
+```
+
 See [Installation → Docker](#docker) for how to run the resulting image.
 
 ### Docker Compose
@@ -223,6 +229,9 @@ CDN=true docker compose build
 
 # build + start in one go
 CDN=true docker compose up -d --build
+
+# with the version shown in the UI (see above)
+IFM_VERSION="$(git describe --tags)" docker compose build
 ```
 
 See [Installation → Docker Compose](#docker-compose) for how to run the resulting service.
