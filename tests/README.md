@@ -17,6 +17,16 @@ make test                 # build dist + run everything
 ./vendor/bin/phpunit --testsuite security
 ```
 
+The docker image has a separate smoke test, which starts containers the way the
+README and `docker-compose.yml` do and checks the essential functions via the API
+(needs docker, curl and jq; the `Docker` CI workflow runs the same):
+
+```bash
+make test-docker
+# or for an existing image:
+tests/docker/smoke-test.sh <image> [regular|cdn]
+```
+
 Requirements: PHP CLI with `zip`, `phar`, `posix`, `fileinfo`, `curl`, `mbstring`
 (and optionally `bz2` — the one tar.bz2 round-trip skips itself if absent).
 
@@ -36,7 +46,9 @@ tests/
     UploadDownloadTest, ArchiveApiTest, SearchTest, RemoteUploadTest,
     FeatureFlagTest
   Security/                  # jail-escape / abuse cases (two-part assertions)
-    PathJailTest, SelfOverwriteTest, SymlinkLoopTest
+    PathJailTest, SelfOverwriteTest, SymlinkLoopTest, ProtectedFilesTest,
+    ArchiveExtractTest, ArchiveCreateTest
+  docker/smoke-test.sh       # smoke test for the docker image
 ```
 
 ## Design

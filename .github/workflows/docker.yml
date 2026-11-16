@@ -1,0 +1,34 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "master", "v4.0" ]
+  pull_request:
+    branches: [ "master", "v4.0" ]
+
+permissions: {}
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Docker image (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [ 'regular', 'cdn' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build --build-arg CDN=${{ matrix.variant == 'cdn' }} -t ifm:ci .
+
+      - name: Smoke test
+        run: tests/docker/smoke-test.sh ifm:ci ${{ matrix.variant }}

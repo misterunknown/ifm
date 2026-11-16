@@ -1,4 +1,4 @@
-.PHONY: help analyse syntax-check build build-cdn build-all clean test test-unit test-integration test-security
+.PHONY: help analyse syntax-check build build-cdn build-all clean test test-unit test-integration test-security test-docker
 
 PHP ?= php
 PHPSTAN ?= ./vendor/bin/phpstan
@@ -13,6 +13,7 @@ help:
 	@echo "  make test-unit    - run the unit test suite"
 	@echo "  make test-integration - run the HTTP integration suite"
 	@echo "  make test-security    - run the security/jail-escape suite"
+	@echo "  make test-docker      - build both docker image variants and smoke-test them"
 	@echo "  make build        - compile regular dist files"
 	@echo "  make build-cdn    - compile CDN dist files"
 	@echo "  make build-all    - compile regular and CDN dist files"
@@ -41,6 +42,13 @@ test-integration: build
 
 test-security: build
 	$(PHPUNIT) --testsuite security
+
+# same as the "Docker" CI workflow; needs docker, curl and jq
+test-docker:
+	docker build --build-arg CDN=false -t ifm:test .
+	tests/docker/smoke-test.sh ifm:test regular
+	docker build --build-arg CDN=true -t ifm:test-cdn .
+	tests/docker/smoke-test.sh ifm:test-cdn cdn
 
 build:
 	$(PHP) ./compiler.php
