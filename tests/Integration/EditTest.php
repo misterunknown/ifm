@@ -83,6 +83,19 @@ class EditTest extends IfmServerTestCase
         $this->assertFileExists($this->sandbox . '/after.txt');
     }
 
+    public function testRenameOntoExistingNameIsRefused(): void
+    {
+        $this->seedFile('one.txt', 'first');
+        $this->seedFile('two.txt', 'second');
+        $this->boot();
+        $res = $this->csrfPost('rename', [
+            'dir' => '.', 'filename' => 'one.txt', 'newname' => 'two.txt',
+        ], $this->token);
+        $this->assertErrorStatus($res);
+        $this->assertSame('first', file_get_contents($this->sandbox . '/one.txt'));
+        $this->assertSame('second', file_get_contents($this->sandbox . '/two.txt'));
+    }
+
     public function testDeleteFile(): void
     {
         $this->seedFile('trash.txt', 'x');

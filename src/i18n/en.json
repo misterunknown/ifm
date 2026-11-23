@@ -101,6 +101,7 @@
     "size": "Size",
     "soft_tabs": "Soft Tabs",
     "tab_size": "Tab Size",
+    "target_exists": "the target already exists",
     "tasks": "Tasks",
     "toggle_nav": "Toggle navigation",
     "upload": "Upload",
