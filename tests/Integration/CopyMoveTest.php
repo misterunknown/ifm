@@ -96,6 +96,37 @@ class CopyMoveTest extends IfmServerTestCase
         $this->assertFileExists($this->sandbox . '/folder-sibling/folder/sub/file.txt');
     }
 
+    public function testMoveOntoExistingFileIsRefused(): void
+    {
+        $this->seedFile('item.txt', 'new');
+        $this->seedFile('dst/item.txt', 'old');
+        $this->boot();
+        $res = $this->csrfPost('copyMove', [
+            'dir'         => '.',
+            'action'      => 'move',
+            'filenames'   => ['item.txt'],
+            'destination' => $this->sandbox . '/dst',
+        ], $this->token);
+        $this->assertErrorStatus($res);
+        $this->assertSame('new', file_get_contents($this->sandbox . '/item.txt'));
+        $this->assertSame('old', file_get_contents($this->sandbox . '/dst/item.txt'));
+    }
+
+    public function testCopyOntoExistingFileStillOverwrites(): void
+    {
+        $this->seedFile('item.txt', 'new');
+        $this->seedFile('dst/item.txt', 'old');
+        $this->boot();
+        $res = $this->csrfPost('copyMove', [
+            'dir'         => '.',
+            'action'      => 'copy',
+            'filenames'   => ['item.txt'],
+            'destination' => $this->sandbox . '/dst',
+        ], $this->token);
+        $this->assertOkStatus($res);
+        $this->assertSame('new', file_get_contents($this->sandbox . '/dst/item.txt'));
+    }
+
     public function testInvalidActionRejected(): void
     {
         $this->seedFile('x.txt');

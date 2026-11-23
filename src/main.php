@@ -414,7 +414,13 @@ f00bar;
 	}
 
 	private function getFiles($dir) {
-		$this->chDirIfNecessary($dir);
+		// listing is read-only, so an unusable dir may fall back to root_dir
+		// here (the UI relies on that); mutating APIs fail in dispatch() instead
+		try {
+			$this->chDirIfNecessary($dir);
+		} catch (IFMException $e) {
+			chdir($this->getRootDir());
+		}
 
 		$files = []; $dirs = [];
 		$scriptName = basename($_SERVER['SCRIPT_NAME']);
@@ -670,7 +676,13 @@ f00bar;
 			if ($d['action'] == "copy") {
 				$this->xcopy($file, $destination) or array_push($err, $file);
 			} elseif ($d['action'] == "move") {
-				rename($file, $this->pathCombine($destination, basename($file))) or array_push($err, $file);
+				// rename() silently replaces an existing target
+				$target = $this->pathCombine($destination, basename($file));
+				if (file_exists($target) || is_link($target)) {
+					array_push($err, $file);
+					continue;
+				}
+				rename($file, $target) or array_push($err, $file);
 			}
 		}
 		if (empty($err)) {
@@ -734,9 +746,12 @@ f00bar;
 		if ($this->config['delete'] != 1)
 			throw new IFMException($this->l('nopermissions'));
 
+		if (!isset($d['filenames']) || !is_array($d['filenames']))
+			throw new IFMException($this->l('invalid_params'));
+
 		$err = [];
 		foreach ($d['filenames'] as $file) {
-			if ($this->isFilenameValid($file)) {
+			if ($this->isFilenameValid($file) && (file_exists($file) || is_link($file))) {
 				if (is_dir($file) && !is_link($file)) {
 					if (!$this->rec_rmdir($file))
 						array_push($err, $file);
@@ -759,6 +774,10 @@ f00bar;
 			throw new IFMException($this->l('nopermissions'));
 		elseif (!$this->isFilenameValid($d['filename']) || !$this->isFilenameValid($d['newname']))
 			throw new IFMException($this->l('invalid_filename'));
+
+		// rename() silently replaces an existing target
+		if (file_exists($d['newname']) || is_link($d['newname']))
+			throw new IFMException($this->l('file_rename_error') . ": " . $this->l('target_exists'));
 
 		if (@rename($d['filename'], $d['newname']))
 			return ["status" => "OK", "message" => $this->l('file_rename_success')];
@@ -1401,12 +1420,19 @@ f00bar;
 			return false;
 	}
 
+	// changes into the working directory of the request; fails closed, because
+	// every file operation works on plain names relative to the cwd: a dir that
+	// does not exist, is not a directory or cannot be entered must abort the
+	// request instead of leaving the cwd at root_dir (which would e.g. make a
+	// delete hit a same-named file in the root)
 	private function chDirIfNecessary($d) {
-		if (empty($d))
+		if ($d === null || $d === "")
 			return;
-		$target = $this->pathCombine($this->getRootDir(), $this->getValidDir($d));
-		if ($target !== "" && getcwd() !== $target)
-			chdir($target);
+		$target = is_string($d) ? realpath($d) : false;
+		if ($target === false || !is_dir($target) || !$this->isPathValid($target))
+			throw new IFMException($this->l('invalid_dir'));
+		if (getcwd() !== $target && (!@chdir($target) || getcwd() !== $target))
+			throw new IFMException($this->l('invalid_dir'));
 	}
 
 	// returns the MIME type of a file; well-known extensions are resolved from
